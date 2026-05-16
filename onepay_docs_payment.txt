@@ -1,0 +1,297 @@
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  10 / 33   -  Endpoint:  https://mtf.onepay.vn/paygate/vpcpay.op -  Merchant  ID:  TESTTRAGOP  -  Access  Code:  D51C5CD6  -  HashCode  /  Secure  Secret  Key:  EB1B7F75EBB2FAABD6763FC37A3628AF   ●  Dịch  vụ  thanh  toán  có  áp  dụng  chương  trình  khuyến  mại:  -  Endpoint:  https://mtf.onepay.vn/paygate/vpcpay.op -  Merchant  ID:  TESTPR  -  Access  Code:  6BEB0511  -  HashCode  /  Secure  Secret  Key:  6D0870CDE5F24F34F3915FB0045120D2  -  Chương  trình  promotion:  Đơn  vị  cần  cung  cấp  chương  trình  giảm  giá  cụ  thể  để  OnePay  
+có
+ 
+thể
+ 
+cấu
+ 
+hình
+ 
+tương
+ 
+ứng,
+ 
+tại
+ 
+môi
+ 
+trường
+ 
+test
+ 
+OnePay
+ 
+sẽ
+ 
+lấy
+ 
+một
+ 
+chương
+ 
+trình
+ 
+đã
+ 
+được
+ 
+cài
+ 
+đặt
+ 
+sẵn.
+ 
+Dưới
+ 
+đây
+ 
+là
+ 
+chương
+ 
+trình
+ 
+mẫu:
+ 
+Tên
+ 
+chương
+ 
+trình:
+ 
+Discount
+ 
+10%
+ 
+with
+ 
+Visa
+ 
+Promotion
+ 
+ID:
+ 
+86DDBBC1F8C3FA418CE9AE4ECE43DD86.
+  ●  Lưu  thông  tin  thẻ  thanh  toán  cho  lần  kế  tiếp  (Token  OnePay)  -  Endpoint:  https://mtf.onepay.vn/paygate/vpcpay.op -  Merchant  ID:  TESTTOKENOP  -  Access  Code:  6BEB2546  -  HashCode  /  Secure  Secret  Key:  6D0870CDE5F24F34F3915FB0045120DB   
+14.2  Tạo  yêu  cầu  thanh  toán  –  Payment  Request  -  Các  tham  số  không  chấp  nhận  tiếng  Việt  có  dấu  và  các  ký  tự  đặc  biệt  sau:  "(",  "/",  "&",  
+"?",
+ 
+")".
+ -  Phương  thức  https:  GET   -  Cấu  trúc  URL:  https://mtf.onepay.vn/paygate/vpcpay.op?[key=value]&[Key=value]&…  
+Bảng  dưới  đây  mô  tả  các  tham  số  và  giá  trị  truyền  sang  OnePay,  trong  đó  có  các  tham  số  đặc  biệt  
+cần
+ 
+truyền
+ 
+thêm
+ 
+riêng
+ 
+cho
+ 
+“Thanh
+ 
+toán
+ 
+có
+ 
+áp
+ 
+dụng
+ 
+chương
+ 
+trình
+ 
+khuyến
+ 
+mại
+ 
+(Promotion)”
+ 
+và
+ 
+“Thanh
+ 
+toán
+ 
+có
+ 
+lưu
+ 
+thẻ
+ 
+(Token
+ 
+OnePay)”.
+ 
+●  Các  tham  số  truyền  mặc  định  
+Tham  số  
+Kiểu  dữ  liệu  (độ  dài)  
+Yêu  cầu  bắt  buộc  
+Mô  tả  
+vpc_Version  number(2)  Có  
+Version  module  cổng  thanh  toán,  mặc  định  là  “2”.  
+10   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  11 / 33   
+vpc_Currency  string(3)  Có  
+Đơn  vị  tiền  tệ,  mặc  định  là  VND  được  cấu  hình  theo  tài  khoản  kỹ  thuật  vpc_Merchant.  Đơn  vị  cần  lấy  đúng  currency  của  merchant  ID  được  cấp  (khi  tích  hợp  OP  sẽ  note  là  ID  sẽ  dùng  currency  nào).  vpc_Command  string(16)  Có  Chức  năng  thanh  toán,  mặc  định  là  pay.  
+vpc_AccessCode  string(8)  Có  
+Tài  khoản  kỹ  thuật  do  OnePay  cung  cấp  cho  đơn  vị.  
+vpc_Merchant  string(12)  Có  
+Tài  khoản  kỹ  thuật  do  OnePay  cung  cấp  cho  đơn  vị.  
+vpc_Locale  string(2)  Có  
+Ngôn  ngữ  khi  hiển  thị  trang  thanh  toán:  -  vn:  Tiếng  Việt  -  en:  Tiếng  Anh  
+vpc_ReturnURL  string(128)  Có  
+URL  trang  nhận  thông  báo  kết  quả  giao  dịch  của  đơn  vị.  Sau  khi  hoàn  tất  giao  dịch  OnePay  sẽ  chuyển  hướng  về  đường  dẫn  này  cho  đơn  vị.  Ví  dụ: https://merchant.com/order-receive.  Chi  tiết  xem  ở  mục  II-4.3.1.  Giá  trị  cần  encode  URL  khi  gọi  yêu  cầu  thanh  toán  sang  OnePay.  
+vpc_MerchTxnRef  
+string(40)  Có  
+Mã  giao  dịch,  là  mã  duy  nhất  được  tạo  cho  mỗi  giao  dịch,  không  chứa  tiếng  Việt  có  dấu  và  các  ký  tự  quá  đặc  biệt:   "(",  "/",  "&",  "?",  ")".  Nên  sử  dụng  dấu  gạch  dưới  “_”  và  dấu  gạch  ngang  “-”  trong  chuỗi.  Giá  trị  này  thường  để  đối  soát  giữa  hệ  thống  đơn  vị  và  cổng  thanh  toán. 
+vpc_OrderInfo  string(34)  Có  
+Mã  đơn  hàng,  thông  tin  đơn  hàng,...  Không  chứa  tiếng  Việt  có  dấu  và  các  ký  tự  đặc  biệt.  Có  thể  dùng  dấu  cách,  dấu  gạch  dưới  “_”  trong  chuỗi.  Ví  dụ:  -  Ma  Don  Hang  1  -  Ma_Don_Hang_2  
+vpc_Amount  string(12)  Có  
+Số  tiền  thanh  toán,  không  có  dấu  ngăn  cách  đơn  vị  nghìn,  trăm  nghìn,  triệu,…  Đơn  vị  cần  nhân  số  tiền  với  100  trước  khi  truyền  sang  cổng  OnePay,  đối  với  các  đơn  vị  tiền  tệ  khác  nhau  do  chuẩn  API  áp  dụng  chung  ở  phần  thập  phân  có  2  chữ  số,  cần  nhân  với  100  để  loại  bỏ  phần  thập  phân.  Đồng  tiền  VND  không  có  thập  phân  tuy  nhiên  vẫn  cần  nhân  với  100.  
+11   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  12 / 33   Ví  dụ:  -  25.000đ  →  đơn  vị  truyền  2500000  -  4.56$  →  đơn  vị  truyền  456  Với  giao  dịch  trả  góp  số  tiền  phải  từ  3  triệu  VND  trở  lên.  
+vpc_TicketNo  string(15)  Có  
+Địa  chỉ  IP  khách  hàng  thực  hiện  thanh  toán.  Không  được  đặt  cố  định  1  IP.  
+vpc_CardList  string(256)  Không  
+Hình  thức  thanh  toán  và  Loại  thẻ  hiển  thị  trên  cổng  thanh  toán.  Có  truyền  một  giá  trị  cụ  thể:  +INTERNATIONAL:  sử  dụng  các  phương  thức  thanh  toán  quốc  tế,  bao  gồm  thẻ  quốc  tế,  applepay,…  +  INTERCARD:  Chỉ  sử  dụng  thẻ  quốc  tế  Visa,  Master,  JCB,  AE,  CUP.  +  DOMESTIC:  Chỉ  sử  dụng  thẻ  nội  địa  ATM.  +  VIETQR:  Thanh  toán  qua  VIETQR  +  QR:  Thanh  toán  QR  Code,  bao  gồm  UNIONPAY,  QR  mobile  banking,  ví  điện  tử.  +  BNPL:  Mua  trước  trả  sau.  +  9704**:  Mã  đầu  bin  tương  ứng  với  bank  nội  địa,  970436:  VCB;  tham  khảo  phần III-2.  +  APPLEPAY:  Thanh  toán  qua  ApplePay.  +  GOOGLEPAY:  Thanh  toán  qua  GooglePay.  +  SAMSUNGPAY:  Thanh  toán  qua  Samsungpay.  +  MOBILEBANKING:  Chỉ  thanh  toán  QR  code  qua  app  ngân  hàng.  +  EWALLET:  Chỉ  thanh  toán  QR  code  qua  ví  điện  tử.  Có  thể  nhóm  và  truyền  nhiều  giá  trị  được  ngăn  cách  bằng  dấu  phẩy  ",":  +  INTERCARD,DOMESTIC,QR:  thanh  toán  qua  thẻ  quốc  tế,  thẻ  nội  địa  và  QR  payment.  Đơn  vị  nếu  cần  phương  thức  cụ  thể  hơn  hãy  liên  hệ  với  đội  ngũ  kỹ  thuật  OnePay  để  được  hỗ  trợ.  Tham  khảo  hình  ảnh  minh  họa  ở  mục  II-2.  
+vpc_CallbackURL  string(200)  Không  
+Đường  dẫn  động  nhận  thông  báo  kết  quả  giao  dịch  server  -  to  -  server.  Sau  khi  khách  hàng  thực  hiện  thanh  toán,  ngoài  chuyển  hướng  và  trả  về  phần  Frontend  theo  Url  ở  tham  số  vpc_ReturnURL,  OnePay  hỗ  trợ  trả  về  
+12   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  13 / 33   theo  đường  ServerToServer  theo  giá  trị  vpc_CallbackURL.  Tham  khảo  tại  mục  II-4.3.2 
+user_Xxxxxx  string(64)  Không  
+Tham  số  do  đơn  vị  tự  định  nghĩa,  bắt  đầu  với.  “user_”,  ví  dụ:  user_LoaiMatHang,  user_LoaiVatLieu,…  (alphanumeric).  Max  length  of  field  name:  20  Max  length  of  field  value:  64  OnePay  không  xử  lý  tham  số  này.  Đơn  vị  truyền  sang  thì  trong  response  sẽ  trả  về  tham  số  này  cho  đơn  vị.  
+vpc_SecureHash  string(64)  Có  
+Chuỗi  chữ  ký  bảo  mật  toàn  vẹn  dữ  liệu,  xem  mục II-4.4.   
+●  Các  tham  số  cần  truyền  thêm  khi  sử  tính  năng  trả  góp  
+Không  cần  bổ  sung  thêm  tham  số.  Chỉ  sử  dụng  Merchant  ID  riêng  có  cấu  hình  trả  góp.  
+ 
+●  Các  tham  số  cần  truyền  thêm  khi  sử  dụng  dịch  vụ  Promotion  
+Tham  số  
+Kiểu  dữ  liệu  (độ  dài)  
+Yêu  cầu  bắt  buộc  
+Mô  tả  
+Giao  dịch  áp  dụng  Promotion  
+vpc_Promotion_List  string(1000)  Không  
+Mã  promotion  ID  do  OnePAY  cấp  cho  mỗi  chương  trình.  
+vpc_Promotion_Amount_List  
+string(1000)  Không  
+ Số  tiền  thanh  toán  tương  ứng  cho  chương  trình  ID  nếu  đơn  vị  muốn  tự  tính  số  tiền  thanh  toán.  Tùy  theo  chương  trình  được  cài  đặt  theo  hình  thức  tính  giảm  giá  như  nào.  Chi  tiết  khi  trao  đổi  về  việc  tích  hợp.  vpc_Theme  string(20)  Không  Mặc  định  là  “promotion”   
+ 
+●  Các  tham  số  cần  truyền  thêm  khi  sử  tính  năng  lưu  thẻ  tại  trang  thanh  toán  OnePay  
+13   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  14 / 33   
+Tham  số  
+Kiểu  dữ  liệu  (độ  dài)  
+Yêu  cầu  bắt  buộc  
+Mô  tả  
+Giao  dịch  có  Token  OnePay  
+vpc_Customer_Id  
+string(64)  Có  
+Id  khách  hàng,  mã  duy  nhất  của  khách  hàng  trên  hệ  thống  đơn  vị.  Đây  là  tham  số  xác  định  token  thẻ  của  khách  hàng  nào.  Buộc  phải  truyền  tham  số  này  khi  sử  dụng  tokenization.  Lưu  ý:  Đơn  vị  không  được  truyền  giá  trị  mặc  định  sang  OnePay  vì  có  thể  các  khách  hàng  sẽ  thấy  được  thẻ  đã  lưu  của  nhau.  Nếu  đơn  vị  có  2  hệ  thống  riêng  biệt  nhưng  sử  dụng  chung  token  group  thì  bắt  buộc  customer  ID  cũng  phải  là  duy  nhất  giữa  2  hệ  thống.  
+ 
+14.3  Xử  lý  kết  quả  trả  về  -  Payment  Response  OnePay  sẽ  tự  động  trả  kết  quả  giao  dịch  qua  2  đường  dẫn  vpc_ReturnURL  và  vpc_CallbackURL  
+mà
+ 
+đơn
+ 
+vị
+ 
+đã
+ 
+khai
+ 
+báo,
+ 
+có
+ 
+cùng
+ 
+đặc
+ 
+tả
+ 
+như
+ 
+sau:
+ 
+Cấu  trúc  dữ  liệu  trả  về  
+●  Đường  ReturnURL:  [vpc_ReturnURL]?[key=value]&[Key=value]&...  
+●  Đường  IPN:  [your_IPN_URL]?[key=value]&[Key=value]&…  
+Bảng  dưới  đây  mô  tả  các  tham  số  trả  về,  trong  đó  có  các  tham  số  đặc  biệt  được  trả  thêm  riêng  
+biệt
+ 
+tương
+ 
+ứng
+ 
+với
+ 
+các
+ 
+dịch
+ 
+vụ
+ 
+khác
+ 
+nhau.  
+ 
+Merchant  phải  kiểm  tra  trạng  thái  đơn  hàng  tại  hệ  thống  của  họ  trước  khi  cập  nhật,  để  tránh  
+trường
+ 
+hợp
+ 
+nhận
+ 
+ReturnURL
+ 
+hay
+ 
+IPN
+ 
+giả
+ 
+mạo
+ 
+hoặc
+ 
+xử
+ 
+lý
+ 
+trùng
+ 
+lặp
+ 
+(Idempotency).
+ 
+●  Các  tham  số  chuẩn  mặc  định  trả  về  
+Tham  số  
+Kiểu  dữ  liệu  (độ  dài)  
+Yêu  cầu  bắt  buộc  
+Mô  tả  
+vpc_Command  string(16)  Có  
+Giá  trị  của  vpc_Command  đã  gửi  sang  cổng  thanh  toán.  
+14   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  15 / 33   vpc_MerchTxnRef  string(40)  Có  Mã  giao  dịch  đã gửi  sang  cổng.  vpc_Merchant  string(12)  Có  Merchant  ID  đã gửi  sang  cổng.  vpc_OrderInfo  string(34)  Có  Mã  đơn  hàng  đã gửi  sang  cổng.  
+vpc_Amount  string(12)  Có  
+Số  tiền  đã  thanh  toán  (đã  nhân  với  100).  ●  Với  giao  dịch  trả  góp  giá  trị  của  trường  này  có  thể  lớn  hơn  giá  trị  gốc  của  đơn  vị  truyền  sang  do  đã  cộng  thêm  phí  trả  góp.  ●  Với  giao  dịch  áp  dụng  Promotion  giá  trị  của  trường  này  có  thể  nhỏ  hơn  giá  trị  gốc  của  đơn  vị  truyền  sang  do  đã  được  trừ  tiền  khi  áp  dụng  chương  trình  khuyến  mại.  Chú  ý:  -  Đơn  vị  cần  kiểm  tra  lại  số  tiền  thanh  toán  trả  về  và  số  tiền  của  order  lưu  bên  đơn  vị,  số  tiền  cần  khớp  là  một  điều  kiện  để  coi  là  giao  dịch  thành  công. 
+vpc_TxnResponseCode  
+string(3)  Có  
+Mã  kết  quả  được  sinh  ra  bởi  cổng  thanh  toán  để  chỉ  trạng  thái  giao  dịch.  Giá  trị  là  “0”  (zero)  cho  biết  giao  dịch  đã  được  xử  lý  thành  công.  Tất  cả  các  giá  trị  khác  cho  biết  giao  dịch  đã  bị  từ  chối,  không  thành  công.  Chi  tiết  các  mã  lỗi  xem  ở  mục  III-1 Chú  ý:  -  Việc  xác  định  1  giao  dịch  thành  công,  ngoài  giá  trị  vpc_TxnResponseCode=0  thì  cần  phải  kiểm  tra  giá  trị  vpc_SecureHash  trả  về  BẰNG  giá  trị  Hash  đơn  vị  tự  tính.  -  Trong  trường  hợp  vpc_TxnResponseCode=0  và  vpc_SecureHash  trả  về  KHÁC  giá  trị  Hash  đơn  vị  tự  tính  thì  giao  dịch  cần  được  đánh  dấu  là  pending  trên  hệ  thống  đơn  vị  .  Đơn  vị  cần  sử  dụng  hàm  QueryDR  để  kiểm  tra  trạng  thái  của  giao  dịch  này.  -  OnePay  có  trả  về  mã  chữ  (F,  Z,..)  trong  một  số  trường  hợp  ngôn  ngữ  code  có  thể  tự  define,  ép  kiểu  mã  chữ  trên  về  “0”,  đơn  vị  cần  lưu  ý.  
+15   
+

@@ -1,0 +1,236 @@
+ 
+ 
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  1 / 33   MỤC  LỤC  MỤC  LỤC  1 
+TRÁCH  NHIỆM  BIÊN  SOẠN,  XEM  XÉT  VÀ  PHÊ  DUYỆT  3 
+BẢNG  THEO  DÕI  THAY  ĐỔI  3 
+DANH  MỤC  TỪ  VIẾT  TẮT  3 
+PHẦN  I:  GIỚI  THIỆU  VÀ  CẤU  HÌNH  NỀN  TẢNG  4 
+1  Mục  đích .............................................................................................................................. 4 2  Phạm  vi ................................................................................................................................ 4 3  Hình  thức  thanh  toán ........................................................................................................... 4 4  Môi  trường  tích  hợp ............................................................................................................. 5 5  Mô  tả  luồng  thanh  toán  của  người  dùng .............................................................................. 6 PHẦN  II:  QUY  TRÌNH  TÍCH  HỢP  API  7 
+1  Điều  kiện  tích  hợp ............................................................................................................... 7 2  Thiết  kế  giao  diện  thanh  toán .............................................................................................. 7 3  Sơ  đồ  luồng  kỹ  thuật ............................................................................................................ 9 4  Đặc  tả  luồng  tạo  yêu  cầu  thanh  toán  và  xử  lý  kết  quả  trả  về ............................................... 9 4.1  Tài  khoản  kỹ  thuật  môi  trường  kiểm  thử  theo  nhu  cầu  giải  pháp  thanh  toán  của  đơn  vị  9 4.2  Tạo  yêu  cầu  thanh  toán  –  Payment  Request .............................................................. 10 4.3  Xử  lý  kết  quả  trả  về  -  Payment  Response .................................................................. 14 4.4  Cách  tạo  và  xác  thực  chữ  ký  vpc_SecureHash .......................................................... 19 5  API  truy  vấn  kết  quả  giao  dịch  –  QueryDR  API ............................................................... 21 5.1  QueryDR  API  Request  –  Đặc  tả  dữ  liệu  truyền ......................................................... 21 5.2  QueryDR  API  Response  –  Đặc  tả  dữ  liệu  nhận ......................................................... 21 6  Tích  hợp  trên  Mobile  App  (iOS  và  Android)  Sử  dụng  Webview  trên  Mobile  App .......... 22 PHẦN  III:  BẢNG  MÃ  LỖI,  TEST  CASE  &  SAMPLE  CODE  24 
+1  Bảng  mã  lỗi  vpc_TxnResponseCode ................................................................................. 24 2  Danh  sách  mã  /  BIN  ngân  hàng  nội  địa ............................................................................. 25 3  Lưu  ý  về  tiền  tệ  thanh  toán ................................................................................................ 26 4  Yêu  cầu  về  hiển  thị  logo  thẻ  và  xác  nhận  điều  khoản  thanh  toán ...................................... 26 
+1   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  2 / 33   5  Sample  Code ...................................................................................................................... 27 6  Thông  tin  kỹ  thuật  môi  trường  kiểm  thử ........................................................................... 27 7  Test  Case ............................................................................................................................ 28 7.1  Payment  Request ....................................................................................................... 28 7.2  Payment  Process ........................................................................................................ 29 7.3  ReturnURL  &  IPN ..................................................................................................... 29 7.4  SecureHash  Validation  (Security) .............................................................................. 30 7.5  QueryDR  API ............................................................................................................ 30 7.6  Orther  case ................................................................................................................. 30 PHẦN  IV:  NGHIỆM  THU  VÀ  GOLIVE  32 
+1  Triển  khai  môi  trường  thật  (Production) ............................................................................ 32 2  Xử  lý  sự  cố  và  các  câu  hỏi  thường  gặp,  liên  hệ  hỗ  trợ ...................................................... 32  
+ 
+2   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  3 / 33   TRÁCH  NHIỆM  BIÊN  SOẠN,  XEM  XÉT  VÀ  PHÊ  DUYỆT   Soạn  thảo  Xem  xét  Phê  duyệt  
+Ký  tên  
+   
+Họ  và  tên  Trần  Thái  Dương  Mai  Đức  Thuận  Vũ  Trí  Thanh  Chức  danh  Nhân  viên  Trưởng  phòng  Giám  đốc   
+BẢNG  THEO  DÕI  THAY  ĐỔI  
+Ngày  
+Người  sửa  đổi  
+Người  kiểm  tra  
+Người  phê  duyệt  
+Nội  dung  
+Trang  
+Phiên  bản  31/01/2021  
+Thiều  Chí  Vương  
+Mai  Đức  Thuận  
+Vũ  Trí  Thanh  
+Phiên  bản  đầu  tiên  
+ Version  1.0  14/01/2026  
+Trần  Thái  Dương  
+Mai  Đức  Thuận  
+Vũ  Trí  Thanh  
+Cập  nhật  cấu  trúc  tài  liệu  
+ Version  1.1   
+DANH  MỤC  TỪ  VIẾT  TẮT  
+STT  Từ  viết  tắt  Nghĩa  tiếng  Anh  (Nếu  có)  Nghĩa  tiếng  Việt  1  ĐVCNTT   Đơn  vị  chấp  nhận  thanh  toán  2  IPN  Instant  Payment  Notification  Thông  báo  kết  quả  thanh  toán  tức  thời  3  URL  Uniform  Resource  Locator  Đường  dẫn/Địa  chỉ  web  4  MTF  Master  Test  Facility  Môi  trường  thử  nghiệm  
+3   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  4 / 33   PHẦN  I:  GIỚI  THIỆU  VÀ  CẤU  HÌNH  NỀN  TẢNG  11  Mục  đích  -  Tài  liệu  này  hướng  dẫn  các  bước  chi  tiết  về  kỹ  thuật  để  đơn  vị  dễ  dàng  tích  hợp  cổng  
+thanh
+ 
+toán
+ 
+OnePay
+ 
+vào
+ 
+các
+ 
+Website/Mobile
+ 
+App,
+ 
+nền
+ 
+tảng
+ 
+thương
+ 
+mại
+ 
+điện
+ 
+tử
+ 
+của
+ 
+đơn
+ 
+vị.
+ -  Tài  liệu  này  được  thiết  kế  cho  các  nhà  phát  triển  và  nhóm  kỹ  thuật,  đảm  bảo  quá  trình  
+tích
+ 
+hợp
+ 
+diễn
+ 
+ra
+ 
+suôn
+ 
+sẻ
+ 
+và
+ 
+an
+ 
+toàn.
+ 
+12  Phạm  vi  -  Hệ  thống  kỹ  thuật  của  ĐVCNTT   
+13  Hình  thức  thanh  toán  OnePay  cung  cấp  cho  đơn  vị  các  giải  pháp  thanh  toán  qua  các  dịch  vụ  dưới  đây:  
+●  Trả  ngay,  thanh  toán  một  lần  
+Khách  hàng  khi  sử  dụng  thanh  toán  trả  ngay  trực  tuyến  tại  OnePay  có  thể  dùng  các  phương  thức  
+thanh
+ 
+toán:
+ 
+-  Thanh  toán  bằng  thẻ  quốc  tế  Visa,  MasterCard,  JCB,  AMEX,  CUP.  -  Thanh  toán  bằng  thẻ  nội  địa  ATM  -  Thanh  toán  bằng  cách  quét  mã  QR  Code  -  Thanh  toán  bằng  ví  điện  tử  -  Thanh  toán  qua  ApplePay,  GooglePay,  SamsungPay  -  Thanh  toán  mua  trước  trả  sau.  
+Ngoài  ra  có  các  phương  thức  thanh  toán  tùy  chọn  khác  có  cách  tích  hợp  tương  tự  như  luồng  
+chính
+ 
+nếu
+ 
+đơn
+ 
+vị
+ 
+có
+ 
+sử
+ 
+dụng
+ 
+(không
+ 
+bắt
+ 
+buộc):
+ 
+●  Trả  góp  qua  thẻ  tín  dụng:  
+Khách  hàng  thanh  toán  trả  góp  tại  OnePay  qua  thẻ  tín  dụng  Visa,  MasterCard,  JCB,  AMEX,  
+CUP.
+ 
+●  Thanh  toán  có  áp  dụng  chương  trình  khuyến  mại:  
+Dịch  vụ  thanh  toán  có  chương  trình  khuyến  mại  (Promotion)  cho  phép  đơn  vị  áp  dụng  chính  sách  
+ưu
+ 
+đãi
+ 
+dành
+ 
+riêng
+ 
+cho
+ 
+một
+ 
+số
+ 
+loại
+ 
+thẻ
+ 
+hoặc
+ 
+ngân
+ 
+hàng
+ 
+phát
+ 
+hành
+ 
+nhất
+ 
+định.
+ 
+Khi
+ 
+người
+ 
+dùng
+ 
+thực
+ 
+hiện
+ 
+giao
+ 
+dịch
+ 
+bằng
+ 
+các
+ 
+thẻ
+ 
+nằm
+ 
+trong
+ 
+danh
+ 
+sách
+ 
+được
+ 
+ưu
+ 
+đãi,
+ 
+hệ
+ 
+thống
+ 
+sẽ
+ 
+tự
+ 
+động
+ 
+áp
+ 
+dụng
+ 
+mức
+ 
+giảm
+ 
+giá
+ 
+theo
+ 
+quy
+ 
+định.
+ 
+Ví
+ 
+dụ:
+ 
+-  Chỉ  chấp  nhận  các  thẻ  có  đầu  BIN  nằm  trong  danh  sách  được  cấu  hình  trước  trong  hệ  
+thống.
+ -  Chỉ  thẻ  Visa  mới  được  giảm  giá  10%.  
+4   
+

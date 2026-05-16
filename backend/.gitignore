@@ -1,0 +1,43 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build output
+dist/
+
+# Go test and coverage
+*.test
+*.out
+coverage.out
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Swagger generated docs
+docs/
+
+# Storage (uploaded files)
+storage/uploads/*
+storage/temp/*
+!storage/uploads/.gitkeep
+!storage/temp/.gitkeep
+
+# Docker volumes
+postgres_data/
+redis_data/

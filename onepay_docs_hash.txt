@@ -1,0 +1,621 @@
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  16 / 33   vpc_Message  
+string(200)  
+Có  
+Mô  tả  lỗi  giao  dịch  khi  thanh  toán,  Chi  tiết  các  mã  lỗi  xem  ở  mục  III-1.  vpc_Version  string(2)  Có  Phiên  bản  thanh  toán  của  cổng.  
+vpc_TransactionNo  string(32)  
+Không  
+Là  một  chuỗi  duy  nhất  được  sinh  ra  từ  cổng  thanh  toán  cho  mỗi  giao  dịch.  
+vpc_PayChannel  string(12)  
+Không  
+Kênh  thanh  toán:  -  WEB:  Thanh  toán  qua  website.  -  APP:  thanh  toán  qua  ứng  dụng  Mobile  Banking  hoặc  Ví  điện  tử.  
+vpc_Card  string(7)  
+Không  
+Loại  thẻ  đã  thanh  toán:  -  Quốc  tế:  VC,  MC,  JC,  AE,  CUP.  -  Nội  địa:  6  số  đầu  định  danh  thẻ  tham  khảo  phần III-2.  VD:  970436  (vietcombank)  -  Nội  địa:  7  số  gồm  6  số  đầu  định  danh  ngân  hàng  và  mặc  định  thêm  số  1  đằng  sau .  VD:  9704361(vietcombank)  -  Ứng  dụng  thanh  toán.  
+vpc_CardUid  string(32)  
+Không  
+Mã  duy  nhất  cho  mỗi  thẻ,  ví  dụ:  ABE4864268F53BD5D531D8845FAAF5F1  Không  trả  về  cho  các  ngân  hàng  sau  TCB,  VIB  và  DongABank.  
+vpc_CardNum  string(16)  
+Không  
+Card  đã  mã  hóa,  6  số  đầu/  4  số  cuối,  vd:  412345xxxxxx1234.  
+user_Xxxxxx  string(64)  
+Không  
+Tham  số  trả  về  mà  đơn  vị  tự  định  nghĩa  ở  Request.  
+vpc_SecureHash  string(64)  Có  
+Chuỗi  chữ  ký  bảo  mật  toàn  vẹn  dữ  liệu,  xem  mục  II-4.4  
+ 
+●  Các  tham  số  trả  về  thêm  của  giao  dịch  trả  góp  
+Tham  số  
+Kiểu  dữ  liệu  (độ  dài)  
+Yêu  cầu  bắt  buộc  
+Mô  tả  
+Giao  dịch  trả  góp  vpc_CardHolderName  
+string(64)  Không  Với  giao  dịch  trả  góp:  Tên  chủ  thẻ.  
+vpc_ItaBank  string(12)  Không  
+Với  giao  dịch trả  góp: Ngân  hàng  thanh  toán  trả  góp  (swift  code  của  bank  -  tham  khảo  bảng Bank  Swift  Code ).  
+16   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  17 / 33   vpc_ItaFeeAmount  string(12)  Không  Với  giao  dịch trả  góp:  Phí  trả  góp.  vpc_ItaTime  string(2)  Không  Với  giao  dịch trả  góp:  Kỳ  hạn  trả  góp.  
+vpc_ItaMobile  string(12)  Không  
+Với  giao  dịch trả  góp:  Số  điện  thoại  của  khách  hàng.  vpc_ItaEmail  string(32)  Không  Với  giao  dịch trả  góp: Email  của  khách  hàng.  
+vpc_OrderAmount  string(12)  Không  
+Với  giao  dịch trả  góp:  Số  tiền  gốc  của  đơn  vị  truyền  sang  OnePay.  Nếu  giao  dịch  không  có  phí  trả  góp  thì  vpc_Amount  =  vpc_OrderAmount.  Nếu  giao  dịch  có  cộng  phí  trả  góp  thì  số  tiền  thanh  toán  thực  (vpc_Amount)  sẽ  lớn  hơn  vpc_OrderAmount.   
+ 
+●  Các  tham  số  trả  về  thêm  của  giao  dịch  có  Promotion  
+Tham  số  
+Kiểu  dữ  liệu  (độ  dài)  
+Yêu  cầu  bắt  buộc  
+Mô  tả  
+Giao  dịch  Promotion  
+vpc_OrderAmount  
+string(12)  Không  
+Với  giao  dịch Promotion:  Số  tiền  gốc  của  đơn  vị  truyền  sang  OnePay.  Nếu  giao  dịch  không  có  khuyến  mãi  thì  vpc_Amount  =  vpc_OrderAmount.  Nếu  giao  dịch  có  khuyến  mãi  thì  số  tiền  thanh  toán  thực  (vpc_Amount)  sẽ  nhỏ  hơn  vpc_OrderAmount.   
+14.3.1  Đường  nhận  kết  quả  trả  về  qua  ReturnURL  ●  ReturnURL  là  gì?  
+Là  đường  dẫn  trang  nhận  kết  quả  thanh  toán  của  đơn  được  khai  báo  trong  tham  số  
+vpc_ReturnURL
+ 
+trong
+ 
+yêu
+ 
+cầu
+ 
+thanh
+ 
+toán.
+ 
+Sau
+ 
+khi
+ 
+kết
+ 
+thúc
+ 
+giao
+ 
+dịch
+ 
+OnePay
+ 
+sẽ
+ 
+chuyển
+ 
+hướng
+ 
+về
+ 
+đường
+ 
+dẫn
+ 
+này
+ 
+kèm
+ 
+các
+ 
+tham
+ 
+số
+ 
+kết
+ 
+quả
+ 
+của
+ 
+phiên
+ 
+giao
+ 
+dịch.
+ 
+●  Cách  triển  khai  -  Đơn  vị  tạo  một  trang  nhận  kết  quả  giao  dịch,  đường  dẫn  ví  dụ  https://merchant.com/order-receive.  -  Đơn  vị  khai  báo  đường  dẫn  trên  vào  tham  số  vpc_ReturnURL  khi  gọi  yêu  cầu  thanh  toán  
+sang
+ 
+OnePay.
+ -  Sau  khi  kết  thúc  phiên  giao  dịch,  OnePay  sẽ  chuyển  hướng  về  trang  thông  báo  kết  quả  
+của
+ 
+đơn
+ 
+vị
+ 
+kèm
+ 
+các
+ 
+tham
+ 
+số,
+ 
+ví
+ 
+dụ
+ 
+17   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  18 / 33   https://merchant.com/order-receive?vpc_Amount=30000&vpc_TxnResponseCode=0&vpc_SecureHash=ABVASDAHSIODHU981238173….  -  Đơn  vị  xác  thực  chữ  ký  bảo  mật  vpc_SecureHash  và  kiểm  tra  thông  tin  giao  dịch,  bảo  
+đảm
+ 
+toàn
+ 
+vẹn
+ 
+dữ
+ 
+liệu
+ 
+OnePay
+ 
+trả
+ 
+về.
+ -  Đơn  vị  hiển  thị  kết  quả  giao  dịch  lên  giao  diện  cho  người  dùng.  
+14.3.2  Đường  nhận  kết  quả  trả  về  qua  IPN  (Instant  Payment  Notification)  ●  IPN  là  gì?  
+Viết  tắt  là  Instant  Payment  Notification,  là  đường  dẫn  nhận  kết  quả  trả  về  của  đơn  vị  dưới  
+dạng
+ 
+server
+ 
+to
+ 
+server.
+ 
+OnePay
+ 
+sẽ
+ 
+gọi
+ 
+vào
+ 
+đường
+ 
+dẫn
+ 
+này
+ 
+của
+ 
+đơn
+ 
+vị
+ 
+để
+ 
+trả
+ 
+kết
+ 
+quả
+ 
+thanh
+ 
+toán.
+ 
+●  Cách  triển  khai  
+Đơn  vị  xây  dựng  một  API  dưới  backend  để  hứng  kết  quả  thanh  toán  từ  OnePay  trả  về.  Ví  dụ:  https://merchant.com/onepay/ipn.  Phương  thức  HTTPS  chấp  nhận  là  GET  (query  param)  hoặc  POST  (form-url-encode).  
+-  Đơn  vị  khai  báo  đường  dẫn  trên  vào  tham  số  vpc_CallbackURL  trong  yêu  cầu  thanh  toán  -  Sau  khi  kết  thúc  phiên  giao  dịch  OnePay  trả  kết  quả  về  server  của  đơn  vị,  ví  dụ  với  
+method
+ 
+GET
+ https://merchant.com/onepay/ipn?vpc_Amount=30000&vpc_TxnResponseCode=0&vpc_SecureHash=ABVASDAHSIODHU981238173….  -  Đơn  vị  xác  thực  chữ  ký  bảo  mật  vpc_SecureHash  và  kiểm  tra  thông  tin  giao  dịch,  bảo  
+đảm
+ 
+toàn
+ 
+vẹn
+ 
+dữ
+ 
+liệu
+ 
+OnePay
+ 
+trả
+ 
+về.
+ -  Đơn  vị  cập  nhật  kết  quả  giao  dịch,  cập  nhật  đơn  hàng,  gửi  mail  thông  báo  cho  người  
+dùng,….
+ -  Đơn  vị  phản  hồi  lại  cho  OnePay  bằng  mã  HTTPS  Status  Code  và  nội  dung  như  sau:  
+ 
+Đơn
+ 
+vị
+ 
+ghi
+ 
+nhận
+ 
+IPN
+ 
+thành
+ 
+công:
+ 
+HTTPS
+ 
+Status
+ 
+code
+ 
+=
+ 
+200
+ 
+Body
+ 
+content:
+ 
+ responsecode=1&desc=confirm-success
+ 
+ 
+Đơn
+ 
+vị
+ 
+nhận
+ 
+IPN
+ 
+thất
+ 
+bại
+ 
+(fail,
+ 
+timeout…):
+ 
+HTTPS
+ 
+Status
+ 
+Code
+ 
+≠
+ 
+200.
+ 
+Body
+ 
+content:
+ 
+ responsecode=0&desc=confirm-fail
+ 
+ 
+ 
+Khi
+ 
+OnePay
+ 
+nhận
+ 
+HTTPS
+ 
+Status
+ 
+Code
+ 
+≠
+ 
+200
+ 
+sẽ
+ 
+kích
+ 
+hoạt
+ 
+cơ
+ 
+chế
+ 
+retry
+:
+ 
+ 
+Số
+ 
+lần
+ 
+gọi:
+ 
+3
+ 
+lần
+ 
+Khoảng
+ 
+cách
+ 
+giữa
+ 
+các
+ 
+lần
+ 
+gọi
+ 
+lại:
+ 
+50s
+ 
+ 
+Số
+ 
+lần
+ 
+gọi
+ 
+và
+ 
+khoảng
+ 
+cách
+ 
+gọi
+ 
+hoàn
+ 
+toàn
+ 
+có
+ 
+thể
+ 
+cấu
+ 
+hình
+ 
+theo
+ 
+nhu
+ 
+cầu
+ 
+của
+ 
+đơn
+ 
+vị.
+  
+18   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  19 / 33   ●  Phân  loại  IPN  
+OnePay  chia  IPN  có  2  loại  là  IPN  tĩnh  và  IPN  động  
+-  IPN  tĩnh:  Đơn  vị  gửi  cho  OnePay  đường  dẫn  để  OnePay  cấu  hình  theo  tài  khoản  kỹ  thuật,  
+một
+ 
+tài
+ 
+khoản
+ 
+kỹ
+ 
+thuật
+ 
+chỉ
+ 
+được
+ 
+cấu
+ 
+hình
+ 
+1
+ 
+đường
+ 
+dẫn
+ 
+IPN.
+ -  IPN  động:  Sau  khi  đã  có  cấu  hình  IPN  tĩnh,  đơn  vị  có  thể  chủ  động  sử  dụng  trường  
+vpc_CallbackURL
+ 
+để
+ 
+điều
+ 
+hướng
+ 
+nhận
+ 
+kết
+ 
+quả
+ 
+giao
+ 
+dịch
+ 
+về
+ 
+đường
+ 
+dẫn
+ 
+mong
+ 
+muốn.
+ 
+OnePay
+ 
+sẽ
+ 
+ưu
+ 
+tiên
+ 
+trả
+ 
+kết
+ 
+quả
+ 
+về
+ 
+vpc_CallbackURL
+ 
+nếu
+ 
+đơn
+ 
+vị
+ 
+sử
+ 
+dụng
+ 
+tham
+ 
+số
+ 
+này.
+ 
+14.3.3  Lưu  ý  quan  trọng  -  Đơn  vị  không  được  bắt  cố  định  tham  số  trả  về  vì  tùy  mỗi  loại  hình  giao  dịch  OnePay  sẽ  
+trả
+ 
+về
+ 
+thêm,
+ 
+thiếu
+ 
+các
+ 
+tham
+ 
+số.
+ 
+Nếu
+ 
+đơn
+ 
+vị
+ 
+bắt
+ 
+cố
+ 
+định
+ 
+các
+ 
+tham
+ 
+số
+ 
+rất
+ 
+có
+ 
+thể
+ 
+xảy
+ 
+ra
+ 
+exception
+ 
+case
+ 
+như
+ 
+NullPointer,…
+ -  Đơn  vị  bắt  buộc  phải  xác  thực  lại  chuỗi  chữ  ký  số  vpc_SecureHash  để  bảo  đảm  toàn  vẹn  
+dữ
+ 
+liệu
+ 
+OnePay
+ 
+trả
+ 
+về.
+  
+14.4  Cách  tạo  và  xác  thực  chữ  ký  vpc_SecureHash  
+14.4.1  Các  bước  để  tạo  chuỗi  ký  bảo  mật  vpc_SecureHash  Bước  1:  Tạo  chuỗi  dữ  liệu  để  ký:  
+-  Lấy  tất  cả  các  tham  số  có  tiền  tố  “vpc_”  (và  “user_”  nếu  có).  -  Sắp  xếp  key  theo  thứ  tự  alphabet;  có  phân  biệt  chữ  hoa,  chữ  thường.  -  Lấy  giá  trị  gốc  của  các  tham  số.  -  Tạo  chuỗi  để  ký  theo  dạng:  [key=value]&[Key=value]&...  Chuỗi  này  sẽ  được  gọi  là  
+RawData.
+ 
+ 
+Bước  2:  Tạo  chữ  ký:  
+-  Dùng  HashCode  /  Secure  Secret  Key  của  tài  khoản  kỹ  thuật  (merchant  ID)  để  băm  chuỗi  
+RawData
+ 
+này
+ 
+bằng
+ 
+thuật
+ 
+toán
+ 
+SHA256
+ 
+HMAC.
+ -  Đầu  ra  là  chuỗi  hexa  dài  64  ký  tự.  -  Upper  Case  chuỗi  ký  vpc_SecureHash  vừa  được  tạo.  
+14.4.2  Ví  dụ  ●  Bên  gửi  yêu  cầu,  tạo  chữ  ký  vpc_SecureHash:  
+Giả  sử  đơn  vị  sử  dụng  merchant  id  TESTMERCHANT  để  tạo  một  yêu  cầu  thanh  toán  sau  
+Tham  số  và  giá  trị  của  tham  số:  
+-  vpc_Amount:  1000000  
+19   
+
+  TÀI  LIỆU  HƯỚNG  DẪN  TÍCH  HỢP  CỔNG  THANH  TOÁN  ONEPAY  
+Mã  số:  HD01-KT-TS  Lần  ban  hành:  02  Ngày  hiệu  lực:  20/01/2026  Trang:  20 / 33   -  vpc_Version:  2  -  vpc_OrderInfo:  249  -  vpc_Command:  pay  -  vpc_Merchant:  TESTMERCHANT  -  vpc_ReturnURL:  https://mtf.onepay.vn/client/qt/dr/?mode=TEST_PAYGATE -  vpc_AccessCode:  6BEB2546  -  vpc_MerchTxnRef:  TEST_1757666100255  -  vpc_TicketNo:  192.168.166.149  
+Tạo  chuỗi  RawData:  
+vpc_AccessCode=6BEB2546&vpc_Amount=1000000&vpc_Command=pay&vpc_MerchTxnRe
+f=TEST_1757666100255&vpc_Merchant=TESTMERCHANT&vpc_OrderInfo=249&vpc_Retu
+rnURL=https://mtf.onepay.vn/client/qt/dr/?mode=TEST_PAYGATE&vpc_TicketNo=192.168.16
+6.149&vpc_Version=2.
+ 
+Tạo  vpc_SecureHash:  
+C400B076D80571BA160BC614EA6F9D2B4AF31AF76D6C133DD78F670FEFE958DE  
+Gửi  HTTPS  request  kèm  tham  số  vpc_SecureHash  để  tạo  yêu  cầu  thanh  toán  sang  OnePay:  
+https://mtf.onepay.vn/paygate/vpcpay.op?vpc_AccessCode=6BEB2546&vpc_Amount=1000000
+&vpc_Command=pay&vpc_MerchTxnRef=TEST_1757666100255&vpc_Merchant=TESTMER
+CHANT&vpc_OrderInfo=249&vpc_ReturnURL=https://mtf.onepay.vn/client/qt/dr/?mode=TES
+T_PAYGATE&vpc_TicketNo=192.168.166.149&vpc_Version=2&vpc_SecureHash=C400B076
+D80571BA160BC614EA6F9D2B4AF31AF76D6C133DD78F670FEFE958DE
+ 
+ 
+●  Bên  nhận  yêu  cầu,  xác  thực  chữ  ký  vpc_SecureHash:  
+Request  URL  nhận  được:  
+https://mtf.onepay.vn/paygate/vpcpay.op?vpc_AccessCode=6BEB2546&vpc_Amount=1000000
+&vpc_Command=pay&vpc_MerchTxnRef=TEST_1757666100255&vpc_Merchant=TESTMER
+CHANT&vpc_OrderInfo=249&vpc_ReturnURL=https://mtf.onepay.vn/client/qt/dr/?mode=TES
+T_PAYGATE&vpc_TicketNo=192.168.166.149&vpc_Version=2&vpc_SecureHash=C400B076
+D80571BA160BC614EA6F9D2B4AF31AF76D6C133DD78F670FEFE958DE
+ 
+Lấy  tất  cả  các  tham  số  bắt  đầu  bằng  “vpc_”  và  “user_”  và  giá  trị  của  các  tham  số  đó  từ  request  
+URL,
+ 
+không
+ 
+lấy
+ 
+tham
+ 
+số
+ 
+vpc_SecureHash.
+ 
+Ta
+ 
+được
+ 
+dữ
+ 
+liệu
+ 
+sau:
+ 
+-  vpc_Amount:  1000000  -  vpc_Version:  2  -  vpc_OrderInfo:  249  
+20   
+
