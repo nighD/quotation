@@ -156,7 +156,7 @@ func Load() (*Config, error) {
 			Name:     viper.GetString("DB_NAME"),
 			SSLMode:  viper.GetString("DB_SSLMODE"),
 			Timezone: viper.GetString("DB_TIMEZONE"),
-			URL:      viper.GetString("DATABASE_URL"),
+			URL:      viper.GetString("POSTGRES_URL"),
 		},
 		JWT: JWTConfig{
 			Secret:            viper.GetString("JWT_SECRET"),
