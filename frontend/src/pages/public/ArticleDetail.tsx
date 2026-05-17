@@ -24,7 +24,7 @@ export function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export function ArticleDetail() {
             To read the full article, please subscribe or log in to your premium account.
           </p>
           <div className="flex gap-4 justify-center">
-            {isAuthenticated ? (
+            {user ? (
               <button onClick={() => navigate('/plans')} className="verge-button bg-verge-magenta border-verge-magenta text-white">
                 Upgrade Now
               </button>
