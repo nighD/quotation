@@ -24,7 +24,7 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 	gormCfg := &gorm.Config{
 		Logger:                                   logger.Default.LogMode(logLevel),
 		DisableForeignKeyConstraintWhenMigrating: false,
-		PrepareStmt:                              true,
+		PrepareStmt:                              false,
 	}
 
 	db, err := gorm.Open(postgres.Open(cfg.Database.DSN()), gormCfg)
