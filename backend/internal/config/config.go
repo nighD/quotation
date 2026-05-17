@@ -43,6 +43,7 @@ type DatabaseConfig struct {
 	Name     string
 	SSLMode  string
 	Timezone string
+	URL      string
 }
 
 type JWTConfig struct {
@@ -155,6 +156,7 @@ func Load() (*Config, error) {
 			Name:     viper.GetString("DB_NAME"),
 			SSLMode:  viper.GetString("DB_SSLMODE"),
 			Timezone: viper.GetString("DB_TIMEZONE"),
+			URL:      viper.GetString("DATABASE_URL"),
 		},
 		JWT: JWTConfig{
 			Secret:            viper.GetString("JWT_SECRET"),
@@ -217,6 +219,9 @@ func Load() (*Config, error) {
 
 // DSN returns the PostgreSQL connection string.
 func (d *DatabaseConfig) DSN() string {
+	if d.URL != "" {
+		return d.URL
+	}
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=%s",
 		d.Host, d.Port, d.User, d.Password, d.Name, d.SSLMode, d.Timezone,
