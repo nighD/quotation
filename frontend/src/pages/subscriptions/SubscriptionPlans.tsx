@@ -161,8 +161,7 @@ export function SubscriptionPlans() {
                     
                     <h3 className={`text-3xl text-white mb-2 tracking-wide font-thin ${!isPro ? 'mt-10' : ''}`}>{plan.name}</h3>
                     <div className="flex items-baseline text-[2.75rem] font-bold text-white mb-8 tracking-tight">
-                      <span className="text-3xl mr-1 font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>$</span>
-                      <span>{i === 0 ? '49.00' : i === 1 ? '120.00' : '500.00'}</span>
+                      <span>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(plan.price)}</span>
                     </div>
                     
                     <div className="border-b border-white/10 pb-6 mb-6">

@@ -87,7 +87,7 @@ CREATE INDEX IF NOT EXISTS idx_articles_deleted_at ON articles(deleted_at);
 -- ─── subscription_plans ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS subscription_plans (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name          VARCHAR(255) NOT NULL,
+    name          VARCHAR(255) NOT NULL UNIQUE,
     price         DECIMAL(12,2) NOT NULL,
     duration_days INTEGER      NOT NULL,
     description   TEXT,
