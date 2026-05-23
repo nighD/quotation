@@ -1,80 +1,209 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, User as UserIcon, FileText, CreditCard } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Sliding active tab indicator states & ref
+  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({ opacity: 0 });
+  const navContainerRef = useRef<HTMLDivElement>(null);
+
+  const currentPath = location.pathname;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Slide animation active tab tracking
+  useEffect(() => {
+    const updateIndicator = () => {
+      const container = navContainerRef.current;
+      if (!container) return;
+
+      // Locate active nav link
+      const activeLink = container.querySelector('.active-nav-link') as HTMLElement;
+      if (activeLink) {
+        setIndicatorStyle({
+          left: activeLink.offsetLeft,
+          width: activeLink.offsetWidth,
+          height: activeLink.offsetHeight,
+          top: activeLink.offsetTop,
+          opacity: 1,
+        });
+      } else {
+        // Hide active capsule indicator if no active link matched (e.g. other routes)
+        setIndicatorStyle({ opacity: 0 });
+      }
+    };
+
+    updateIndicator();
+
+    // Re-calculate after custom web fonts (Poppins) load completely to avoid offset positioning bugs
+    if (document.fonts) {
+      document.fonts.ready.then(updateIndicator);
+    }
+
+    // Re-calculate on window resize for responsiveness
+    window.addEventListener('resize', updateIndicator);
+    return () => {
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [currentPath, user]); // Include user to re-run when auth changes/loads
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const isAdmin = user?.roles?.includes('admin');
+  // Tabs when logged in
+  const navItems = [
+    { label: 'Home', path: '/home' },
+    { label: 'Reports', path: '/reports' },
+    { label: 'Deals', path: '/deals' },
+    { label: 'Subscription', path: '/subscriptions' },
+    { label: 'Event', path: '/events' },
+  ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-verge-black border-b-4 border-verge-magenta px-4 py-4 uppercase font-display font-black tracking-widest text-sm text-verge-white shadow-[0_4px_0_0_rgba(232,18,92,1)]">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="text-2xl text-verge-neon hover:text-white transition-colors flex items-center gap-2">
-          Quotation
+    <header className="relative z-50 flex items-center justify-center px-6 md:px-12 py-6 max-w-[2000px] mx-auto w-full">
+      <div className="absolute left-6 md:left-12">
+        <Link to="/" className="text-2xl font-bold tracking-widest text-white hover:text-gray-300 transition">
+          VIFC
         </Link>
-
-        <div className="flex items-center gap-6">
-          <Link 
-            to="/articles" 
-            className="flex items-center gap-2 hover:text-verge-magenta transition-colors"
-          >
-            <FileText size={16} /> Articles
-          </Link>
-          <Link 
-            to="/plans" 
-            className="flex items-center gap-2 hover:text-verge-neon transition-colors"
-          >
-            <CreditCard size={16} /> Plans
-          </Link>
-
-          {user ? (
-            <>
-              {isAdmin && (
-                <Link 
-                  to="/admin" 
-                  className="flex items-center gap-2 text-verge-yellow hover:text-white transition-colors"
-                >
-                  <LayoutDashboard size={16} /> Admin
-                </Link>
-              )}
-              <Link 
-                to="/profile" 
-                className="flex items-center gap-2 text-gray-400 hover:text-verge-magenta transition-colors"
-              >
-                <UserIcon size={16} /> {user.full_name}
-              </Link>
-              <button 
-                onClick={handleLogout} 
-                className="flex items-center gap-2 text-gray-400 hover:text-verge-magenta transition-colors"
-              >
-                <LogOut size={16} /> Logout
-              </button>
-            </>
-          ) : (
-            <div className="flex items-center gap-4 border-l-2 border-verge-border pl-6 ml-2">
-              <Link 
-                to="/login" 
-                className="hover:text-verge-magenta transition-colors"
-              >
-                Login
-              </Link>
-              <Link 
-                to="/register" 
-                className="bg-verge-white text-verge-black px-4 py-2 hover:bg-verge-magenta hover:text-white transition-all"
-              >
-                Subscribe
-              </Link>
-            </div>
-          )}
-        </div>
       </div>
-    </nav>
+
+      {/* Floating Pill Navigation */}
+      {user ? (
+        <div className="flex items-center bg-[#141414]/30 backdrop-blur-lg border border-white/10 rounded-[24px] p-1 shadow-xl">
+          <div className="flex text-[14px] font-medium items-center font-poppins relative z-10" ref={navContainerRef}>
+            {/* Sliding active indicator capsule */}
+            <div
+              className="absolute bg-white rounded-[20px] transition-all duration-300 ease-out z-0"
+              style={indicatorStyle}
+            />
+            {navItems.map((item) => {
+              const isActive = currentPath === item.path || 
+                               (item.path === '/home' && currentPath === '/') ||
+                               (item.path === '/reports' && currentPath.startsWith('/reports/detail'));
+              return (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className={`px-5 py-2.5 rounded-[20px] text-[14px] font-medium tracking-wide transition-colors duration-300 relative z-10 ${
+                    isActive
+                      ? 'active-nav-link text-black font-semibold'
+                      : 'text-white hover:text-gray-200'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-8 bg-[#18181b]/80 backdrop-blur-md border border-white/10 rounded-full p-1.5 pl-8 shadow-xl">
+          <div className="flex gap-8 text-[14px] text-[#d1d1d1] font-medium items-center">
+            <a href="#" className="hover:text-white transition">How it works</a>
+            <a href="#" className="hover:text-white transition">Pricing</a>
+            <a href="#" className="hover:text-white transition">Memberships</a>
+          </div>
+          <div className="flex gap-2 ml-2">
+            <button className="bg-white text-black px-6 py-2.5 rounded-full font-medium text-[14px] hover:bg-gray-200 transition cursor-pointer">
+              Explore Membership
+            </button>
+            <Link
+              to="/login"
+              className="bg-transparent text-white px-6 py-2.5 rounded-full font-medium text-[14px] border border-white/20 hover:bg-white/10 transition"
+            >
+              Login
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Top Right Corner Buttons (Only when user is logged in) */}
+      {user && (
+        <div className="absolute right-6 md:right-12 flex items-center gap-2">
+          {/* Notification Button */}
+          <button
+            type="button"
+            className="w-10 h-10 flex items-center justify-center bg-[#2d2a2a] text-white rounded-[14px] hover:bg-[#3d3a3a] transition-all duration-200 focus:outline-none cursor-pointer border border-white/5"
+          >
+            <Bell size={18} className="fill-white stroke-none" />
+          </button>
+
+          {/* Avatar Dropdown Container */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="w-10 h-10 rounded-[14px] overflow-hidden focus:outline-none hover:opacity-90 transition-all duration-200 border border-white/10 bg-[#2d2a2a] flex items-center justify-center cursor-pointer"
+            >
+              {user.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt={user.full_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white text-sm font-semibold">
+                  {user.full_name.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown Popup */}
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-3 w-52 bg-white rounded-[24px] shadow-[0_12px_30px_rgba(0,0,0,0.25)] p-5 z-50 text-left border border-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex flex-col gap-3.5 font-poppins">
+                  <Link
+                    to="/profile"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center justify-between text-[#1c1c1e] hover:opacity-75 transition-opacity font-medium text-[16px] tracking-normal"
+                  >
+                    <span>Profile</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1c1c1e]">
+                      <line x1="7" y1="17" x2="17" y2="7" />
+                      <polyline points="7 7 17 7 17 17" />
+                    </svg>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center justify-between text-[#8E8E93] hover:text-[#555] transition-colors font-medium text-[16px] tracking-normal cursor-pointer w-full text-left"
+                  >
+                    <span>Log out</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8E8E93]">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
   );
 }

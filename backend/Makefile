@@ -2,7 +2,15 @@
 
 # Run development server
 run:
-	go run ./cmd/server/main.go
+	@if command -v air >/dev/null 2>&1; then \
+		air; \
+	elif [ -f $(shell go env GOPATH)/bin/air ]; then \
+		$(shell go env GOPATH)/bin/air; \
+	else \
+		echo "Installing air for hot reload..."; \
+		go install github.com/air-verse/air@latest; \
+		$(shell go env GOPATH)/bin/air; \
+	fi
 
 # Build production binary
 build:

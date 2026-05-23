@@ -16,6 +16,7 @@ type User struct {
 	AuthProvider string         `gorm:"type:varchar(50);not null;default:'email'" json:"auth_provider"`
 	ProviderID   *string        `gorm:"type:varchar(255)" json:"provider_id,omitempty"`
 	Status       string         `gorm:"type:varchar(50);default:'active'" json:"status"`
+	AvatarURL    string         `gorm:"type:text" json:"avatar_url"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
@@ -37,6 +38,7 @@ type UserResponse struct {
 	Email     string    `json:"email"`
 	FullName  string    `json:"full_name"`
 	Status    string    `json:"status"`
+	AvatarURL string    `json:"avatar_url"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -46,6 +48,7 @@ func toResponse(u *User) *UserResponse {
 		Email:     u.Email,
 		FullName:  u.FullName,
 		Status:    u.Status,
+		AvatarURL: u.AvatarURL,
 		CreatedAt: u.CreatedAt,
 	}
 }

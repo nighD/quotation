@@ -15,7 +15,7 @@ services:
       TZ: Asia/Ho_Chi_Minh
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s

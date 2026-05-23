@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { Link, useNavigate } from 'react-router-dom';
+import { Navbar } from '../../components/Navbar';
 
 interface Subscription {
   id: string;
@@ -50,7 +51,9 @@ export function Profile() {
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16">
+    <div className="min-h-screen bg-[#111] flex flex-col">
+      <Navbar />
+      <div className="max-w-4xl mx-auto px-4 py-16 flex-1 w-full">
       <div className="border-b-8 border-verge-magenta pb-6 mb-16">
         <h2 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter text-verge-white leading-none mb-4">
           Operator <span className="text-verge-neon">Dossier</span>
@@ -149,6 +152,7 @@ export function Profile() {
           </Link>
         </div>
       </div>
+    </div>
     </div>
   );
 }

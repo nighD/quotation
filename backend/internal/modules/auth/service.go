@@ -38,10 +38,11 @@ func (s *Service) Register(req *RegisterRequest) (*AuthResponse, error) {
 	}
 
 	user := User{
-		Email:    req.Email,
-		Password: &hashed,
-		FullName: req.FullName,
-		Status:   constants.UserStatusActive,
+		Email:     req.Email,
+		Password:  &hashed,
+		FullName:  req.FullName,
+		Status:    constants.UserStatusActive,
+		AvatarURL: generateRandomAvatar(req.Email),
 	}
 
 	if err := s.db.Create(&user).Error; err != nil {
@@ -72,6 +73,11 @@ func (s *Service) SocialLogin(req *SocialLoginRequest) (*AuthResponse, error) {
 		name = "Google User" // Fallback
 	}
 
+	picture, _ := payload.Claims["picture"].(string)
+	if picture == "" {
+		picture = generateRandomAvatar(email)
+	}
+
 	providerID := payload.Subject
 
 	var user User
@@ -85,6 +91,7 @@ func (s *Service) SocialLogin(req *SocialLoginRequest) (*AuthResponse, error) {
 				Status:       constants.UserStatusActive,
 				AuthProvider: "google",
 				ProviderID:   &providerID,
+				AvatarURL:    picture,
 			}
 			if err := s.db.Create(&user).Error; err != nil {
 				return nil, fmt.Errorf("failed to register social user: %w", err)
@@ -96,6 +103,11 @@ func (s *Service) SocialLogin(req *SocialLoginRequest) (*AuthResponse, error) {
 		// User exists. Update provider if they didn't have one? We can just ensure status is active.
 		if user.Status != constants.UserStatusActive {
 			return nil, fmt.Errorf("user account is inactive")
+		}
+		// If they don't have an avatar URL yet, save the one from Google
+		if user.AvatarURL == "" {
+			user.AvatarURL = picture
+			s.db.Model(&user).Update("avatar_url", picture)
 		}
 	}
 
@@ -123,7 +135,13 @@ func (s *Service) GetProfile(userID string) (*UserInfo, error) {
 		return nil, fmt.Errorf("user not found")
 	}
 
-	return toUserInfo(&user), nil
+	if user.AvatarURL == "" {
+		user.AvatarURL = generateRandomAvatar(user.Email)
+		s.db.Model(&user).Update("avatar_url", user.AvatarURL)
+	}
+
+	roles := s.getUserRoles(userID)
+	return toUserInfo(&user, roles), nil
 }
 
 // ForgotPassword initiates a password reset (stub — integrate email service).
@@ -195,7 +213,7 @@ func (s *Service) issueTokens(user *User) (*AuthResponse, error) {
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 		ExpiresAt:    tokens.ExpiresAt,
-		User:         *toUserInfo(user),
+		User:         *toUserInfo(user, roles),
 	}, nil
 }
 
@@ -207,14 +225,47 @@ func (s *Service) getUserRoles(userID string) []string {
 		INNER JOIN user_roles ur ON r.id = ur.role_id
 		WHERE ur.user_id = ?
 	`, userID).Scan(&roles)
+
+	// Check if user has active subscription
+	var count int64
+	s.db.Table("user_subscriptions").
+		Where("user_id = ? AND status = 'active' AND end_date > NOW()", userID).
+		Count(&count)
+
+	if count > 0 {
+		roles = append(roles, "premium")
+	}
+
 	return roles
 }
 
-func toUserInfo(u *User) *UserInfo {
+var randomAvatars = []string{
+	"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&h=200&q=80",
+	"https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&h=200&q=80",
+	"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80",
+	"https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=200&h=200&q=80",
+	"https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&h=200&q=80",
+	"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&h=200&q=80",
+	"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200&q=80",
+	"https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200&q=80",
+}
+
+func generateRandomAvatar(email string) string {
+	// Deterministic selection based on email character sum
+	var sum int
+	for _, char := range email {
+		sum += int(char)
+	}
+	return randomAvatars[sum%len(randomAvatars)]
+}
+
+func toUserInfo(u *User, roles []string) *UserInfo {
 	return &UserInfo{
-		ID:       u.ID.String(),
-		Email:    u.Email,
-		FullName: u.FullName,
-		Status:   u.Status,
+		ID:        u.ID.String(),
+		Email:     u.Email,
+		FullName:  u.FullName,
+		Status:    u.Status,
+		AvatarURL: u.AvatarURL,
+		Roles:     roles,
 	}
 }

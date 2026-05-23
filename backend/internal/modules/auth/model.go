@@ -16,6 +16,7 @@ type User struct {
 	AuthProvider string         `gorm:"type:varchar(50);not null;default:'email'" json:"auth_provider"`
 	ProviderID   *string        `gorm:"type:varchar(255)" json:"provider_id,omitempty"`
 	Status       string         `gorm:"type:varchar(50);default:'active'" json:"status"`
+	AvatarURL    string         `gorm:"type:text" json:"avatar_url"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
@@ -70,8 +71,10 @@ type AuthResponse struct {
 
 // UserInfo is a safe subset of User fields returned to the client.
 type UserInfo struct {
-	ID       string `json:"id"`
-	Email    string `json:"email"`
-	FullName string `json:"full_name"`
-	Status   string `json:"status"`
+	ID        string   `json:"id"`
+	Email     string   `json:"email"`
+	FullName  string   `json:"full_name"`
+	Status    string   `json:"status"`
+	AvatarURL string   `json:"avatar_url"`
+	Roles     []string `json:"roles"`
 }

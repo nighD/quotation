@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker-compose)" ] && ! [ -x "$(command -v docker)" ]; t
   exit 1
 fi
 
-domains=(vifcpass.com www.vifcpass.com)
+domains=(vifcpass.com www.vifcpass.com dashboard.vifcpass.com)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="admin@vifcpass.com" # Adding a valid address is strongly recommended

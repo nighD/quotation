@@ -69,6 +69,11 @@ func main() {
 		logger.Fatal("Database connection failed", zap.Error(err))
 	}
 
+	// ── Database Auto-Migration ───────────────────────────────
+	if err := database.AutoMigrate(db, &users.User{}); err != nil {
+		logger.Warn("Database auto-migration failed", zap.Error(err))
+	}
+
 	// ── Fiber app ─────────────────────────────────────────────
 	app := fiber.New(fiber.Config{
 		AppName:               cfg.App.Name,

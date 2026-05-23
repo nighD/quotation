@@ -9,8 +9,9 @@
   --color-verge-gray: #1a1a1a;
   --color-verge-border: #333333;
 
-  --font-sans: 'Playfair Display', serif;
-  --font-display: 'Playfair Display', serif;
+  --font-sans: 'Poppins', sans-serif;
+  --font-display: 'Poppins', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
 }
 
 body {

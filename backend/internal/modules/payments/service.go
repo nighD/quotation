@@ -225,8 +225,12 @@ func (s *Service) createOnePayURL(p *Payment) (string, error) {
 	params.Set("vpc_Merchant", s.cfg.OnePay.MerchantID)
 	params.Set("vpc_Locale", "vn")
 	// For testing we will just hardcode return URL if not set
-	params.Set("vpc_ReturnURL", s.cfg.App.URL+"/payments/onepay/return")
-	params.Set("vpc_CallbackURL", s.cfg.App.URL+"/payments/onepay/ipn")
+	baseURL := s.cfg.App.URL
+	if s.cfg.App.Env == "development" {
+		baseURL = "http://localhost:8080"
+	}
+	params.Set("vpc_ReturnURL", baseURL+"/payments/onepay/return")
+	params.Set("vpc_CallbackURL", baseURL+"/payments/onepay/ipn")
 	params.Set("vpc_MerchTxnRef", p.ID.String())
 	params.Set("vpc_OrderInfo", fmt.Sprintf("Payment_%s", p.ID.String()))
 	params.Set("vpc_Amount", fmt.Sprintf("%d", int64(p.Amount*100)))

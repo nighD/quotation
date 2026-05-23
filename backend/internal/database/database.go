@@ -27,7 +27,10 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 		PrepareStmt:                              false,
 	}
 
-	db, err := gorm.Open(postgres.Open(cfg.Database.DSN()), gormCfg)
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  cfg.Database.DSN(),
+		PreferSimpleProtocol: true,
+	}), gormCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
