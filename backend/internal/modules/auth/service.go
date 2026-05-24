@@ -268,6 +268,26 @@ func (s *Service) getUserRoles(userID string) []string {
 	return roles
 }
 
+// JoinWaitlist sets the user's is_joined_waitlist status to true.
+func (s *Service) JoinWaitlist(userID string) (*UserInfo, error) {
+	var user User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	if err := s.db.Model(&user).Update("is_joined_waitlist", true).Error; err != nil {
+		return nil, fmt.Errorf("failed to join waitlist: %w", err)
+	}
+
+	// Fetch updated user from DB
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch updated user")
+	}
+
+	roles := s.getUserRoles(userID)
+	return toUserInfo(&user, roles), nil
+}
+
 var randomAvatars = []string{
 	"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&h=200&q=80",
 	"https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&h=200&q=80",
@@ -290,11 +310,15 @@ func generateRandomAvatar(email string) string {
 
 func toUserInfo(u *User, roles []string) *UserInfo {
 	return &UserInfo{
-		ID:        u.ID.String(),
-		Email:     u.Email,
-		FullName:  u.FullName,
-		Status:    u.Status,
-		AvatarURL: u.AvatarURL,
-		Roles:     roles,
+		ID:               u.ID.String(),
+		Email:            u.Email,
+		FullName:         u.FullName,
+		Status:           u.Status,
+		AvatarURL:        u.AvatarURL,
+		Company:          u.Company,
+		Title:            u.Title,
+		Country:          u.Country,
+		Roles:            roles,
+		IsJoinedWaitlist: u.IsJoinedWaitlist,
 	}
 }

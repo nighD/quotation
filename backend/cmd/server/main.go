@@ -74,6 +74,11 @@ func main() {
 		logger.Warn("Database auto-migration failed", zap.Error(err))
 	}
 
+	// ── Database Seeding ──────────────────────────────────────
+	if err := database.SeedSubscriptionPlans(db); err != nil {
+		logger.Warn("Subscription plans seeding failed", zap.Error(err))
+	}
+
 	// ── Fiber app ─────────────────────────────────────────────
 	app := fiber.New(fiber.Config{
 		AppName:               cfg.App.Name,

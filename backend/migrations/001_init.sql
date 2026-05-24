@@ -168,7 +168,7 @@ ON CONFLICT DO NOTHING;
 -- ─── Seed: sample subscription plans ─────────────────────────
 
 INSERT INTO subscription_plans (name, price, duration_days, description) VALUES
-    ('Monthly Basic',   99000,   30,  'Basic access for 30 days'),
-    ('Quarterly Pro',   249000,  90,  'Pro access for 90 days'),
-    ('Annual Premium',  799000,  365, 'Premium access for 1 year')
+    ('Monthly Basic',   1.00,    30,  'Basic access for 30 days'),
+    ('Quarterly Pro',   500.00,  90,  'Pro access for 90 days'),
+    ('Annual Premium',  2500.00, 365, 'Premium access for 1 year')
 ON CONFLICT DO NOTHING;

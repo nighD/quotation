@@ -16,9 +16,10 @@ export function SubscriptionPlans() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [joiningWaitlist, setJoiningWaitlist] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, type: 'success' | 'error'} | null>(null);
   const [activePlanName, setActivePlanName] = useState<string>('Free'); // Default to Free
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -93,7 +94,7 @@ export function SubscriptionPlans() {
       const payRes = await apiClient.post('/payments/create', {
         subscription_id: subId,
         amount: dbPlan.price,
-        currency: 'VND',
+        currency: 'USD',
         gateway: 'onepay'
       });
 
@@ -105,6 +106,27 @@ export function SubscriptionPlans() {
       alert(err.response?.data?.message || 'Purchase failed');
     } finally {
       setPurchasing(null);
+    }
+  };
+
+  const handleJoinWaitlist = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setJoiningWaitlist(true);
+    try {
+      const { data } = await apiClient.post('/auth/join-waitlist');
+      if (data.success) {
+        setToastMessage({ title: 'Successfully joined waitlist!', type: 'success' });
+        // Update context user with returned user profile
+        setUser(data.data);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to join waitlist');
+    } finally {
+      setJoiningWaitlist(false);
     }
   };
 
@@ -187,10 +209,34 @@ export function SubscriptionPlans() {
             const isCurrentPlan = activePlanName === card.dbName;
             const isPopular = card.isPopular;
             const cardRank = planRanks[card.dbName] || 0;
-            const showPurchaseButton = cardRank > currentPlanRank;
+
+            const isPremium = card.id === 'premium';
+            const isJoined = !!user?.is_joined_waitlist;
+
+            const showButton = !isCurrentPlan && (
+              isPremium ? true : (cardRank > currentPlanRank)
+            );
+
+            let buttonText = 'Upgrade';
+            let onButtonClick = () => handlePurchase(card.dbName);
+            let isButtonDisabled = purchasing !== null;
+
+            if (isPremium) {
+              if (isJoined) {
+                buttonText = 'Already Joined';
+                onButtonClick = async () => {};
+                isButtonDisabled = true;
+              } else {
+                buttonText = joiningWaitlist ? 'Joining...' : 'Join Wait List';
+                onButtonClick = handleJoinWaitlist;
+                isButtonDisabled = joiningWaitlist;
+              }
+            } else {
+              buttonText = purchasing === card.dbName ? 'Processing...' : 'Upgrade';
+            }
 
             return (
-              <div key={card.id} className={`relative flex flex-col items-center ${isPopular ? 'h-[440px]' : 'h-[360px]'}`}>
+              <div key={card.id} className={`relative flex flex-col items-center group ${isPopular ? 'h-[440px]' : 'h-[360px]'}`}>
 
                 {/* Card Body */}
                 <div className={`relative p-6 rounded-[2.5rem] backdrop-blur-md border transition-all duration-300 flex flex-col overflow-hidden w-[327px] max-w-full h-full hover:bg-[#5a5a5a]/85 hover:border-white/30 hover:shadow-2xl text-white
@@ -257,18 +303,14 @@ export function SubscriptionPlans() {
                 </div>
 
                 {/* Overlapping explore button (only if card rank is higher than current plan and not free card) */}
-                {showPurchaseButton && card.id !== 'free' && (
-                  <div className="absolute bottom-0 translate-y-1/2 left-1/2 -translate-x-1/2 z-20 w-max">
+                {showButton && (
+                  <div className="absolute bottom-0 translate-y-1/2 left-1/2 -translate-x-1/2 z-20 w-max opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300">
                     <button
-                      className={`px-8 py-[13px] rounded-full text-[15px] font-medium transition-colors flex justify-center items-center gap-2 min-w-[200px] border cursor-pointer shadow-md
-                        ${isPopular
-                          ? 'bg-white text-black hover:bg-gray-200 border-white'
-                          : 'bg-[#2d2a2a] text-white border-white/10 hover:bg-[#3d3a3a]'
-                        }`}
-                      onClick={() => handlePurchase(card.dbName)}
-                      disabled={purchasing !== null}
+                      className={`px-8 py-[13px] rounded-full text-[15px] font-medium transition-colors flex justify-center items-center gap-2 min-w-[200px] border cursor-pointer shadow-md bg-white text-black hover:bg-gray-200 border-white ${isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={onButtonClick}
+                      disabled={isButtonDisabled}
                     >
-                      {purchasing === card.dbName ? 'Processing...' : 'Explore Membership'}
+                      {buttonText}
                     </button>
                   </div>
                 )}

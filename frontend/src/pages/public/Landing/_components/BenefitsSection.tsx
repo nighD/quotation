@@ -159,7 +159,7 @@ export const BenefitsSection = () => {
             </div>
 
             <div className="flex md:hidden flex-col space-y-20 mt-8">
-                {perks.map((perk, index) => {
+                {perks.map((perk) => {
                     return (
                         <div key={perk.id} className="flex flex-col items-center text-center space-y-8">
                             <div className="relative w-70 aspect-square rounded-[40px] bg-[#0d0f14] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.8)] overflow-hidden">

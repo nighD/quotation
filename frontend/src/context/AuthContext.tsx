@@ -10,6 +10,7 @@ export interface User {
   company?: string;
   title?: string;
   country?: string;
+  is_joined_waitlist?: boolean;
 }
 
 interface AuthContextType {

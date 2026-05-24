@@ -236,3 +236,23 @@ func (h *Handler) RefreshToken(c *fiber.Ctx) error {
 
 	return response.OK(c, result, "Token refreshed")
 }
+
+// JoinWaitlist godoc
+// @Summary      Join waitlist
+// @Description  Join the premium subscription waitlist
+// @Tags         auth
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  response.Response{data=UserInfo}
+// @Failure      401  {object}  response.Response
+// @Router       /auth/join-waitlist [post]
+func (h *Handler) JoinWaitlist(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	profile, err := h.service.JoinWaitlist(userID)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+
+	return response.OK(c, profile, "Successfully joined waitlist")
+}

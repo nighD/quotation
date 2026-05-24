@@ -13,9 +13,6 @@ export const HeroContent = () => {
     const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [25, -25]), { stiffness: 50, damping: 20 });
     const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-25, 25]), { stiffness: 50, damping: 20 });
 
-    const glareX = useTransform(x, [-0.5, 0.5], [0, 100]);
-    const glareY = useTransform(y, [-0.5, 0.5], [0, 100]);
-
     const [isMobile, setIsMobile] = React.useState(false);
 
     React.useEffect(() => {
