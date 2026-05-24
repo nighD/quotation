@@ -122,8 +122,8 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
       ) : (
         // Mobile layout when not logged in
         <div className="flex md:hidden items-center justify-between w-full">
-          <Link to="/" className="text-2xl font-bold tracking-widest text-white hover:text-gray-300 transition">
-            VIFC
+          <Link to="/" className="flex items-center hover:opacity-85 transition">
+            <img src="/favicon.svg" alt="VIFC Logo" className="w-8 h-8 object-contain" />
           </Link>
           <Link
             to="/login"
@@ -136,8 +136,8 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
 
       {/* Desktop-only Logo */}
       <div className="hidden md:block absolute left-6 md:left-12">
-        <Link to="/" className="text-2xl font-bold tracking-widest text-white hover:text-gray-300 transition">
-          VIFC
+        <Link to="/" className="flex items-center hover:opacity-85 transition">
+          <img src="/favicon.svg" alt="VIFC Logo" className="w-8 h-8 object-contain" />
         </Link>
       </div>
 
@@ -268,7 +268,9 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
         <div className="fixed inset-0 bg-[#0c0c0e]/95 backdrop-blur-xl z-50 flex flex-col p-8 animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between w-full mb-12">
-            <span className="text-3xl font-semibold text-white tracking-widest font-poppins">VIFC</span>
+            <div className="flex items-center">
+              <img src="/favicon.svg" alt="VIFC Logo" className="w-10 h-10 object-contain" />
+            </div>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(false)}

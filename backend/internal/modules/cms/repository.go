@@ -78,7 +78,7 @@ func (r *Repository) HasActiveSubscription(userID string) bool {
 	var count int64
 	r.db.Table("user_subscriptions").
 		Joins("JOIN subscription_plans ON subscription_plans.id = user_subscriptions.subscription_plan_id").
-		Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW() AND subscription_plans.name = 'Annual Premium'", userID).
+		Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW() AND subscription_plans.name IN ('Quarterly Pro', 'Annual Premium')", userID).
 		Count(&count)
 	return count > 0
 }
