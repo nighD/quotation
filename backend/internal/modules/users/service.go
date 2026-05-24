@@ -45,6 +45,15 @@ func (s *Service) UpdateUser(id string, req *UpdateUserRequest) (*UserResponse, 
 	if req.Status != "" {
 		updates["status"] = req.Status
 	}
+	if req.Company != "" {
+		updates["company"] = req.Company
+	}
+	if req.Title != "" {
+		updates["title"] = req.Title
+	}
+	if req.Country != "" {
+		updates["country"] = req.Country
+	}
 
 	if len(updates) == 0 {
 		return s.GetUser(id)

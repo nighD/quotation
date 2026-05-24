@@ -177,6 +177,38 @@ func (h *Handler) GetProfile(c *fiber.Ctx) error {
 	return response.OK(c, profile, "")
 }
 
+// UpdateProfile godoc
+// @Summary      Update profile
+// @Description  Update the authenticated user's profile information
+// @Tags         auth
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body body UpdateProfileRequest true "Update profile payload"
+// @Success      200  {object}  response.Response{data=UserInfo}
+// @Failure      400  {object}  response.Response
+// @Failure      401  {object}  response.Response
+// @Router       /auth/profile [put]
+func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	var req UpdateProfileRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	profile, err := h.service.UpdateProfile(userID, &req)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+
+	return response.OK(c, profile, "Profile updated successfully")
+}
+
 // RefreshToken godoc
 // @Summary      Refresh tokens
 // @Description  Exchange a refresh token for a new token pair

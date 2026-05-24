@@ -5,6 +5,20 @@ import { apiClient } from '../../api/client';
 import { GoogleLogin } from '@react-oauth/google';
 import { Mail, Lock } from 'lucide-react';
 
+const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
+  const serverMsg = err.response?.data?.message || '';
+  if (
+    serverMsg.includes('SQLSTATE') ||
+    serverMsg.includes('failed to register social user') ||
+    serverMsg.includes('column "') ||
+    serverMsg.includes('relation "') ||
+    serverMsg.includes('ERROR:')
+  ) {
+    return 'Something wrong. Please contact partner@goealliance.org for more information.';
+  }
+  return serverMsg || defaultMsg;
+};
+
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +40,7 @@ export function Login() {
         navigate('/');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(getCleanErrorMessage(err, 'Login failed. Please check your credentials.'));
     } finally {
       setLoading(false);
     }
@@ -45,8 +59,7 @@ export function Login() {
         navigate('/');
       }
     } catch (err: any) {
-      const details = err.response?.data?.errors ? JSON.stringify(err.response.data.errors) : '';
-      setError(`${err.response?.data?.message || 'Google Login failed.'} ${details}`);
+      setError(getCleanErrorMessage(err, 'Google Login failed.'));
     } finally {
       setLoading(false);
     }

@@ -144,6 +144,34 @@ func (s *Service) GetProfile(userID string) (*UserInfo, error) {
 	return toUserInfo(&user, roles), nil
 }
 
+// UpdateProfile updates the authenticated user's profile information.
+func (s *Service) UpdateProfile(userID string, req *UpdateProfileRequest) (*UserInfo, error) {
+	var user User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	updates := map[string]interface{}{}
+	if req.FullName != "" {
+		updates["full_name"] = req.FullName
+	}
+	updates["company"] = req.Company
+	updates["title"] = req.Title
+	updates["country"] = req.Country
+
+	if err := s.db.Model(&user).Updates(updates).Error; err != nil {
+		return nil, fmt.Errorf("failed to update profile: %w", err)
+	}
+
+	// Fetch updated user from DB
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch updated user")
+	}
+
+	roles := s.getUserRoles(userID)
+	return toUserInfo(&user, roles), nil
+}
+
 // ForgotPassword initiates a password reset (stub — integrate email service).
 func (s *Service) ForgotPassword(req *ForgotPasswordRequest) error {
 	var user User
@@ -226,10 +254,11 @@ func (s *Service) getUserRoles(userID string) []string {
 		WHERE ur.user_id = ?
 	`, userID).Scan(&roles)
 
-	// Check if user has active subscription
+	// Check if user has active subscription to "Annual Premium"
 	var count int64
 	s.db.Table("user_subscriptions").
-		Where("user_id = ? AND status = 'active' AND end_date > NOW()", userID).
+		Joins("JOIN subscription_plans ON subscription_plans.id = user_subscriptions.subscription_plan_id").
+		Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW() AND subscription_plans.name = 'Annual Premium'", userID).
 		Count(&count)
 
 	if count > 0 {

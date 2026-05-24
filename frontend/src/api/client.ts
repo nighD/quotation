@@ -1,6 +1,15 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL === '' ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:8080');
+const isLocal = 
+  window.location.hostname === 'localhost' || 
+  window.location.hostname === '127.0.0.1' || 
+  window.location.hostname.startsWith('192.168.') ||
+  window.location.hostname.startsWith('10.') ||
+  window.location.hostname.endsWith('.local');
+
+const API_URL = isLocal 
+  ? `${window.location.protocol}//${window.location.hostname}:8080` 
+  : (import.meta.env.VITE_API_URL || '');
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -26,7 +35,14 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const url = originalRequest.url || '';
+    const isAuthRoute = 
+      url.includes('/auth/login') || 
+      url.includes('/auth/social') || 
+      url.includes('/auth/register') || 
+      url.includes('/auth/refresh');
+
+    if (error.response?.status === 401 && !isAuthRoute && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refresh_token');

@@ -19,4 +19,5 @@ func RegisterRoutes(router fiber.Router, handler *Handler, jwtSecret string) {
 
 	// Protected routes
 	auth.Get("/profile", middleware.Auth(jwtSecret), handler.GetProfile)
+	auth.Put("/profile", middleware.Auth(jwtSecret), handler.UpdateProfile)
 }

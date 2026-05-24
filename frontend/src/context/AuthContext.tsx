@@ -7,6 +7,9 @@ export interface User {
   full_name: string;
   roles: string[];
   avatar_url?: string;
+  company?: string;
+  title?: string;
+  country?: string;
 }
 
 interface AuthContextType {
@@ -14,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: (access_token: string, refresh_token: string) => void;
   logout: () => void;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +28,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryToken = searchParams.get('token');
+      const queryRefreshToken = searchParams.get('refresh_token');
+      const isLogout = searchParams.get('logout') === 'true';
+
+      if (isLogout) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        setUser(null);
+        
+        searchParams.delete('logout');
+        const newSearch = searchParams.toString();
+        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
+        window.history.replaceState({}, '', newPath);
+      } else if (queryToken && queryRefreshToken) {
+        localStorage.setItem('access_token', queryToken);
+        localStorage.setItem('refresh_token', queryRefreshToken);
+        
+        searchParams.delete('token');
+        searchParams.delete('refresh_token');
+        const newSearch = searchParams.toString();
+        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
+        window.history.replaceState({}, '', newPath);
+      }
+
       const token = localStorage.getItem('access_token');
       if (token) {
         try {
@@ -31,6 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(data.data);
         } catch (error) {
           console.error("Failed to fetch profile", error);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          setUser(null);
         }
       }
       setLoading(false);
@@ -53,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

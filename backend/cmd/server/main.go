@@ -70,7 +70,7 @@ func main() {
 	}
 
 	// ── Database Auto-Migration ───────────────────────────────
-	if err := database.AutoMigrate(db, &users.User{}); err != nil {
+	if err := database.AutoMigrate(db, &users.User{}, &cms.Article{}, &cms.Category{}); err != nil {
 		logger.Warn("Database auto-migration failed", zap.Error(err))
 	}
 
@@ -138,7 +138,7 @@ func main() {
 	// CMS
 	cmsRepo := cms.NewRepository(db)
 	cmsSvc := cms.NewService(cmsRepo)
-	cmsHandler := cms.NewHandler(cmsSvc)
+	cmsHandler := cms.NewHandler(cmsSvc, cfg.AWS)
 	cms.RegisterRoutes(app, cmsHandler, jwtSecret)
 
 	// Subscriptions

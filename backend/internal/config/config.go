@@ -22,10 +22,18 @@ type Config struct {
 	Storage   StorageConfig
 	RateLimit RateLimitConfig
 	Google    GoogleConfig
+	AWS       AWSConfig
 }
 
 type GoogleConfig struct {
 	ClientID string
+}
+
+type AWSConfig struct {
+	AccessKeyID     string
+	SecretAccessKey string
+	Region          string
+	BucketName      string
 }
 
 type AppConfig struct {
@@ -141,6 +149,10 @@ func Load() (*Config, error) {
 	viper.SetDefault("STORAGE_PATH", "./storage/uploads")
 	viper.SetDefault("MAX_FILE_SIZE_MB", 10)
 
+	// AWS defaults
+	viper.SetDefault("AWS_REGION", "ap-southeast-2")
+	viper.SetDefault("AWS_BUCKET_NAME", "vifc-quotation-dev")
+
 	cfg := &Config{
 		App: AppConfig{
 			Name: viper.GetString("APP_NAME"),
@@ -207,6 +219,22 @@ func Load() (*Config, error) {
 		},
 		Google: GoogleConfig{
 			ClientID: viper.GetString("GOOGLE_CLIENT_ID"),
+		},
+		AWS: AWSConfig{
+			AccessKeyID:     func() string {
+				if key := viper.GetString("AWS_ACCESS_KEY_ID"); key != "" {
+					return key
+				}
+				return viper.GetString("AWS_ACCESS_KEY")
+			}(),
+			SecretAccessKey: func() string {
+				if key := viper.GetString("AWS_SECRET_ACCESS_KEY"); key != "" {
+					return key
+				}
+				return viper.GetString("AWS_SECRET_KEY")
+			}(),
+			Region:          viper.GetString("AWS_REGION"),
+			BucketName:      viper.GetString("AWS_BUCKET_NAME"),
 		},
 	}
 

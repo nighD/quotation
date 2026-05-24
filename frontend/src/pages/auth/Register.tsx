@@ -4,6 +4,20 @@ import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 
+const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
+  const serverMsg = err.response?.data?.message || '';
+  if (
+    serverMsg.includes('SQLSTATE') ||
+    serverMsg.includes('failed to register social user') ||
+    serverMsg.includes('column "') ||
+    serverMsg.includes('relation "') ||
+    serverMsg.includes('ERROR:')
+  ) {
+    return 'Something wrong. Please contact partner@goealliance.org for more information.';
+  }
+  return serverMsg || defaultMsg;
+};
+
 export function Register() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,7 +44,7 @@ export function Register() {
         navigate('/');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(getCleanErrorMessage(err, 'Registration failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -49,7 +63,7 @@ export function Register() {
         navigate('/');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Google Sign-up failed.');
+      setError(getCleanErrorMessage(err, 'Google Sign-up failed.'));
     } finally {
       setLoading(false);
     }

@@ -35,13 +35,17 @@ func (r *Repository) FindByTransactionID(txID string) (*Payment, error) {
 	return &p, nil
 }
 
-func (r *Repository) UpdateStatus(id, status, txID string) error {
+func (r *Repository) UpdateStatus(id, status, txID, metadata string) error {
+	updates := map[string]interface{}{
+		"status":         status,
+		"transaction_id": txID,
+	}
+	if metadata != "" {
+		updates["metadata"] = metadata
+	}
 	return r.db.Model(&Payment{}).
 		Where("id = ?", id).
-		Updates(map[string]interface{}{
-			"status":         status,
-			"transaction_id": txID,
-		}).Error
+		Updates(updates).Error
 }
 
 func (r *Repository) ListByUserID(userID string, offset, limit int) ([]Payment, int64, error) {

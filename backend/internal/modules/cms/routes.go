@@ -25,4 +25,7 @@ func RegisterRoutes(router fiber.Router, handler *Handler, jwtSecret string) {
 	categories := cms.Group("/categories")
 	categories.Get("/", handler.ListCategories)           // public
 	categories.Post("/", authMW, middleware.RequireAdmin(), handler.CreateCategory)
+
+	// Secure PDF Streaming
+	cms.Get("/reports/:id/pdf", authMW, handler.StreamReportPDF)
 }

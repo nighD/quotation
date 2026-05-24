@@ -20,15 +20,26 @@ func Auth(secret string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			return response.Unauthorized(c, "Authorization header is required")
+			authHeader = c.Query("token")
+		}
+		if authHeader == "" {
+			return response.Unauthorized(c, "Authorization header or token is required")
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			return response.Unauthorized(c, "Invalid authorization format. Use: Bearer <token>")
+		var tokenStr string
+		if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 {
+				tokenStr = parts[1]
+			}
+		} else {
+			tokenStr = authHeader
 		}
 
-		tokenStr := parts[1]
+		if tokenStr == "" {
+			return response.Unauthorized(c, "Invalid token format")
+		}
+
 		claims, err := jwtpkg.ParseToken(tokenStr, secret)
 		if err != nil {
 			return response.Unauthorized(c, "Invalid or expired token")
@@ -47,19 +58,28 @@ func OptionalAuth(secret string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
+			authHeader = c.Query("token")
+		}
+		if authHeader == "" {
 			return c.Next()
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			return c.Next()
+		var tokenStr string
+		if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 {
+				tokenStr = parts[1]
+			}
+		} else {
+			tokenStr = authHeader
 		}
 
-		tokenStr := parts[1]
-		claims, err := jwtpkg.ParseToken(tokenStr, secret)
-		if err == nil {
-			c.Locals(constants.ContextKeyUserID, claims.UserID)
-			c.Locals(constants.ContextKeyRoles, claims.Roles)
+		if tokenStr != "" {
+			claims, err := jwtpkg.ParseToken(tokenStr, secret)
+			if err == nil {
+				c.Locals(constants.ContextKeyUserID, claims.UserID)
+				c.Locals(constants.ContextKeyRoles, claims.Roles)
+			}
 		}
 
 		return c.Next()

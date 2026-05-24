@@ -2,7 +2,6 @@ package payments
 
 import (
 	"io"
-	"os"
 
 	"github.com/baole/quotation/internal/middleware"
 	"github.com/baole/quotation/pkg/response"
@@ -38,8 +37,11 @@ func (h *Handler) CreatePayment(c *fiber.Ctx) error {
 		return response.BadRequest(c, "Validation failed", errs)
 	}
 
+	// Dynamic baseURL from request headers
+	baseURL := c.Protocol() + "://" + c.Get("Host")
+
 	userID := middleware.GetUserID(c)
-	result, err := h.service.CreatePayment(userID, &req)
+	result, err := h.service.CreatePayment(userID, &req, baseURL)
 	if err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
@@ -111,10 +113,9 @@ func (h *Handler) VNPayWebhook(c *fiber.Ctx) error {
 func (h *Handler) OnePayReturn(c *fiber.Ctx) error {
 	params := c.Queries()
 	
-	appURL := os.Getenv("APP_URL")
-	if os.Getenv("APP_ENV") == "development" {
-		appURL = "http://localhost:5173"
-	} else if appURL == "" {
+	// Dynamically determine redirect URL
+	appURL := c.Protocol() + "://" + c.Get("Host")
+	if c.Hostname() == "localhost" || c.Hostname() == "127.0.0.1" {
 		appURL = "http://localhost:5173"
 	}
 

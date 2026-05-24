@@ -19,9 +19,13 @@ func NewService(repo *Repository) *Service {
 // ─── Article operations ──────────────────────────────────────
 
 func (s *Service) CreateArticle(req *CreateArticleRequest, createdBy string) (*ArticleResponse, error) {
-	catID, err := uuid.Parse(req.CategoryID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid category_id")
+	var catID *uuid.UUID
+	if req.CategoryID != "" {
+		parsedID, err := uuid.Parse(req.CategoryID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid category_id")
+		}
+		catID = &parsedID
 	}
 
 	creatorID, _ := uuid.Parse(createdBy)
@@ -34,12 +38,21 @@ func (s *Service) CreateArticle(req *CreateArticleRequest, createdBy string) (*A
 	}
 
 	article := &Article{
-		Title:      req.Title,
-		Slug:       generatedSlug,
-		Content:    req.Content,
-		Status:     status,
-		CategoryID: catID,
-		CreatedBy:  creatorID,
+		ID:             req.ID,
+		Title:          req.Title,
+		Slug:           generatedSlug,
+		Description:    req.Description,
+		Thumbnail:      req.Thumbnail,
+		Layouts:        req.Layouts,
+		Content:        req.Content,
+		Blocks:         req.Blocks,
+		Status:         status,
+		CategoryID:     catID,
+		CreatedBy:      creatorID,
+		PDFKey:         req.PDFKey,
+		SEOTitle:       req.SEOTitle,
+		SEODescription: req.SEODescription,
+		SEOKeywords:    req.SEOKeywords,
 	}
 
 	if err := s.repo.CreateArticle(article); err != nil {
@@ -102,8 +115,20 @@ func (s *Service) UpdateArticle(id string, req *UpdateArticleRequest) (*ArticleR
 		updates["title"] = req.Title
 		updates["slug"] = s.uniqueSlug(req.Title)
 	}
+	if req.Description != "" {
+		updates["description"] = req.Description
+	}
+	if req.Thumbnail != "" {
+		updates["thumbnail"] = req.Thumbnail
+	}
+	if req.Layouts != "" {
+		updates["layouts"] = req.Layouts
+	}
 	if req.Content != "" {
 		updates["content"] = req.Content
+	}
+	if req.Blocks != "" {
+		updates["blocks"] = req.Blocks
 	}
 	if req.Status != "" {
 		updates["status"] = req.Status
@@ -113,7 +138,19 @@ func (s *Service) UpdateArticle(id string, req *UpdateArticleRequest) (*ArticleR
 		if err != nil {
 			return nil, fmt.Errorf("invalid category_id")
 		}
-		updates["category_id"] = catID
+		updates["category_id"] = &catID
+	}
+	if req.PDFKey != "" {
+		updates["pdf_key"] = req.PDFKey
+	}
+	if req.SEOTitle != "" {
+		updates["seo_title"] = req.SEOTitle
+	}
+	if req.SEODescription != "" {
+		updates["seo_description"] = req.SEODescription
+	}
+	if req.SEOKeywords != "" {
+		updates["seo_keywords"] = req.SEOKeywords
 	}
 
 	article, err := s.repo.UpdateArticle(id, updates)

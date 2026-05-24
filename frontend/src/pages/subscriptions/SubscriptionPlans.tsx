@@ -108,6 +108,14 @@ export function SubscriptionPlans() {
     }
   };
 
+  const planRanks: Record<string, number> = {
+    'Free': 0,
+    'Monthly Basic': 1,
+    'Quarterly Pro': 2,
+    'Annual Premium': 3,
+  };
+  const currentPlanRank = planRanks[activePlanName] || 0;
+
   const cards = [
     {
       id: 'free',
@@ -178,15 +186,17 @@ export function SubscriptionPlans() {
           {cards.map((card) => {
             const isCurrentPlan = activePlanName === card.dbName;
             const isPopular = card.isPopular;
+            const cardRank = planRanks[card.dbName] || 0;
+            const showPurchaseButton = cardRank > currentPlanRank;
 
             return (
               <div key={card.id} className={`relative flex flex-col items-center ${isPopular ? 'h-[440px]' : 'h-[360px]'}`}>
 
                 {/* Card Body */}
-                <div className={`relative p-6 rounded-[2.5rem] backdrop-blur-md border transition-all flex flex-col overflow-hidden w-[327px] max-w-full h-full
+                <div className={`relative p-6 rounded-[2.5rem] backdrop-blur-md border transition-all duration-300 flex flex-col overflow-hidden w-[327px] max-w-full h-full hover:bg-[#5a5a5a]/85 hover:border-white/30 hover:shadow-2xl text-white
                   ${isPopular
-                    ? 'bg-[#404040]/80 border-white/10 shadow-2xl'
-                    : 'bg-[#151515]/80 border-white/5 text-white'
+                    ? 'bg-[#404040]/80 border-white/20 shadow-xl'
+                    : 'bg-[#151515]/80 border-white/5'
                   }`}>
 
                   {/* Background 3D shape decoration */}
@@ -235,7 +245,8 @@ export function SubscriptionPlans() {
                       {card.features.map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-2.5 text-[#d1d1d1] text-[15px]">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0">
-                            <polyline points="20 6 9 17 4 12" />
+                            <path d="M2 12l5 5L15 7" />
+                            <path d="M8 12l5 5L21 7" />
                           </svg>
                           <span>{feature}</span>
                         </li>
@@ -245,8 +256,8 @@ export function SubscriptionPlans() {
                   </div>
                 </div>
 
-                {/* Overlapping explore button (only if not current plan and not free card) */}
-                {!isCurrentPlan && card.id !== 'free' && (
+                {/* Overlapping explore button (only if card rank is higher than current plan and not free card) */}
+                {showPurchaseButton && card.id !== 'free' && (
                   <div className="absolute bottom-0 translate-y-1/2 left-1/2 -translate-x-1/2 z-20 w-max">
                     <button
                       className={`px-8 py-[13px] rounded-full text-[15px] font-medium transition-colors flex justify-center items-center gap-2 min-w-[200px] border cursor-pointer shadow-md

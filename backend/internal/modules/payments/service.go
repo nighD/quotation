@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"sort"
@@ -33,7 +34,7 @@ func NewService(repo *Repository, subRepo *subscriptions.Repository, cfg *config
 
 // ─── Create Payment ───────────────────────────────────────────
 
-func (s *Service) CreatePayment(userID string, req *CreatePaymentRequest) (*CreatePaymentResponse, error) {
+func (s *Service) CreatePayment(userID string, req *CreatePaymentRequest, baseURL string) (*CreatePaymentResponse, error) {
 	uid, _ := uuid.Parse(userID)
 	subID, _ := uuid.Parse(req.SubscriptionID)
 
@@ -62,7 +63,7 @@ func (s *Service) CreatePayment(userID string, req *CreatePaymentRequest) (*Crea
 	case "vnpay":
 		paymentURL, err = s.createVNPayURL(p)
 	case "onepay":
-		paymentURL, err = s.createOnePayURL(p)
+		paymentURL, err = s.createOnePayURL(p, baseURL)
 	default:
 		return nil, fmt.Errorf("unsupported gateway: %s", req.Gateway)
 	}
@@ -106,15 +107,25 @@ func (s *Service) HandleStripeWebhook(payload []byte, sigHeader string) error {
 
 	switch event.Type {
 	case "payment_intent.succeeded":
-		// Extract payment_id from metadata and activate subscription
-		// event.Data.Object is a map[string]interface{}
 		if obj, ok := event.Data.Object["metadata"].(map[string]interface{}); ok {
 			if paymentID, ok := obj["payment_id"].(string); ok {
-				return s.activateSubscription(paymentID, event.ID)
+				var metadataStr string
+				if jsonBytes, err := json.Marshal(event.Data.Object); err == nil {
+					metadataStr = string(jsonBytes)
+				}
+				return s.activateSubscription(paymentID, event.ID, metadataStr)
 			}
 		}
 	case "payment_intent.payment_failed":
-		// Handle failed payment
+		if obj, ok := event.Data.Object["metadata"].(map[string]interface{}); ok {
+			if paymentID, ok := obj["payment_id"].(string); ok {
+				var metadataStr string
+				if jsonBytes, err := json.Marshal(event.Data.Object); err == nil {
+					metadataStr = string(jsonBytes)
+				}
+				_ = s.repo.UpdateStatus(paymentID, "failed", event.ID, metadataStr)
+			}
+		}
 	}
 
 	return nil
@@ -159,12 +170,18 @@ func (s *Service) HandleMoMoWebhook(payload *MoMoWebhookPayload) error {
 		return fmt.Errorf("momo: invalid webhook signature")
 	}
 
+	var metadataStr string
+	if jsonBytes, err := json.Marshal(payload); err == nil {
+		metadataStr = string(jsonBytes)
+	}
+
 	if payload.ResultCode != 0 {
 		// Payment failed
+		_ = s.repo.UpdateStatus(payload.OrderID, "failed", fmt.Sprintf("%d", payload.TransID), metadataStr)
 		return nil
 	}
 
-	return s.activateSubscription(payload.OrderID, fmt.Sprintf("%d", payload.TransID))
+	return s.activateSubscription(payload.OrderID, fmt.Sprintf("%d", payload.TransID), metadataStr)
 }
 
 // ─── VNPay ────────────────────────────────────────────────────
@@ -208,32 +225,45 @@ func (s *Service) createVNPayURL(p *Payment) (string, error) {
 func (s *Service) HandleVNPayWebhook(payload *VNPayWebhookPayload) error {
 	// Rebuild query string without vnp_SecureHash for signature verification
 	// In production: collect all vnp_ params, sort, hash, compare
+	var metadataStr string
+	if jsonBytes, err := json.Marshal(payload); err == nil {
+		metadataStr = string(jsonBytes)
+	}
+
 	if payload.ResponseCode != "00" {
+		_ = s.repo.UpdateStatus(payload.TxnRef, "failed", payload.TransactionNo, metadataStr)
 		return nil // Payment not successful
 	}
 
-	return s.activateSubscription(payload.TxnRef, payload.TransactionNo)
+	return s.activateSubscription(payload.TxnRef, payload.TransactionNo, metadataStr)
 }
 
 // ─── OnePay ───────────────────────────────────────────────────
 
-func (s *Service) createOnePayURL(p *Payment) (string, error) {
+func (s *Service) createOnePayURL(p *Payment, baseURL string) (string, error) {
 	params := url.Values{}
 	params.Set("vpc_Version", "2")
 	params.Set("vpc_Command", "pay")
 	params.Set("vpc_AccessCode", s.cfg.OnePay.AccessCode)
 	params.Set("vpc_Merchant", s.cfg.OnePay.MerchantID)
 	params.Set("vpc_Locale", "vn")
-	// For testing we will just hardcode return URL if not set
-	baseURL := s.cfg.App.URL
-	if s.cfg.App.Env == "development" {
-		baseURL = "http://localhost:8080"
+	
+	// Use dynamic baseURL if provided, otherwise fallback to config
+	if baseURL == "" {
+		baseURL = s.cfg.App.URL
+		if s.cfg.App.Env == "development" {
+			baseURL = "http://localhost:8080"
+		}
 	}
 	params.Set("vpc_ReturnURL", baseURL+"/payments/onepay/return")
 	params.Set("vpc_CallbackURL", baseURL+"/payments/onepay/ipn")
 	params.Set("vpc_MerchTxnRef", p.ID.String())
 	params.Set("vpc_OrderInfo", fmt.Sprintf("Payment_%s", p.ID.String()))
-	params.Set("vpc_Amount", fmt.Sprintf("%d", int64(p.Amount*100)))
+	
+	// Convert USD amount to VND for OnePay (using exchange rate 26,390 VND/USD)
+	vndAmount := p.Amount * 26390
+	params.Set("vpc_Amount", fmt.Sprintf("%d", int64(vndAmount*100)))
+	
 	params.Set("vpc_TicketNo", "127.0.0.1")
 
 	keys := make([]string, 0, len(params))
@@ -304,21 +334,27 @@ func (s *Service) HandleOnePayWebhook(params map[string]string) error {
 		return fmt.Errorf("onepay: invalid webhook signature")
 	}
 
-	if params["vpc_TxnResponseCode"] != "0" {
-		return fmt.Errorf("onepay: payment failed with code %s", params["vpc_TxnResponseCode"])
+	var metadataStr string
+	if jsonBytes, err := json.Marshal(params); err == nil {
+		metadataStr = string(jsonBytes)
 	}
 
 	txnRef := params["vpc_MerchTxnRef"]
 	txnNo := params["vpc_TransactionNo"]
+
+	if params["vpc_TxnResponseCode"] != "0" {
+		_ = s.repo.UpdateStatus(txnRef, "failed", txnNo, metadataStr)
+		return fmt.Errorf("onepay: payment failed with code %s", params["vpc_TxnResponseCode"])
+	}
 	
-	return s.activateSubscription(txnRef, txnNo)
+	return s.activateSubscription(txnRef, txnNo, metadataStr)
 }
 
 // ─── Shared activation ────────────────────────────────────────
 
 // activateSubscription marks a payment as success and activates the linked subscription.
-func (s *Service) activateSubscription(paymentID, transactionID string) error {
-	if err := s.repo.UpdateStatus(paymentID, "success", transactionID); err != nil {
+func (s *Service) activateSubscription(paymentID, transactionID, metadata string) error {
+	if err := s.repo.UpdateStatus(paymentID, "success", transactionID, metadata); err != nil {
 		return fmt.Errorf("failed to update payment status: %w", err)
 	}
 

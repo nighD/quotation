@@ -54,6 +54,20 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 // AutoMigrate runs GORM auto-migration for all registered models.
 // NOTE: For production, use SQL migration files instead.
 func AutoMigrate(db *gorm.DB, models ...interface{}) error {
+	// Ensure avatar_url and other profile fields exist on users table
+	if err := db.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT").Error; err != nil {
+		log.Printf("⚠️ Failed to add avatar_url column: %v\n", err)
+	}
+	if err := db.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS company VARCHAR(255)").Error; err != nil {
+		log.Printf("⚠️ Failed to add company column: %v\n", err)
+	}
+	if err := db.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS title VARCHAR(255)").Error; err != nil {
+		log.Printf("⚠️ Failed to add title column: %v\n", err)
+	}
+	if err := db.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(100)").Error; err != nil {
+		log.Printf("⚠️ Failed to add country column: %v\n", err)
+	}
+
 	if err := db.AutoMigrate(models...); err != nil {
 		return fmt.Errorf("auto migration failed: %w", err)
 	}

@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Navbar } from '../../components/Navbar';
 import { ArticleCard } from '../../components/ArticleCard';
 import { useAuth } from '../../context/AuthContext';
+import { Lock } from 'lucide-react';
+import { apiClient } from '../../api/client';
 
 const REPORT_DATA: Record<string, { title: string, date: string }> = {
   "1": { title: "Article Name 01 - Experience frictionless global payments with premium flexibility", date: "Sun 17 May 15:29" },
@@ -17,7 +19,7 @@ const REPORT_DATA: Record<string, { title: string, date: string }> = {
 };
 
 export function ReportDetail() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [userRole, setUserRole] = useState<'free' | 'basic' | 'pro' | 'premium'>('free');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -25,7 +27,24 @@ export function ReportDetail() {
   const report = id ? REPORT_DATA[id] || REPORT_DATA["9"] : REPORT_DATA["9"];
 
   useEffect(() => {
-    if (user && user.roles && user.roles.includes('premium')) {
+    const verifyTokenAndRoles = async () => {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        try {
+          const { data } = await apiClient.get('/auth/profile');
+          if (data && data.data) {
+            setUser(data.data);
+          }
+        } catch (error) {
+          console.error("Token verification / refresh failed", error);
+        }
+      }
+    };
+    verifyTokenAndRoles();
+  }, [setUser]);
+
+  useEffect(() => {
+    if (user && user.roles && (user.roles.includes('premium') || user.roles.includes('admin'))) {
       setUserRole('premium');
     } else {
       setUserRole('free');
@@ -123,15 +142,31 @@ export function ReportDetail() {
                   </div>
                 </div>
 
+                {/* Gradient + Blur overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-black/25 to-black/80 backdrop-blur-[1.5px] rounded-[24px] pointer-events-none" />
+
                 {/* View Full Report Pill Button */}
-                <div className="flex justify-center my-6 z-10">
-                  <button className="bg-transparent border border-gray-300 hover:border-black hover:bg-black/5 text-[#1f2937] text-[13px] font-semibold px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-sm">
-                    <span>View full report</span>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="7" y1="17" x2="17" y2="7" />
-                      <polyline points="7 7 17 7 17 17" />
-                    </svg>
-                  </button>
+                <div className="flex justify-center my-6 relative z-10">
+                  {userRole === 'premium' ? (
+                    <button 
+                      onClick={() => window.open(`/reports/${id || "9"}/pdf`, '_blank')}
+                      className="bg-white border border-gray-200 hover:bg-gray-50 text-black text-[13px] font-semibold px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md"
+                    >
+                      <span>View full report</span>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="7" y1="17" x2="17" y2="7" />
+                        <polyline points="7 7 17 7 17 17" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => navigate('/subscriptions')}
+                      className="bg-white border border-gray-200 hover:border-red-500 hover:bg-red-50 text-black hover:text-red-500 text-[13px] font-semibold px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md group/btn"
+                    >
+                      <Lock className="w-3.5 h-3.5 text-black/60 group-hover/btn:text-red-500 transition-colors" />
+                      <span>Only available for Premium</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Footer text */}
