@@ -18,7 +18,7 @@ export const Header = () => {
     useEffect(() => {
         const handleScrollSpy = () => {
             let current = "";
-            const threshold = window.innerHeight * 0.4; 
+            const threshold = window.innerHeight * 0.4;
 
             for (const link of navLinks) {
                 const section = document.getElementById(link.href.replace("#", ""));
@@ -95,7 +95,7 @@ export const Header = () => {
                         <img
                             src="/image/logo.png"
                             alt="VIFC"
-                            className="object-contain w-[100px] h-[100px]"
+                            className="object-contain w-full h-auto"
                         />
                     </a>
                 </motion.div>
@@ -117,16 +117,14 @@ export const Header = () => {
                                 <a
                                     href={link.href}
                                     onClick={(e) => handleScroll(e as any, link.href)}
-                                    className={`text-[14px] font-medium px-6 py-2.5 rounded-full transition-all duration-300 group relative overflow-hidden flex ${
-                                        activeSection === link.href
-                                            ? "text-white bg-white/10"
-                                            : "text-white/80 hover:text-white hover:bg-white/10"
-                                    }`}
+                                    className={`text-[14px] font-medium px-6 py-2.5 rounded-full transition-all duration-300 group relative overflow-hidden flex ${activeSection === link.href
+                                        ? "text-white bg-white/10"
+                                        : "text-white/80 hover:text-white hover:bg-white/10"
+                                        }`}
                                 >
                                     <span className="relative z-10">{link.name}</span>
-                                    <span className={`absolute inset-0 bg-white/5 transition-opacity duration-300 rounded-full blur-sm ${
-                                        activeSection === link.href ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                                    }`} />
+                                    <span className={`absolute inset-0 bg-white/5 transition-opacity duration-300 rounded-full blur-sm ${activeSection === link.href ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                        }`} />
                                 </a>
                             </motion.div>
                         ))}
@@ -212,9 +210,8 @@ export const Header = () => {
                                         <a
                                             href={link.href}
                                             onClick={(e) => handleScroll(e as any, link.href)}
-                                            className={`text-3xl font-serif transition-colors flex ${
-                                                activeSection === link.href ? "text-white" : "text-white/60 hover:text-white"
-                                            }`}
+                                            className={`text-3xl font-serif transition-colors flex ${activeSection === link.href ? "text-white" : "text-white/60 hover:text-white"
+                                                }`}
                                         >
                                             {link.name}
                                         </a>
