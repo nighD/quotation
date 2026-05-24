@@ -1,22 +1,23 @@
-export type UserRole = 'free' | 'basic' | 'pro' | 'premium';
+export type UserRole = 'free' | 'base' | 'standard' | 'premium' | 'admin';
 
 interface ArticleCardProps {
   title: string;
   date: string;
   abstract: string;
-  requiredRole?: UserRole;
-  userRole?: UserRole;
+  requiredRole?: string;
+  userRole?: string;
   onExpand?: () => void;
   className?: string;
   imageUrl?: string;
   variant?: 'default' | 'report';
 }
 
-const ROLE_LEVELS: Record<UserRole, number> = {
+const ROLE_LEVELS: Record<string, number> = {
   free: 0,
-  basic: 1,
-  pro: 2,
+  base: 1,
+  standard: 2,
   premium: 3,
+  admin: 4,
 };
 
 export function ArticleCard({
@@ -31,7 +32,9 @@ export function ArticleCard({
   variant = 'default',
 }: ArticleCardProps) {
   // Check access based on role hierarchy
-  const hasAccess = ROLE_LEVELS[userRole] >= ROLE_LEVELS[requiredRole];
+  const userLevel = ROLE_LEVELS[userRole] ?? 0;
+  const requiredLevel = ROLE_LEVELS[requiredRole] ?? 0;
+  const hasAccess = userLevel >= requiredLevel;
   const isLocked = !hasAccess;
 
   const isHomepage = variant !== 'report';

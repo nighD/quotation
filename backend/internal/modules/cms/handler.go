@@ -2,8 +2,10 @@ package cms
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -83,8 +85,9 @@ func (h *Handler) CreateArticle(c *fiber.Ctx) error {
 func (h *Handler) ListArticles(c *fiber.Ctx) error {
 	pg := utils.ParsePagination(c)
 	status := c.Query("status", "")
+	tag := c.Query("tag", "")
 
-	articles, total, err := h.service.ListArticles(pg.Page, pg.PageSize, status)
+	articles, total, err := h.service.ListArticles(pg.Page, pg.PageSize, status, tag)
 	if err != nil {
 		return response.InternalError(c, "Failed to fetch articles")
 	}
@@ -158,40 +161,129 @@ func (h *Handler) ListCategories(c *fiber.Ctx) error {
 	return response.OK(c, cats, "")
 }
 
+var roleLevels = map[string]int{
+	"free":     0,
+	"base":     1,
+	"standard": 2,
+	"premium":  3,
+	"admin":    4,
+}
+
+func checkRoleAccess(userRoles []string, requiredRole string) bool {
+	reqLevel := roleLevels[requiredRole]
+	maxUserLevel := 0
+	for _, r := range userRoles {
+		if lvl, ok := roleLevels[r]; ok && lvl > maxUserLevel {
+			maxUserLevel = lvl
+		}
+	}
+	return maxUserLevel >= reqLevel
+}
+
+func getPDFActiveRoleAndKey(blocksJSON string) (string, string) {
+	if blocksJSON == "" {
+		return "free", ""
+	}
+	var blocks []map[string]interface{}
+	if err := json.Unmarshal([]byte(blocksJSON), &blocks); err != nil {
+		return "free", ""
+	}
+	for _, b := range blocks {
+		if t, ok := b["type"].(string); ok && t == "pdf" {
+			activeRole, _ := b["activeRole"].(string)
+			url, _ := b["url"].(string)
+			if activeRole == "" {
+				activeRole = "free"
+			}
+			return activeRole, url
+		}
+	}
+	return "free", ""
+}
+
+func extractS3Key(s3URL string) string {
+	if s3URL == "" {
+		return ""
+	}
+	if idx := strings.Index(s3URL, ".amazonaws.com/"); idx != -1 {
+		return s3URL[idx+len(".amazonaws.com/"):]
+	}
+	if strings.HasPrefix(s3URL, "/") {
+		return s3URL[1:]
+	}
+	return s3URL
+}
+
 func (h *Handler) StreamReportPDF(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 	roles := middleware.GetRoles(c)
 
-	// Check if user is premium or admin from JWT claims
-	hasAccess := false
-	for _, r := range roles {
-		if r == "admin" || r == "premium" {
-			hasAccess = true
-			break
-		}
-	}
-
-	// Fallback to active subscription check in database (prevents JWT session staleness issues)
-	if !hasAccess && userID != "" {
-		hasAccess = h.service.repo.HasActiveSubscription(userID)
-	}
-
-	if !hasAccess {
-		return response.Forbidden(c, "You do not have permission to perform this action")
-	}
-
 	id := c.Params("id")
-	var pdfKey string
 
-	// Fetch article by ID (custom string primary key)
+	// Fetch article first (custom string primary key or slug)
 	article, err := h.service.repo.FindArticleByID(id)
-	if err == nil && article != nil {
+	if err != nil || article == nil {
+		return response.NotFound(c, "Article not found")
+	}
+
+	// Parse required role and pdf key from blocks JSON
+	requiredRole, pdfURL := getPDFActiveRoleAndKey(article.Blocks)
+	pdfKey := extractS3Key(pdfURL)
+
+	if pdfKey == "" {
 		pdfKey = article.PDFKey
 	}
 
 	// Fallback/Mock key logic for testing (using a real key that exists in S3)
 	if pdfKey == "" {
 		pdfKey = "pdfs/1779564822544-WealthandAssetManagementOutlook-September2024.pdf"
+	}
+
+	// Check access
+	allowed := false
+	for _, r := range roles {
+		if r == "admin" || r == "editor" {
+			allowed = true
+			break
+		}
+	}
+
+	if !allowed {
+		allowed = checkRoleAccess(roles, requiredRole)
+	}
+
+	// Fallback to active subscription check in database (prevents JWT session staleness issues)
+	if !allowed && userID != "" {
+		var activePlans []string
+		h.service.repo.db.Table("user_subscriptions").
+			Joins("JOIN subscription_plans ON subscription_plans.id = user_subscriptions.subscription_plan_id").
+			Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW()", userID).
+			Pluck("subscription_plans.name", &activePlans)
+		
+		var dbRoles []string
+		for _, planName := range activePlans {
+			if planName == "Monthly Basic" {
+				dbRoles = append(dbRoles, "base")
+			} else if planName == "Quarterly Pro" {
+				dbRoles = append(dbRoles, "standard")
+			} else if planName == "Annual Premium" {
+				dbRoles = append(dbRoles, "premium")
+			}
+		}
+		
+		var userDbRoles []string
+		h.service.repo.db.Raw(`
+			SELECT r.name FROM roles r
+			INNER JOIN user_roles ur ON r.id = ur.role_id
+			WHERE ur.user_id = ?
+		`, userID).Scan(&userDbRoles)
+		
+		allRoles := append(dbRoles, userDbRoles...)
+		allowed = checkRoleAccess(allRoles, requiredRole)
+	}
+
+	if !allowed {
+		return response.Forbidden(c, "You do not have permission to access this PDF report")
 	}
 
 	if h.s3Client == nil {
@@ -234,4 +326,69 @@ func (h *Handler) StreamReportPDF(c *fiber.Ctx) error {
 	}
 
 	return nil
+}
+
+// GetArticleSEOHTML serves pre-rendered HTML for search engines and social crawler bots.
+func (h *Handler) GetArticleSEOHTML(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	// Fetch article (supports UUID ID or Slug)
+	article, err := h.service.repo.FindArticleByID(id)
+	if err != nil || article == nil {
+		return response.NotFound(c, "Article not found")
+	}
+
+	title := article.SEOTitle
+	if title == "" {
+		title = article.Title
+	}
+	description := article.SEODescription
+	if description == "" {
+		description = article.Description
+	}
+	keywords := article.SEOKeywords
+	image := article.Thumbnail
+
+	// Generate static HTML for bots with Open Graph meta tags
+	htmlContent := fmt.Sprintf(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>%s</title>
+    <meta name="description" content="%s">
+    <meta name="keywords" content="%s">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="%s">
+    <meta property="og:description" content="%s">
+    <meta property="og:image" content="%s">
+    <meta property="og:url" content="https://vifcpass.com/reports/detail/%s">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="%s">
+    <meta name="twitter:description" content="%s">
+    <meta name="twitter:image" content="%s">
+
+    <!-- JavaScript fallback redirect for humans -->
+    <script>
+        window.location.href = "/reports/detail/%s";
+    </script>
+</head>
+<body>
+    <h1>%s</h1>
+    <p>%s</p>
+    <img src="%s" alt="%s">
+</body>
+</html>`,
+		title, description, keywords,
+		title, description, image, article.Slug,
+		title, description, image,
+		article.Slug,
+		article.Title, description, image, article.Title,
+	)
+
+	c.Type("html")
+	return c.SendString(htmlContent)
 }

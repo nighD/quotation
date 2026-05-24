@@ -62,9 +62,9 @@ func (s *Service) CreateArticle(req *CreateArticleRequest, createdBy string) (*A
 	return toArticleResponse(article), nil
 }
 
-func (s *Service) ListArticles(page, pageSize int, status string) ([]*ArticleResponse, int64, error) {
+func (s *Service) ListArticles(page, pageSize int, status string, tag string) ([]*ArticleResponse, int64, error) {
 	offset := (page - 1) * pageSize
-	articles, total, err := s.repo.FindAllArticles(offset, pageSize, status)
+	articles, total, err := s.repo.FindAllArticles(offset, pageSize, status, tag)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -72,7 +72,15 @@ func (s *Service) ListArticles(page, pageSize int, status string) ([]*ArticleRes
 	var result []*ArticleResponse
 	for i := range articles {
 		res := toArticleResponse(&articles[i])
-		res.Content = "" // Exclude full content from list view to prevent F12 inspection leaks
+		
+		// Omit heavy detail fields not needed in list view
+		res.Content = ""
+		res.Blocks = ""
+		res.Layouts = ""
+		res.PDFKey = ""
+		res.SEOTitle = ""
+		res.SEODescription = ""
+		
 		result = append(result, res)
 	}
 

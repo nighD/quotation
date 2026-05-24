@@ -254,15 +254,21 @@ func (s *Service) getUserRoles(userID string) []string {
 		WHERE ur.user_id = ?
 	`, userID).Scan(&roles)
 
-	// Check if user has active subscription to "Quarterly Pro" or "Annual Premium"
-	var count int64
+	// Check active subscription plans
+	var planNames []string
 	s.db.Table("user_subscriptions").
 		Joins("JOIN subscription_plans ON subscription_plans.id = user_subscriptions.subscription_plan_id").
-		Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW() AND subscription_plans.name IN ('Quarterly Pro', 'Annual Premium')", userID).
-		Count(&count)
+		Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW()", userID).
+		Pluck("subscription_plans.name", &planNames)
 
-	if count > 0 {
-		roles = append(roles, "premium")
+	for _, name := range planNames {
+		if name == "Monthly Basic" {
+			roles = append(roles, "base")
+		} else if name == "Quarterly Pro" {
+			roles = append(roles, "standard")
+		} else if name == "Annual Premium" {
+			roles = append(roles, "premium")
+		}
 	}
 
 	return roles
