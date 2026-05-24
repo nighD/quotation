@@ -7,7 +7,7 @@ import { SubscriptionPlans } from './pages/subscriptions/SubscriptionPlans';
 import { Home, Reports, Deals, Benefits, Events } from './pages/public/Placeholders';
 import { ReportDetail } from './pages/public/ReportDetail';
 import { ReportPdf } from './pages/public/ReportPdf';
-import { Landing } from './pages/public/Landing';
+import { Landing } from './pages/public/Landing/page';
 
 function PlansRedirect() {
   const [searchParams] = useSearchParams();
@@ -90,11 +90,11 @@ function AppContent() {
     <Routes>
       <Route path="/" element={user ? <Navigate to="/home" replace /> : <Landing />} />
       <Route path="/plans" element={<PlansRedirect />} />
-      
+
       {/* Auth */}
       <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Register />} />
-      
+
       {/* Protected Navigation Pages */}
       <Route path="/home" element={!user ? <Navigate to="/login" replace /> : <Home />} />
       <Route path="/reports" element={!user ? <Navigate to="/login" replace /> : <Reports />} />
@@ -105,7 +105,7 @@ function AppContent() {
       <Route path="/subscriptions" element={!user ? <Navigate to="/login" replace /> : <SubscriptionPlans />} />
       <Route path="/events" element={!user ? <Navigate to="/login" replace /> : <Events />} />
       <Route path="/profile" element={!user ? <Navigate to="/login" replace /> : <Profile />} />
-      
+
       {/* Catch-all */}
       <Route path="*" element={<Navigate to={defaultPath} replace />} />
     </Routes>
