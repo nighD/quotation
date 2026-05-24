@@ -84,6 +84,15 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
     }
   };
 
+  const handleAuthRedirect = (path: string) => {
+    const isProd = import.meta.env.PROD;
+    if (isProd) {
+      window.location.href = `https://dashboard.vifcpass.com${path}`;
+    } else {
+      navigate(path);
+    }
+  };
+
   // Tabs when logged in
   const navItems = [
     { label: 'Home', path: '/home' },
@@ -180,7 +189,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
                 <a href="#" className="hover:text-white transition">Memberships</a>
               </div>
               <div className="flex gap-2 ml-2">
-                <button className="bg-white text-black px-6 py-2.5 rounded-full font-medium text-[14px] hover:bg-gray-200 transition cursor-pointer">
+                <button onClick={() => handleAuthRedirect('/login')} className="bg-white text-black px-6 py-2.5 rounded-full font-medium text-[14px] hover:bg-gray-200 transition cursor-pointer">
                   Explore Membership
                 </button>
                 <Link

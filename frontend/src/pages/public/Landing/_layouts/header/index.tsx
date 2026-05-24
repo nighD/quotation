@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const navLinks = [
     { name: "Introduce", href: "#introduce" },
@@ -12,6 +13,17 @@ const navLinks = [
 ];
 
 export const Header = () => {
+    const navigate = useNavigate();
+
+    const handleAuthRedirect = (path: string) => {
+        const isProd = import.meta.env.PROD;
+        if (isProd) {
+            window.location.href = `https://dashboard.vifcpass.com${path}`;
+        } else {
+            navigate(path);
+        }
+    };
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("");
 
@@ -137,7 +149,7 @@ export const Header = () => {
                     >
                         <a
                             href="#subscription"
-                            onClick={(e) => handleScroll(e as any, "#subscription")}
+                            onClick={(e) => { e.preventDefault(); handleAuthRedirect('/login'); }}
                             className="bg-white text-black text-[14px] font-bold px-6 py-2.5 rounded-full hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] active:scale-95 whitespace-nowrap block hover:-translate-y-0.5"
                         >
                             Explore VIFC Pass
@@ -227,7 +239,7 @@ export const Header = () => {
                             >
                                 <a
                                     href="#subscription"
-                                    onClick={(e) => handleScroll(e as any, "#subscription")}
+                                    onClick={(e) => { e.preventDefault(); handleAuthRedirect('/login'); }}
                                     className="w-full block text-center bg-white text-black text-[16px] font-bold py-5 rounded-2xl hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
                                 >
                                     Explore VIFC Pass

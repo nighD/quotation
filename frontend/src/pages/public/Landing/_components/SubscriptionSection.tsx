@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { SectionPage } from "./SectionPage";
 import { Check, Key } from "lucide-react";
 
@@ -43,6 +44,17 @@ const plans = [
 ];
 
 export const SubscriptionSection = () => {
+    const navigate = useNavigate();
+
+    const handleAuthRedirect = (path: string) => {
+        const isProd = import.meta.env.PROD;
+        if (isProd) {
+            window.location.href = `https://dashboard.vifcpass.com${path}`;
+        } else {
+            navigate(path);
+        }
+    };
+
     const [activePlan, setActivePlan] = useState("standard");
     const [isMobile, setIsMobile] = useState(false);
 
@@ -78,11 +90,10 @@ export const SubscriptionSection = () => {
                             whileHover={{ scale: activePlan === plan.id && !isMobile ? 1.05 : 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                            className={`relative rounded-[32px] border flex flex-col shadow-lg h-full cursor-pointer transition-all duration-500 p-8 pb-10 ${
-                                activePlan === plan.id 
-                                    ? "border-white/20 bg-[#2a2a2a] z-20 shadow-2xl" 
-                                    : "border-white/5 bg-[#141414] z-10"
-                            }`}
+                            className={`relative rounded-[32px] border flex flex-col shadow-lg h-full cursor-pointer transition-all duration-500 p-8 pb-10 ${activePlan === plan.id
+                                ? "border-white/20 bg-[#2a2a2a] z-20 shadow-2xl"
+                                : "border-white/5 bg-[#141414] z-10"
+                                }`}
                         >
                             <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[32px]">
                                 <div className={`absolute -bottom-10 right-0 w-[200px] md:w-[240px] aspect-square pointer-events-none transition-all duration-500 ${activePlan === plan.id ? 'opacity-80 scale-110' : 'opacity-40'}`}>
@@ -109,7 +120,7 @@ export const SubscriptionSection = () => {
                                 <div className="text-[36px] md:text-[44px] font-bold text-white leading-none mb-3">
                                     {plan.price}
                                 </div>
-                                
+
                                 {plan.duration ? (
                                     <div className="text-white/60 text-[14px] md:text-[15px] mb-6">{plan.duration}</div>
                                 ) : (
@@ -137,7 +148,7 @@ export const SubscriptionSection = () => {
                                     layoutId="exploreButton"
                                     className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-30"
                                 >
-                                    <button className="px-6 py-2.5 bg-white text-black text-[12px] font-bold rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.3)] hover:bg-gray-200 transition-colors whitespace-nowrap">
+                                    <button onClick={() => handleAuthRedirect('/login')} className="px-6 cursor-pointer py-2.5 bg-white text-black text-[12px] font-bold rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.3)] hover:bg-gray-200 transition-colors whitespace-nowrap">
                                         Explore Membership
                                     </button>
                                 </motion.div>

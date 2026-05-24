@@ -2,9 +2,21 @@
 
 import React, { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./Button";
 
 export const HeroContent = () => {
+    const navigate = useNavigate();
+
+    const handleAuthRedirect = (path: string) => {
+        const isProd = import.meta.env.PROD;
+        if (isProd) {
+            window.location.href = `https://dashboard.vifcpass.com${path}`;
+        } else {
+            navigate(path);
+        }
+    };
+
     const containerRef = useRef<HTMLDivElement>(null);
 
     const x = useMotionValue(0);
@@ -95,7 +107,7 @@ export const HeroContent = () => {
                     transition={{ duration: 0.8, delay: 1.4 }}
                     className="flex items-center justify-center gap-3 w-full"
                 >
-                    <Button label="Explore VIFC Pass" variant="white" className=" w-fit! whitespace-nowrap px-4! py-3.5 md:py-4 rounded-[12px] md:rounded-[16px] text-[13px] md:text-base" />
+                    <Button onClick={() => handleAuthRedirect('/login')} label="Explore VIFC Pass" variant="white" className=" w-fit! whitespace-nowrap px-4! py-3.5 md:py-4 rounded-[12px] md:rounded-[16px] text-[13px] md:text-base" />
                 </motion.div>
             </div>
         </div>
