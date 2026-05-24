@@ -71,7 +71,9 @@ func (s *Service) ListArticles(page, pageSize int, status string) ([]*ArticleRes
 
 	var result []*ArticleResponse
 	for i := range articles {
-		result = append(result, toArticleResponse(&articles[i]))
+		res := toArticleResponse(&articles[i])
+		res.Content = "" // Exclude full content from list view to prevent F12 inspection leaks
+		result = append(result, res)
 	}
 
 	return result, total, nil
@@ -98,12 +100,16 @@ func (s *Service) GetArticle(id string, userID string, roles []string) (*Article
 		hasAccess = s.repo.HasActiveSubscription(userID)
 	}
 
-	// Apply truncation if user doesn't have access
-	if !hasAccess {
+	// Any logged-in user can view the full article content.
+	// Only truncate if the request is unauthenticated (userID == "").
+	if userID == "" {
 		res.IsPreview = true
 		if len(res.Content) > 300 {
 			res.Content = res.Content[:300] + "..."
 		}
+	} else if !hasAccess {
+		// Logged in but not standard/premium: set IsPreview to true, but do not truncate
+		res.IsPreview = true
 	}
 
 	return res, nil

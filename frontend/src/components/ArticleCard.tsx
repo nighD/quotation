@@ -78,8 +78,8 @@ export function ArticleCard({
         <div className="flex justify-between items-start gap-4 mb-2">
           <div>
             <h3
-              onClick={hasAccess ? onExpand : undefined}
-              className={`text-xl font-semibold leading-tight mb-2 ${hasAccess ? 'cursor-pointer hover:underline' : ''} ${titleClass}`}
+              onClick={onExpand}
+              className={`text-xl font-semibold leading-tight mb-2 cursor-pointer hover:underline ${titleClass}`}
             >
               {title}
             </h3>
@@ -103,14 +103,16 @@ export function ArticleCard({
               </svg>
             </button>
           ) : (
-            <div
-              className="w-10 h-10 bg-white rounded-[12px] flex items-center justify-center shadow-md border border-black/5 flex-shrink-0"
+            <button
+              onClick={onExpand}
+              className="w-10 h-10 bg-white rounded-[12px] flex items-center justify-center shadow-md hover:scale-105 transition-all cursor-pointer border border-black/5 flex-shrink-0"
+              aria-label="View premium article details"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
-            </div>
+            </button>
           )}
         </div>
 
