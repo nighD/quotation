@@ -1,6 +1,7 @@
 package cms
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -95,6 +96,7 @@ type ArticleResponse struct {
 	SEOTitle       string            `json:"seo_title,omitempty"`
 	SEODescription string            `json:"seo_description,omitempty"`
 	SEOKeywords    string            `json:"seo_keywords,omitempty"`
+	RequiredRole   string            `json:"required_role,omitempty"`
 	CreatedAt      time.Time         `json:"created_at"`
 	UpdatedAt      time.Time         `json:"updated_at"`
 	IsPreview      bool              `json:"is_preview"`
@@ -107,6 +109,7 @@ type CategoryResponse struct {
 }
 
 func toArticleResponse(a *Article) *ArticleResponse {
+	requiredRole, _ := getPDFActiveRoleAndKey(a.Blocks)
 	r := &ArticleResponse{
 		ID:             a.ID,
 		Title:          a.Title,
@@ -115,13 +118,14 @@ func toArticleResponse(a *Article) *ArticleResponse {
 		Thumbnail:      a.Thumbnail,
 		Layouts:        a.Layouts,
 		Content:        a.Content,
-		Blocks:         a.Blocks,
+		Blocks:         stripPDFURLs(a.Blocks),
 		Status:         a.Status,
 		CreatedBy:      a.CreatedBy.String(),
 		PDFKey:         a.PDFKey,
 		SEOTitle:       a.SEOTitle,
 		SEODescription: a.SEODescription,
 		SEOKeywords:    a.SEOKeywords,
+		RequiredRole:   requiredRole,
 		CreatedAt:      a.CreatedAt,
 		UpdatedAt:      a.UpdatedAt,
 		IsPreview:      false,
@@ -141,4 +145,25 @@ func toCategoryResponse(c *Category) *CategoryResponse {
 		Name:      c.Name,
 		CreatedAt: c.CreatedAt,
 	}
+}
+
+func stripPDFURLs(blocksJSON string) string {
+	if blocksJSON == "" {
+		return ""
+	}
+	var blocks []map[string]interface{}
+	if err := json.Unmarshal([]byte(blocksJSON), &blocks); err != nil {
+		return blocksJSON
+	}
+	for i, b := range blocks {
+		if t, ok := b["type"].(string); ok && t == "pdf" {
+			delete(b, "url")
+			blocks[i] = b
+		}
+	}
+	resBytes, err := json.Marshal(blocks)
+	if err != nil {
+		return blocksJSON
+	}
+	return string(resBytes)
 }

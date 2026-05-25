@@ -1,17 +1,57 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Navbar } from '../../components/Navbar';
 import { ArticleCard } from '../../components/ArticleCard';
 import { useAuth } from '../../context/AuthContext';
 import { MapPin } from 'lucide-react';
+import { apiClient } from '../../api/client';
+
+const getArticleRequiredRole = (art: any): string => {
+  if (!art) return 'free';
+  if (art.required_role) return art.required_role;
+  const blocksStr = art.blocks;
+  if (!blocksStr) return 'free';
+  try {
+    const blocks = typeof blocksStr === 'string' ? JSON.parse(blocksStr) : blocksStr;
+    if (Array.isArray(blocks)) {
+      const pdfBlock = blocks.find((b: any) => b.type === 'pdf');
+      if (pdfBlock && pdfBlock.activeRole) {
+        return pdfBlock.activeRole;
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing article blocks', e);
+  }
+  return 'free';
+};
+
+const formatArticleDate = (dateStr: string): string => {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } catch (e) {
+    return dateStr;
+  }
+};
 
 export function Home() {
   const { user } = useAuth();
-  const [userRole, setUserRole] = useState<'free' | 'basic' | 'pro' | 'premium'>('free');
+  const [userRole, setUserRole] = useState<'free' | 'base' | 'standard' | 'premium' | 'admin'>('free');
   const [openStates, setOpenStates] = useState<boolean[]>([false, false, false]);
   const [toastMessage, setToastMessage] = useState<{title: string, type: 'success' | 'error'} | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const [articles, setArticles] = useState<any[]>([]);
+  const [articlesLoading, setArticlesLoading] = useState(true);
 
   const toggleCollapse = (index: number) => {
     setOpenStates(prev => {
@@ -20,6 +60,22 @@ export function Home() {
       return next;
     });
   };
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const { data } = await apiClient.get('/cms/articles?page=1&page_size=20');
+        if (data.success && data.data) {
+          setArticles(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch articles', err);
+      } finally {
+        setArticlesLoading(false);
+      }
+    };
+    fetchArticles();
+  }, []);
 
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
@@ -35,8 +91,15 @@ export function Home() {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    if (user && user.roles && user.roles.includes('premium')) {
-      setUserRole('premium');
+    if (user && user.roles) {
+      const roleOrder = ['free', 'base', 'standard', 'premium', 'admin'];
+      let maxRole = 'free';
+      for (const r of user.roles) {
+        if (roleOrder.indexOf(r) > roleOrder.indexOf(maxRole)) {
+          maxRole = r;
+        }
+      }
+      setUserRole(maxRole as any);
     } else {
       setUserRole('free');
     }
@@ -196,48 +259,63 @@ export function Home() {
 
         {/* Bottom Section: Three Cards */}
         <div className="w-full mt-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full items-end">
-            <ArticleCard
-              title="Article Name 01"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including."
-              requiredRole="free"
-              userRole={userRole}
-              onExpand={() => navigate('/reports/detail/1')}
-              className="h-fit min-h-[220px]"
-            />
-            <ArticleCard
-              title="Article Name 02"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments..."
-              requiredRole="premium"
-              userRole={userRole}
-              onExpand={() => navigate('/reports/detail/2')}
-              className="h-[300px]"
-            />
-            <div className="flex flex-col gap-[5px] items-end w-full h-fit">
-              <button
-                onClick={() => navigate('/reports')}
-                type="button"
-                className="bg-[#6b6b6b]/60 hover:bg-[#808080]/60 transition-all text-white rounded-full px-6 py-2.5 flex items-center gap-1.5 text-[14px] font-medium cursor-pointer border border-white/5 shadow-md"
-              >
-                <span>Read more</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="7" y1="17" x2="17" y2="7" />
-                  <polyline points="7 7 17 7 17 17" />
-                </svg>
-              </button>
-              <ArticleCard
-                title="Article Name 03"
-                date="Sun 17 May 15:29"
-                abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including."
-                requiredRole="free"
-                userRole={userRole}
-                onExpand={() => navigate('/reports/detail/3')}
-                className="w-full h-fit min-h-[220px]"
-              />
+          {articlesLoading ? (
+            <div className="text-white text-center py-10">Loading articles...</div>
+          ) : articles.length === 0 ? (
+            <div className="text-white text-center py-10">No articles available.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full items-end">
+              {articles[0] && (
+                <ArticleCard
+                  title={articles[0].title}
+                  date={formatArticleDate(articles[0].created_at)}
+                  abstract={articles[0].description || articles[0].title}
+                  requiredRole={getArticleRequiredRole(articles[0])}
+                  userRole={userRole}
+                  onExpand={() => navigate(`/reports/detail/${articles[0].slug}`)}
+                  imageUrl={articles[0].thumbnail}
+                  className="h-fit min-h-[220px]"
+                />
+              )}
+              {articles[1] && (
+                <ArticleCard
+                  title={articles[1].title}
+                  date={formatArticleDate(articles[1].created_at)}
+                  abstract={articles[1].description || articles[1].title}
+                  requiredRole={getArticleRequiredRole(articles[1])}
+                  userRole={userRole}
+                  onExpand={() => navigate(`/reports/detail/${articles[1].slug}`)}
+                  imageUrl={articles[1].thumbnail}
+                  className="h-[300px]"
+                />
+              )}
+              <div className="flex flex-col gap-[5px] items-end w-full h-fit">
+                <button
+                  onClick={() => navigate('/reports')}
+                  type="button"
+                  className="bg-[#6b6b6b]/60 hover:bg-[#808080]/60 transition-all text-white rounded-full px-6 py-2.5 flex items-center gap-1.5 text-[14px] font-medium cursor-pointer border border-white/5 shadow-md mb-2"
+                >
+                  <span>Read more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7" />
+                    <polyline points="7 7 17 7 17 17" />
+                  </svg>
+                </button>
+                {articles[2] && (
+                  <ArticleCard
+                    title={articles[2].title}
+                    date={formatArticleDate(articles[2].created_at)}
+                    abstract={articles[2].description || articles[2].title}
+                    requiredRole={getArticleRequiredRole(articles[2])}
+                    userRole={userRole}
+                    onExpand={() => navigate(`/reports/detail/${articles[2].slug}`)}
+                    imageUrl={articles[2].thumbnail}
+                    className="w-full h-fit min-h-[220px]"
+                  />
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
@@ -246,21 +324,159 @@ export function Home() {
 
 export function Reports() {
   const { user } = useAuth();
-  const [userRole, setUserRole] = useState<'free' | 'basic' | 'pro' | 'premium'>('free');
-  const [activeTag, setActiveTag] = useState('Article Tag');
+  const [userRole, setUserRole] = useState<'free' | 'base' | 'standard' | 'premium' | 'admin'>('free');
+  const [activeTag, setActiveTag] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [allTags, setAllTags] = useState<string[]>(['All']);
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Load all unique SEO tags once
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const { data } = await apiClient.get('/cms/articles?page=1&page_size=100');
+        if (data.success && data.data) {
+          const tags = Array.from(new Set(
+            data.data.flatMap((a: any) => a.seo_keywords ? a.seo_keywords.split(',').map((k: string) => k.trim()) : [])
+          ));
+          const validTags = tags.filter(Boolean) as string[];
+          setAllTags(['All', ...validTags]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch tags', err);
+      }
+    };
+    fetchTags();
+  }, []);
+
+  // Fetch articles based on active tag from backend (initial load)
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setPage(1);
+      setHasMore(true);
+      setLoading(true);
+      try {
+        const url = activeTag === 'All'
+          ? '/cms/articles?page=1&page_size=12'
+          : `/cms/articles?page=1&page_size=12&tag=${encodeURIComponent(activeTag)}`;
+        const { data } = await apiClient.get(url);
+        if (data.success) {
+          const newArticles = data.data || [];
+          setArticles(newArticles);
+          if (data.meta) {
+            setHasMore(data.meta.page < data.meta.total_pages);
+          } else {
+            setHasMore(newArticles.length === 12);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch articles', err);
+        setArticles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchArticles();
+  }, [activeTag]);
+
+  // Fetch the next page of articles
+  const fetchNextPage = async () => {
+    if (loading || loadingMore || !hasMore) return;
+
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    try {
+      const url = activeTag === 'All'
+        ? `/cms/articles?page=${nextPage}&page_size=12`
+        : `/cms/articles?page=${nextPage}&page_size=12&tag=${encodeURIComponent(activeTag)}`;
+      const { data } = await apiClient.get(url);
+      if (data.success) {
+        const newArticles = data.data || [];
+        setArticles(prev => [...prev, ...newArticles]);
+        setPage(nextPage);
+        if (data.meta) {
+          setHasMore(data.meta.page < data.meta.total_pages);
+        } else {
+          setHasMore(newArticles.length === 12);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load more articles', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Intersection Observer for infinite scrolling
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, loadingMore, page, activeTag]);
 
   useEffect(() => {
-    if (user && user.roles && user.roles.includes('premium')) {
-      setUserRole('premium');
+    if (user && user.roles) {
+      const roleOrder = ['free', 'base', 'standard', 'premium', 'admin'];
+      let maxRole = 'free';
+      for (const r of user.roles) {
+        if (roleOrder.indexOf(r) > roleOrder.indexOf(maxRole)) {
+          maxRole = r;
+        }
+      }
+      setUserRole(maxRole as any);
     } else {
       setUserRole('free');
     }
   }, [user]);
 
-  const handleExpand = (id: string) => {
-    navigate(`/reports/detail/${id}`);
+  const handleExpand = (slug: string) => {
+    navigate(`/reports/detail/${slug}`);
   };
+
+  // Filter articles by search query
+  const filteredArticles = articles.filter(a => {
+    const matchesSearch = !searchQuery || 
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (a.description && a.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch;
+  });
+
+  // Distribute into 3 masonry columns
+  const col1: any[] = [];
+  const col2: any[] = [];
+  const col3: any[] = [];
+
+  filteredArticles.forEach((article, idx) => {
+    if (idx % 3 === 0) {
+      col1.push(article);
+    } else if (idx % 3 === 1) {
+      col2.push(article);
+    } else {
+      col3.push(article);
+    }
+  });
 
   return (
     <div className="min-h-screen bg-[#111] bg-cover bg-center bg-no-repeat flex flex-col font-poppins relative" style={{ backgroundImage: "url('/bg.png')" }}>
@@ -282,6 +498,8 @@ export function Reports() {
             <input
               type="text"
               placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-[#2d2a2a]/40 border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-white text-[14px] placeholder-gray-400 focus:outline-none focus:border-white/20 transition-all"
             />
           </div>
@@ -289,7 +507,7 @@ export function Reports() {
 
         {/* Filter Tags */}
         <div className="flex flex-wrap gap-3 mb-8 w-full">
-          {['Article Tag', 'hastag', 'tag demo', 'report tag demo'].map(tag => (
+          {allTags.map(tag => (
             <button
               key={tag}
               onClick={() => setActiveTag(tag)}
@@ -304,115 +522,80 @@ export function Reports() {
           ))}
         </div>
 
-        {/* 3-Column Masonry Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full items-start">
-          {/* Column 1 */}
-          <div className="flex flex-col gap-6 w-full">
-            <ArticleCard
-              title="Article Name 02"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="premium"
-              userRole={userRole}
-              variant="report"
-              onExpand={() => handleExpand("2")}
-              className="w-full"
-            />
-            <ArticleCard
-              title="Article Name 03"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="free"
-              userRole={userRole}
-              variant="report"
-              imageUrl="/glowing_chip.png"
-              onExpand={() => handleExpand("3")}
-              className="w-full"
-            />
-            <ArticleCard
-              title="Article Name 02"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="premium"
-              userRole={userRole}
-              variant="report"
-              imageUrl="/bitcoin_icon.png"
-              onExpand={() => handleExpand("4")}
-              className="w-full"
-            />
-          </div>
+        {loading ? (
+          <div className="text-white text-center py-20">Loading reports...</div>
+        ) : filteredArticles.length === 0 ? (
+          <div className="text-white text-center py-20">No reports found matching your search.</div>
+        ) : (
+          /* 3-Column Masonry Grid */
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full items-start">
+            {/* Column 1 */}
+            <div className="flex flex-col gap-6 w-full">
+              {col1.map(art => (
+                <ArticleCard
+                  key={art.id}
+                  title={art.title}
+                  date={formatArticleDate(art.created_at)}
+                  abstract={art.description || art.title}
+                  requiredRole={getArticleRequiredRole(art)}
+                  userRole={userRole}
+                  variant="report"
+                  imageUrl={art.thumbnail}
+                  onExpand={() => handleExpand(art.slug)}
+                  className="w-full"
+                />
+              ))}
+            </div>
 
-          {/* Column 2 */}
-          <div className="flex flex-col gap-6 w-full">
-            <ArticleCard
-              title="Article Name 03"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="free"
-              userRole={userRole}
-              variant="report"
-              imageUrl="/keyboard_bitcoin.png"
-              onExpand={() => handleExpand("5")}
-              className="w-full"
-            />
-            <ArticleCard
-              title="Article Name 02"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="premium"
-              userRole={userRole}
-              variant="report"
-              imageUrl="/bitcoin_basket.png"
-              onExpand={() => handleExpand("6")}
-              className="w-full"
-            />
-          </div>
+            {/* Column 2 */}
+            <div className="flex flex-col gap-6 w-full">
+              {col2.map(art => (
+                <ArticleCard
+                  key={art.id}
+                  title={art.title}
+                  date={formatArticleDate(art.created_at)}
+                  abstract={art.description || art.title}
+                  requiredRole={getArticleRequiredRole(art)}
+                  userRole={userRole}
+                  variant="report"
+                  imageUrl={art.thumbnail}
+                  onExpand={() => handleExpand(art.slug)}
+                  className="w-full"
+                />
+              ))}
+            </div>
 
-          {/* Column 3 */}
-          <div className="flex flex-col gap-6 w-full">
-            <ArticleCard
-              title="Article Name 03"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="free"
-              userRole={userRole}
-              variant="report"
-              imageUrl="/blue_card.png"
-              onExpand={() => handleExpand("7")}
-              className="w-full"
-            />
-            <ArticleCard
-              title="Article Name 02"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="premium"
-              userRole={userRole}
-              variant="report"
-              onExpand={() => handleExpand("8")}
-              className="w-full"
-            />
-            <ArticleCard
-              title="Article Name 03"
-              date="Sun 17 May 15:29"
-              abstract="Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including..."
-              requiredRole="free"
-              userRole={userRole}
-              variant="report"
-              imageUrl="/crypto_blocks.png"
-              onExpand={() => handleExpand("9")}
-              className="w-full"
-            />
+            {/* Column 3 */}
+            <div className="flex flex-col gap-6 w-full">
+              {col3.map(art => (
+                <ArticleCard
+                  key={art.id}
+                  title={art.title}
+                  date={formatArticleDate(art.created_at)}
+                  abstract={art.description || art.title}
+                  requiredRole={getArticleRequiredRole(art)}
+                  userRole={userRole}
+                  variant="report"
+                  imageUrl={art.thumbnail}
+                  onExpand={() => handleExpand(art.slug)}
+                  className="w-full"
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Read More Centered Button */}
-        <div className="flex justify-center items-center mt-12 mb-16 w-full">
-          <button
-            type="button"
-            className="bg-[#2d2a2a]/60 hover:bg-[#3d3a3a]/80 transition-all text-white rounded-full px-8 py-3 flex items-center gap-1.5 text-[15px] font-medium cursor-pointer border border-white/5 shadow-md"
-          >
-            <span>Read more</span>
-          </button>
+        {/* Infinite Scroll Trigger & Loading Indicator */}
+        <div ref={observerTarget} className="flex justify-center items-center mt-8 mb-16 w-full min-h-[40px]">
+          {loadingMore && (
+            <div className="text-gray-400 text-[14px] flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Loading more...</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

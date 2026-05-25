@@ -49,7 +49,6 @@ services:
     environment:
       DB_HOST: postgres
       REDIS_HOST: redis
-      POSTGRES_URL: ""
       REDIS_PASSWORD: ""
     volumes:
       - ./backend/storage:/app/storage

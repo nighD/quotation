@@ -2,6 +2,7 @@ package cms
 
 import (
 	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -21,13 +22,17 @@ func (r *Repository) CreateArticle(a *Article) error {
 	return r.db.Create(a).Error
 }
 
-func (r *Repository) FindAllArticles(offset, limit int, status string) ([]Article, int64, error) {
+func (r *Repository) FindAllArticles(offset, limit int, status string, tag string) ([]Article, int64, error) {
 	var articles []Article
 	var total int64
 
 	query := r.db.Model(&Article{}).Preload("Category")
 	if status != "" {
 		query = query.Where("status = ?", status)
+	}
+	if tag != "" {
+		lowerTag := strings.ToLower(strings.TrimSpace(tag))
+		query = query.Where("? = ANY (regexp_split_to_array(LOWER(seo_keywords), '\\s*,\\s*'))", lowerTag)
 	}
 
 	query.Count(&total)
@@ -40,7 +45,7 @@ func (r *Repository) FindAllArticles(offset, limit int, status string) ([]Articl
 
 func (r *Repository) FindArticleByID(id string) (*Article, error) {
 	var article Article
-	if err := r.db.Preload("Category").Where("id = ?", id).First(&article).Error; err != nil {
+	if err := r.db.Preload("Category").Where("id = ? OR slug = ?", id, id).First(&article).Error; err != nil {
 		return nil, fmt.Errorf("article not found")
 	}
 	return &article, nil

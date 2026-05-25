@@ -28,4 +28,7 @@ func RegisterRoutes(router fiber.Router, handler *Handler, jwtSecret string) {
 
 	// Secure PDF Streaming
 	cms.Get("/reports/:id/pdf", authMW, handler.StreamReportPDF)
+
+	// SEO Preview for Bots
+	cms.Get("/reports/seo-preview/:id", handler.GetArticleSEOHTML)
 }
