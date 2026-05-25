@@ -117,12 +117,10 @@ export const SubscriptionSection = () => {
                                 <h3 className="font-serif text-[28px] md:text-[36px] tracking-wide text-white font-fraunces mb-2">
                                     {plan.name}
                                 </h3>
-                                <div className="text-[36px] md:text-[44px] font-bold text-white leading-none mb-3">
-                                    {plan.price}
-                                </div>
+                               
 
                                 {plan.duration ? (
-                                    <div className="text-white/60 text-[14px] md:text-[15px] mb-6">{plan.duration}</div>
+                                    <div className="text-white/60 text-[14px] md:text-[16px] mb-6">{plan.duration}</div>
                                 ) : (
                                     <div className="h-[21px] mb-6"></div>
                                 )}
