@@ -100,7 +100,7 @@ export const FaqSection = () => {
                                 <span className="text-white/80 text-[13px] md:text-[14px] font-light leading-relaxed">
                                     CÔNG TY TNHH KINH TẾ ON-CHAIN TOÀN CẦU - MSDN: 0319453163. <br className="hidden md:block" />
                                     Địa chỉ trụ sở chính: L17-11, Tầng 17, Tòa nhà Vincom Center, 72 Lê Thánh Tôn, Phường Sài Gòn, Thành phố Hồ Chí Minh, Việt Nam. <br className="hidden md:block" />
-                                    Điện thoại : 0346073691. Email : financegoea@gmail.com
+                                    Điện thoại : 0346.073.691. Email : financegoea@gmail.com
                                 </span>
                             </div>
                         </div>
