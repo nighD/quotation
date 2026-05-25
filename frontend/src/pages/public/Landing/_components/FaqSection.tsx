@@ -97,8 +97,8 @@ export const FaqSection = () => {
                         <div className="w-full md:w-fit flex flex-col space-y-2 md:space-y-3">
                             <span className="text-white/50 text-[13px] md:text-[14px] font-light">Contact</span>
                             <div className="flex flex-col space-y-1 md:space-y-2">
-                                <span className="text-white text-[15px] md:text-[16px] tracking-wide">(+84) 964 93 1661</span>
-                                <span className="text-white/80 text-[14px] md:text-[15px] font-light break-words">partner@goealliance.org</span>
+                                <span className="text-white text-[15px] md:text-[16px] tracking-wide">(+84) 987 23 2540</span>
+                                <span className="text-white/80 text-[14px] md:text-[15px] font-light break-words">vpp@goealliance.org</span>
                             </div>
                         </div>
 
@@ -106,7 +106,7 @@ export const FaqSection = () => {
                             <span className="text-white/50 text-[13px] md:text-[14px] font-light">Address</span>
                             <div className="flex flex-col space-y-1 md:space-y-2">
                                 <span className="text-white text-[15px] md:text-[16px] tracking-wide">GOE Alliance Office</span>
-                                <span className="text-white/80 text-[14px] md:text-[15px] font-light leading-relaxed">IFC Building, 8 Nguyen Hue Street, Saigon Ward, Ho Chi Minh City</span>
+                                <span className="text-white/80 text-[14px] md:text-[15px] font-light leading-relaxed">L17-11, 17th Floor, Vincom Center Building, 72 Le Thanh Ton Street, Saigon Ward, Ho Chi Minh City, Vietnam.</span>
                             </div>
                         </div>
                     </div>
@@ -119,7 +119,7 @@ export const FaqSection = () => {
                                 <span className="text-white/80 text-xs font-light leading-relaxed">
                                     CÔNG TY TNHH KINH TẾ ON-CHAIN TOÀN CẦU - MSDN: 0319453163. <br className="hidden md:block" />
                                     Địa chỉ trụ sở chính: L17-11, Tầng 17, Tòa nhà Vincom Center, 72 Lê Thánh Tôn, Phường Sài Gòn, Thành phố Hồ Chí Minh, Việt Nam. <br className="hidden md:block" />
-                                    Điện thoại : 0346.073.691. Email : financegoea@gmail.com
+                                    Điện thoại : 0987.232.540.  Email : vpp@goealliance.org
                                 </span>
                             </div>
                         </div>
