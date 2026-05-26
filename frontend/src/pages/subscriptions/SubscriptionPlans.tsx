@@ -143,8 +143,8 @@ export function SubscriptionPlans() {
       id: 'free',
       name: 'Free',
       price: '$0',
-      duration: 'Time: 1 year',
-      features: ['Dashboard', 'Newsletter', 'Light report', 'Webinar'],
+      duration: '',
+      features: ['Dashboard', 'Newsletter', 'Webinar'],
       dbName: 'Free',
     },
     {

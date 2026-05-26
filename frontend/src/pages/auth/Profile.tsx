@@ -124,8 +124,8 @@ export function Profile() {
     Free: {
       displayName: 'Free',
       buttonLabel: 'Upgrade ↗',
-      hasDuration: true,
-      features: ['Dashboard', 'Light report', 'Newsletter', 'Webinar'],
+      hasDuration: false,
+      features: ['Dashboard', 'Newsletter', 'Webinar'],
     },
     Base: {
       displayName: 'Base',

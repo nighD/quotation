@@ -136,7 +136,7 @@ export function ReportDetail() {
   useEffect(() => {
     if (article) {
       document.title = article.seo_title || article.title;
-      
+
       // Update meta description
       let metaDesc = document.querySelector('meta[name="description"]');
       if (!metaDesc) {
@@ -235,7 +235,7 @@ export function ReportDetail() {
       <div className="relative z-10 flex-1 flex flex-col px-6 md:px-12 max-w-[1400px] mx-auto w-full pt-4">
         {/* Main Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 w-full mt-6 mb-16">
-          
+
           {/* Left Column: Report Contents */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             <div>
@@ -339,9 +339,11 @@ export function ReportDetail() {
                         {/* Cover Title & Geometric Visual Pattern */}
                         <div className="flex-1 flex flex-col justify-start pt-6">
                           <h3 className="text-[22px] font-bold text-[#1f2937] leading-tight mb-8">
-                            {block.name || article.title}
+                            {(block.name || article.title).length > 20
+                              ? (block.name || article.title).slice(0, 20) + '...'
+                              : (block.name || article.title)}
                           </h3>
-                          
+
                           {/* Concentric hexagonal outline patterns */}
                           <div className="relative w-44 h-44 mx-auto flex items-center justify-center opacity-90 mt-2">
                             {[1, 2, 3, 4, 5].map((idx) => {
@@ -369,7 +371,7 @@ export function ReportDetail() {
                         {/* View Full Report Pill Button */}
                         <div className="flex justify-center my-6 relative z-10">
                           {hasPdfAccess ? (
-                            <button 
+                            <button
                               onClick={() => window.open(`/reports/${article.slug}/pdf`, '_blank')}
                               className="bg-white border border-gray-200 hover:bg-gray-50 text-black text-[13px] font-semibold px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md"
                             >
@@ -380,12 +382,12 @@ export function ReportDetail() {
                               </svg>
                             </button>
                           ) : (
-                            <button 
+                            <button
                               onClick={() => navigate('/subscriptions')}
                               className="bg-white border border-gray-200 hover:border-red-500 hover:bg-red-50 text-black hover:text-red-500 text-[13px] font-semibold px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md group/btn"
                             >
                               <Lock className="w-3.5 h-3.5 text-black/60 group-hover/btn:text-red-500 transition-colors" />
-                              <span>Only available for {block.activeRole ? block.activeRole.charAt(0).toUpperCase() + block.activeRole.slice(1) : 'Premium'}</span>
+                              <span>Only basic subscription or above is allowed</span>
                             </button>
                           )}
                         </div>
@@ -397,7 +399,7 @@ export function ReportDetail() {
                         </div>
                       </div>
                       <p className="text-center text-gray-400 text-[13px] mt-3 font-semibold">
-                        {block.name || `${article.title}.pdf`}
+                        {(block.name || `${article.title}.pdf`)}
                       </p>
                     </div>
                   );
