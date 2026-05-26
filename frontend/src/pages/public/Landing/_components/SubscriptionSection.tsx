@@ -10,33 +10,25 @@ const plans = [
     {
         id: "free",
         name: "Free",
-        price: "$0",
-        duration: "Time: 1 year",
-        features: ["Dashboard", "Newsletter", "Light report", "Webinar"],
+        features: ["Light report"],
         icon: "/image/icon-subscription01.png",
     },
     {
         id: "base",
         name: "Base",
-        price: "$1",
-        duration: "Time: 1 year",
-        features: ["Dashboard", "Newsletter", "Light report", "Webinar"],
+        features: ["Light report"],
         icon: "/image/icon-subscription01.png",
     },
     {
         id: "standard",
         name: "Standard",
-        price: "$500",
-        duration: "Time: 1 year",
-        features: ["Dashboard", "Newsletter", "Webinar", "Full report", "Exclusive Event"],
+        features: ["Full report", "Exclusive Event"],
         isPopular: true,
         icon: "/image/icon-subscription02.png",
     },
     {
         id: "premium",
         name: "Premium",
-        price: "$2500",
-        duration: null,
         features: ["Waiting list"],
         isWaitingList: true,
         icon: "/image/icon-subscription02.png",
@@ -119,11 +111,7 @@ export const SubscriptionSection = () => {
                                 </h3>
                                
 
-                                {plan.duration ? (
-                                    <div className="text-white/60 text-[14px] md:text-[16px] mb-6">{plan.duration}</div>
-                                ) : (
-                                    <div className="h-[21px] mb-6"></div>
-                                )}
+                             
 
                                 <div className="w-full h-px bg-white/10 mb-8"></div>
 
