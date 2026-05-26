@@ -12,7 +12,7 @@ const plans = [
         name: "Free",
         price: "$0",
         duration: "null",
-        features: ["Light report"],
+        features: ["Dashboard", "Newsletter",  "Webinar"],
         icon: "/image/icon-subscription01.png",
     },
     {
@@ -119,7 +119,11 @@ export const SubscriptionSection = () => {
                                 </h3>
                                
 
-                             
+                                {plan.duration ? (
+                                    <div className="text-white/60 text-[14px] md:text-[16px] mb-6">{plan.duration}</div>
+                                ) : (
+                                    <div className="h-[21px] mb-6"></div>
+                                )}
 
                                 <div className="w-full h-px bg-white/10 mb-8"></div>
 
