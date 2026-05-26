@@ -130,10 +130,10 @@ export function Home() {
           {/* Left Column: Title + Subtitle */}
           <div className="flex flex-col w-full text-left">
             <h1 className="text-4xl md:text-7xl font-semibold mb-3 text-white tracking-tight leading-[1.1]">
-              VIFC Pass
+              VIFC Privilege Pass
             </h1>
             <p className="text-gray-300 text-sm md:text-lg leading-relaxed max-w-xl mb-6">
-              A card built natively for web3 business & individuals to address the complexity & accessibility of digital assets
+              A investor platform that curates and structures official information, enabling investors to access strategic opportunities across VIFC and Vietnam.
             </p>
 
             {/* Overlapping Cards Container (Tilted Card + Benefit Card) on Mobile */}
@@ -146,38 +146,38 @@ export function Home() {
                   className="w-full h-auto transform -rotate-[11.1deg] filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] select-none pointer-events-none"
                 />
               </div>
-              
+
               {/* VIFC Pass Benefit Card (Scaled down on mobile) */}
               <div className="absolute right-0 top-0 w-[55%] z-20 bg-white/10 backdrop-blur-md border border-white/10 rounded-[20px] p-4 text-white shadow-xl flex flex-col gap-2.5">
-                <div>
-                  <h2 className="text-[12px] font-semibold mb-1">VIFC Pass Benefit</h2>
+                {/* <div>
+                  <h2 className="text-[12px] font-semibold mb-1">The 3 Core Benefits of VIFC Privilege Pass</h2>
                   <p className="text-gray-200 text-[9px] leading-snug">
-                    Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including:
+                    Unlock exclusive privileges, policy advantages, and strategic opportunities designed for premium investors:
                   </p>
-                </div>
+                </div> */}
 
                 <ul className="flex flex-col gap-1 text-[9px] text-gray-100 font-medium">
                   <li className="flex items-center gap-1.5">
                     <span className="text-[6px]">▶</span>
-                    <span>Physical & Digital Charge Cards</span>
+                    <span>Privileged Information Access</span>
                   </li>
                   <li className="flex items-center gap-1.5">
                     <span className="text-[6px]">▶</span>
-                    <span>Instant FIAT & Stablecoin Conversion</span>
+                    <span>Policy Access</span>
                   </li>
                   <li className="flex items-center gap-1.5">
                     <span className="text-[6px]">▶</span>
-                    <span>Transparent FX & Global Spending</span>
+                    <span>Strategic Connections</span>
                   </li>
                 </ul>
 
-                <button 
+                {/* <button
                   onClick={() => navigate('/benefits')}
                   className="mt-1 self-start bg-white/15 hover:bg-white/25 transition text-white rounded-full px-3 py-1 text-[8px] font-medium flex items-center gap-1 border border-white/5 cursor-pointer"
                 >
                   <span>Details</span>
                   <span>↗</span>
-                </button>
+                </button> */}
               </div>
             </div>
 
@@ -195,10 +195,10 @@ export function Home() {
           <div className="hidden lg:flex justify-end lg:-ml-32 relative z-20">
             <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-[32px] p-8 md:p-10 text-white w-full max-w-[440px] shadow-2xl flex flex-col gap-6 text-left">
               <div>
-                <h2 className="text-[26px] font-semibold mb-2">VIFC Pass Benefit</h2>
-                <p className="text-gray-200 text-[15px] leading-relaxed">
-                  Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including:
-                </p>
+                <h2 className="text-[26px] font-semibold mb-2">VIFC Privilege Pass Benefit</h2>
+                {/* <p className="text-gray-200 text-[15px] leading-relaxed"> */}
+                  {/* Unlock exclusive privileges, policy advantages, and strategic opportunities designed for premium investors: */}
+                {/* </p> */}
               </div>
 
               <ul className="flex flex-col gap-4 text-[15px] text-gray-100 font-medium">
@@ -208,11 +208,11 @@ export function Home() {
                 >
                   <div className="flex items-center gap-3">
                     <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[0] ? 'rotate-90' : ''}`}>▶</span>
-                    <span className="group-hover:text-white transition-colors">Physical & Digital Charge Cards</span>
+                    <span className="group-hover:text-white transition-colors">Privileged Information Access</span>
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openStates[0] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
-                      Enjoy borderless spending with credit limits and instant virtual/physical card issuance.
+                      Exclusive reports, investor briefings, and priority access to VIFC events.
                     </p>
                   </div>
                 </li>
@@ -222,11 +222,11 @@ export function Home() {
                 >
                   <div className="flex items-center gap-3">
                     <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[1] ? 'rotate-90' : ''}`}>▶</span>
-                    <span className="group-hover:text-white transition-colors">Instant FIAT & Stablecoin Conversion</span>
+                    <span className="group-hover:text-white transition-colors">Policy Access</span>
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openStates[1] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
-                      Convert and settle digital assets instantly with zero slippage and real-time liquidity.
+                      Policy-enabled benefits, official updates, and practical advantages within the VIFC ecosystem.
                     </p>
                   </div>
                 </li>
@@ -236,23 +236,23 @@ export function Home() {
                 >
                   <div className="flex items-center gap-3">
                     <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[2] ? 'rotate-90' : ''}`}>▶</span>
-                    <span className="group-hover:text-white transition-colors">Transparent FX & Global Spending</span>
+                    <span className="group-hover:text-white transition-colors">Strategic Connections</span>
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openStates[2] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
-                      Access highly competitive interbank FX rates for secure global payments.
+                      Curated investment opportunities and strategic partnerships across the VIFC and GOE ecosystems.
                     </p>
                   </div>
                 </li>
               </ul>
-              
-              <button 
+
+              {/* <button
                 onClick={() => navigate('/benefits')}
                 className="mt-2 self-start bg-white/20 hover:bg-white/30 transition text-white rounded-full px-6 py-2.5 text-[14px] font-medium flex items-center gap-1.5 border border-white/10 shadow-md cursor-pointer"
               >
                 <span>Details</span>
                 <span>↗</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -270,7 +270,7 @@ export function Home() {
                   title={articles[0].title}
                   date={formatArticleDate(articles[0].created_at)}
                   abstract={articles[0].description || articles[0].title}
-                  requiredRole={getArticleRequiredRole(articles[0])}
+                  requiredRole="free"
                   userRole={userRole}
                   onExpand={() => navigate(`/reports/detail/${articles[0].slug}`)}
                   imageUrl={articles[0].thumbnail}
@@ -282,7 +282,7 @@ export function Home() {
                   title={articles[1].title}
                   date={formatArticleDate(articles[1].created_at)}
                   abstract={articles[1].description || articles[1].title}
-                  requiredRole={getArticleRequiredRole(articles[1])}
+                  requiredRole="premium"
                   userRole={userRole}
                   onExpand={() => navigate(`/reports/detail/${articles[1].slug}`)}
                   imageUrl={articles[1].thumbnail}
@@ -306,7 +306,7 @@ export function Home() {
                     title={articles[2].title}
                     date={formatArticleDate(articles[2].created_at)}
                     abstract={articles[2].description || articles[2].title}
-                    requiredRole={getArticleRequiredRole(articles[2])}
+                    requiredRole="free"
                     userRole={userRole}
                     onExpand={() => navigate(`/reports/detail/${articles[2].slug}`)}
                     imageUrl={articles[2].thumbnail}
@@ -345,7 +345,7 @@ export function Reports() {
           const tags = Array.from(new Set(
             data.data.flatMap((a: any) => a.seo_keywords ? a.seo_keywords.split(',').map((k: string) => k.trim()) : [])
           ));
-          const validTags = tags.filter(Boolean) as string[];
+          const validTags = (tags.filter(Boolean) as string[]).filter((tag: string) => !tag.toLowerCase().includes('monkey'));
           setAllTags(['All', ...validTags]);
         }
       } catch (err) {
@@ -457,8 +457,8 @@ export function Reports() {
 
   // Filter articles by search query
   const filteredArticles = articles.filter(a => {
-    const matchesSearch = !searchQuery || 
-      a.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = !searchQuery ||
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.description && a.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesSearch;
   });
@@ -636,53 +636,13 @@ export function Events() {
   const mockEvents = [
     {
       id: 1,
-      title: 'Event title demo here',
-      date: 'Sun 17 May 15:29',
+      title: 'Unchained Summit 2026',
+      date: 'May 28, 2026 ~ May 29, 2026',
       status: 'active',
-      statusLabel: '2 days left',
-      imageUrl: '/crypto_blocks.png',
-      description: 'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless....',
-      location: 'Location address here',
-    },
-    {
-      id: 2,
-      title: 'Event title demo here',
-      date: 'Sun 17 May 15:29',
-      status: 'active',
-      statusLabel: '2 days left',
-      imageUrl: '/crypto_blocks.png',
-      description: 'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless....',
-      location: 'Location address here',
-    },
-    {
-      id: 3,
-      title: 'Event title demo here',
-      date: 'Sun 17 May 15:29',
-      status: 'active',
-      statusLabel: '2 days left',
-      imageUrl: '/crypto_blocks.png',
-      description: 'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless....',
-      location: 'Location address here',
-    },
-    {
-      id: 4,
-      title: 'Event title demo here',
-      date: 'Sun 17 May 15:29',
-      status: 'expired',
-      statusLabel: 'expired',
-      imageUrl: '/crypto_blocks.png',
-      description: 'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless....',
-      location: 'Location address here',
-    },
-    {
-      id: 5,
-      title: 'Event title demo here',
-      date: 'Sun 17 May 15:29',
-      status: 'expired',
-      statusLabel: 'expired',
-      imageUrl: '/crypto_blocks.png',
-      description: 'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless....',
-      location: 'Location address here',
+      statusLabel: 'Upcoming',
+      imageUrl: '/unchained_summit.png',
+      description: 'Unchained Summit is a premier Web3, Crypto and Blockchain event in Vietnam, bringing together global industry leaders, institutional/VC investors, innovators, and policymakers to shape the future of decentralized technology.',
+      location: 'Furama Resort Danang, 105 Võ Nguyên Giáp, Đà Nẵng, 550000, Vietnam',
     },
   ];
 

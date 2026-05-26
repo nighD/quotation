@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
-import { Loader2, Lock, ArrowLeft } from 'lucide-react';
+import { Loader2, Lock, ArrowLeft, Shield } from 'lucide-react';
 
 const ROLE_LEVELS: Record<string, number> = {
   free: 0,
@@ -19,14 +19,205 @@ const ROLE_PLAN_NAMES: Record<string, string> = {
   premium: 'Annual Premium',
 };
 
+// Dynamically load PDF.js script from cdnjs and configure worker
+const loadPdfJS = (): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    if ((window as any).pdfjsLib) {
+      resolve((window as any).pdfjsLib);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
+    script.async = true;
+    script.onload = () => {
+      const pdfjsLib = (window as any).pdfjsLib;
+      if (pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        resolve(pdfjsLib);
+      } else {
+        reject(new Error('PDF.js global library (pdfjsLib) was not found on the window object.'));
+      }
+    };
+    script.onerror = () => reject(new Error('Failed to download PDF.js library from CDN.'));
+    document.head.appendChild(script);
+  });
+};
+
+interface PageRendererProps {
+  pageNumber: number;
+  pdfDoc: any;
+  userEmail?: string;
+}
+
+function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [loading, setLoading] = useState(true);
+  const renderTaskRef = useRef<any>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const renderPage = async () => {
+      try {
+        const page = await pdfDoc.getPage(pageNumber);
+        if (!active) return;
+
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Base width of 1000px ensures sharp text even when scaled up
+        const originalViewport = page.getViewport({ scale: 1 });
+        const desiredWidth = 1000;
+        const scale = desiredWidth / originalViewport.width;
+        const viewport = page.getViewport({ scale });
+
+        // Adjust canvas dimensions for retina display and high-dpi screens
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = viewport.width * dpr;
+        canvas.height = viewport.height * dpr;
+        
+        // Scale back the context drawing commands to look crisp
+        ctx.scale(dpr, dpr);
+
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport,
+        };
+
+        if (renderTaskRef.current) {
+          renderTaskRef.current.cancel();
+        }
+
+        const renderTask = page.render(renderContext);
+        renderTaskRef.current = renderTask;
+
+        await renderTask.promise;
+        if (!active) return;
+
+        // Draw dynamic watermarking overlays on the canvas
+        ctx.save();
+        ctx.font = 'bold 13px Poppins, sans-serif';
+        ctx.fillStyle = 'rgba(128, 128, 128, 0.15)';
+        ctx.textAlign = 'center';
+        
+        const dateString = new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        const watermarkText = `VIFC PASS • SECURE PREVIEW • ${userEmail || 'authorized-user'} • ${dateString}`;
+        
+        // Center the coordinate space and rotate
+        ctx.translate(viewport.width / 2, viewport.height / 2);
+        ctx.rotate(-35 * Math.PI / 180);
+        
+        // Grid distribution for watermark lines
+        const stepY = 140;
+        const startY = -viewport.height;
+        const endY = viewport.height;
+        
+        for (let y = startY; y < endY; y += stepY) {
+          ctx.fillText(watermarkText, -viewport.width / 3, y);
+          ctx.fillText(watermarkText, 0, y + 70);
+          ctx.fillText(watermarkText, viewport.width / 3, y);
+        }
+        
+        ctx.restore();
+        setLoading(false);
+      } catch (err: any) {
+        if (err.name !== 'RenderingCancelledException') {
+          console.error(`Page ${pageNumber} render failed:`, err);
+        }
+      }
+    };
+
+    renderPage();
+
+    return () => {
+      active = false;
+      if (renderTaskRef.current) {
+        renderTaskRef.current.cancel();
+      }
+    };
+  }, [pageNumber, pdfDoc, userEmail]);
+
+  return (
+    <div className="relative w-full overflow-hidden rounded-2xl shadow-2xl border border-white/10 bg-[#161618] mb-8 flex flex-col items-center min-h-[500px]">
+      {loading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#161618] z-20 gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+          <span className="text-[12px] text-gray-500 font-medium">Decrypting and rendering page {pageNumber}...</span>
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        style={{ width: '100%', height: 'auto' }}
+        className="block select-none pointer-events-none"
+      />
+      {/* Invisible overlay shield catching all clicks, context menus, dragging */}
+      <div
+        className="absolute inset-0 z-10 bg-transparent select-none cursor-default"
+        onContextMenu={(e) => e.preventDefault()}
+        style={{ userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }}
+      />
+    </div>
+  );
+}
+
 export function ReportPdf() {
   const { id } = useParams<{ id: string }>(); // id is the slug
   const navigate = useNavigate();
   const { user, setUser, loading: authLoading } = useAuth();
+  
   const checkStarted = useRef(false);
   const [unauthorized, setUnauthorized] = useState(false);
   const [requiredPlanName, setRequiredPlanName] = useState('Annual Premium');
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [articleTitle, setArticleTitle] = useState<string>('Secure Document View');
+  const [pdfDoc, setPdfDoc] = useState<any>(null);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pdfLoadError, setPdfLoadError] = useState(false);
+
+  // Security listeners (Block Ctrl+S, Cmd+S, Ctrl+P, Cmd+P, Right-Click, Print Media)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Intercept Save (Ctrl/Cmd + S)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+      }
+      // Intercept Print (Ctrl/Cmd + P)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('contextmenu', handleContextMenu);
+
+    // Dynamic print blocking stylesheet
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media print {
+        body { display: none !important; }
+        html { display: none !important; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('contextmenu', handleContextMenu);
+      document.head.removeChild(style);
+    };
+  }, []);
 
   useEffect(() => {
     const checkAuthAndAccess = async () => {
@@ -40,7 +231,7 @@ export function ReportPdf() {
         return;
       }
 
-      // 2. Validate token and refresh it silently if expired
+      // 2. Validate token and refresh profile
       let activeUser = user;
       const token = localStorage.getItem('access_token');
       if (token) {
@@ -51,7 +242,7 @@ export function ReportPdf() {
             setUser(data.data);
           }
         } catch (error) {
-          console.error("Token verification / refresh failed", error);
+          console.error("Session refresh failed", error);
         }
       }
 
@@ -59,7 +250,10 @@ export function ReportPdf() {
       let requiredRole = 'premium'; // default fallback
       try {
         const { data } = await apiClient.get(`/cms/articles/${id}`);
-        if (data.success && data.data && data.data.blocks) {
+        if (data.success && data.data) {
+          if (data.data.title) {
+            setArticleTitle(data.data.title);
+          }
           const blocks = typeof data.data.blocks === 'string' 
             ? JSON.parse(data.data.blocks) 
             : data.data.blocks;
@@ -94,54 +288,55 @@ export function ReportPdf() {
         return;
       }
 
-      // 5. Redirect directly to backend PDF stream
-      const freshToken = localStorage.getItem('access_token') || '';
-      const isLocal = 
-        window.location.hostname === 'localhost' || 
-        window.location.hostname === '127.0.0.1' || 
-        window.location.hostname.startsWith('192.168.') ||
-        window.location.hostname.startsWith('10.') ||
-        window.location.hostname.endsWith('.local');
-
-      const apiURL = isLocal 
-        ? `${window.location.protocol}//${window.location.hostname}:8080` 
-        : window.location.origin;
-
-      window.location.href = `${apiURL}/cms/reports/${id}/pdf?token=${encodeURIComponent(freshToken)}`;
+      // 5. Fetch PDF as array buffer and load it
+      try {
+        const pdfjs = await loadPdfJS();
+        const response = await apiClient.get(`/cms/reports/${id}/pdf`, {
+          responseType: 'arraybuffer'
+        });
+        
+        const pdfData = new Uint8Array(response.data);
+        const doc = await pdfjs.getDocument({ data: pdfData }).promise;
+        
+        setPdfDoc(doc);
+        setNumPages(doc.numPages);
+      } catch (err) {
+        console.error('Failed to load secure PDF:', err);
+        setPdfLoadError(true);
+      } finally {
+        setCheckingAccess(false);
+      }
     };
 
     checkAuthAndAccess();
   }, [id, user, authLoading, navigate, setUser]);
 
+  // Loading state
   if (authLoading || (checkingAccess && !unauthorized)) {
     return (
-      <div className="min-h-screen bg-[#111] flex flex-col items-center justify-center text-white font-poppins">
+      <div className="min-h-screen bg-[#0f0f10] flex flex-col items-center justify-center text-white font-poppins">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-10 h-10 animate-spin text-white/50" />
-          <p className="text-sm font-medium tracking-wide text-gray-300">
-            Checking permission and decrypting PDF...
+          <p className="text-sm font-medium tracking-wide text-gray-400">
+            Verifying credentials & decrypting document...
           </p>
         </div>
       </div>
     );
   }
 
+  // Access Denied state
   if (unauthorized) {
     return (
       <div 
-        className="min-h-screen bg-[#111] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center p-6 text-white font-poppins relative"
+        className="min-h-screen bg-[#0f0f10] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center p-6 text-white font-poppins relative"
         style={{ backgroundImage: "url('/bg.png')" }}
       >
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-none"></div>
-        
-        {/* Floating gradient circles */}
         <div className="absolute w-[350px] h-[350px] rounded-full bg-red-500/5 blur-[80px] -top-10 -left-10 pointer-events-none"></div>
         <div className="absolute w-[400px] h-[400px] rounded-full bg-emerald-500/5 blur-[100px] -bottom-20 -right-20 pointer-events-none"></div>
 
-        {/* Access Denied Card */}
         <div className="relative z-10 max-w-[420px] w-full bg-[#161618]/85 border border-white/10 p-8 md:p-10 rounded-[32px] text-center shadow-2xl backdrop-blur-xl flex flex-col items-center gap-6">
-          
-          {/* Glowing Lock Icon */}
           <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500/90 shadow-[0_0_30px_rgba(239,68,68,0.15)] animate-pulse">
             <Lock className="w-7 h-7" />
           </div>
@@ -158,7 +353,6 @@ export function ReportPdf() {
             </p>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col gap-3 w-full mt-2">
             <button
               onClick={() => navigate('/subscriptions')}
@@ -179,14 +373,69 @@ export function ReportPdf() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#111] flex flex-col items-center justify-center text-white font-poppins">
-      <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-10 h-10 animate-spin text-white/50" />
-        <p className="text-sm font-medium tracking-wide text-gray-300">
-          Redirecting to native PDF viewer...
-        </p>
+  // Load error state
+  if (pdfLoadError) {
+    return (
+      <div className="min-h-screen bg-[#0f0f10] flex flex-col items-center justify-center p-6 text-white font-poppins">
+        <div className="max-w-[420px] w-full bg-[#161618] border border-white/10 p-8 rounded-[32px] text-center shadow-xl flex flex-col items-center gap-5">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+            !
+          </div>
+          <h2 className="text-xl font-semibold">Failed to Load Document</h2>
+          <p className="text-gray-400 text-sm">
+            An error occurred while loading this document. Please try again or contact support if the issue persists.
+          </p>
+          <button
+            onClick={() => navigate(`/reports/detail/${id}`)}
+            className="w-full py-3 bg-[#252528] hover:bg-[#323236] rounded-full font-semibold transition-all active:scale-[0.99] cursor-pointer"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
+    );
+  }
+
+  // Standard secure canvas viewer layout
+  return (
+    <div className="min-h-screen bg-[#0f0f10] flex flex-col font-poppins select-none" onContextMenu={(e) => e.preventDefault()}>
+      {/* Sticky Premium Header Bar */}
+      <header className="sticky top-0 z-40 bg-[#0f0f10]/80 backdrop-blur-md border-b border-white/5 py-4 px-6 flex justify-between items-center">
+        <button
+          onClick={() => navigate(`/reports/detail/${id}`)}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors cursor-pointer text-sm font-medium"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Close Viewer</span>
+        </button>
+
+        <div className="flex-1 text-center px-4 max-w-[50%] md:max-w-[60%]">
+          <h2 className="text-white text-sm md:text-base font-semibold truncate">
+            {articleTitle}
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full shadow-sm text-emerald-400">
+          <Shield className="w-3.5 h-3.5" />
+          <span className="text-[11px] font-bold uppercase tracking-wider select-none">
+            Secure Preview
+          </span>
+        </div>
+      </header>
+
+      {/* Main viewport rendering pages */}
+      <main className="flex-1 overflow-y-auto px-4 md:px-8 py-10 bg-[#0c0c0d]">
+        <div className="max-w-[840px] mx-auto w-full flex flex-col items-center">
+          {Array.from({ length: numPages }).map((_, index) => (
+            <PageRenderer
+              key={index}
+              pageNumber={index + 1}
+              pdfDoc={pdfDoc}
+              userEmail={user?.email}
+            />
+          ))}
+        </div>
+      </main>
     </div>
   );
 }

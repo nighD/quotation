@@ -78,7 +78,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
     logout();
     const isProd = import.meta.env.PROD;
     if (isProd) {
-      window.location.href = 'https://vifcpass.com/';
+      window.location.href = 'https://dashboard.vifcpass.com/login';
     } else {
       navigate('/login');
     }

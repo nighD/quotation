@@ -275,9 +275,11 @@ export function SubscriptionPlans() {
                     </div>
 
                     {/* Price */}
-                    <div className="flex items-baseline text-[2.75rem] font-bold text-white mb-2 tracking-tight">
-                      <span>{card.price}</span>
-                    </div>
+                    {card.id !== 'free' && card.id !== 'base' && (
+                      <div className="flex items-baseline text-[2.75rem] font-bold text-white mb-2 tracking-tight">
+                        <span>{card.price}</span>
+                      </div>
+                    )}
 
                     {/* Duration / Line */}
                     <div className="border-b border-white/10 pb-4 mb-4">

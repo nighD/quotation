@@ -34,7 +34,7 @@ func NewService(repo *Repository, subRepo *subscriptions.Repository, cfg *config
 
 // ─── Create Payment ───────────────────────────────────────────
 
-func (s *Service) CreatePayment(userID string, req *CreatePaymentRequest, baseURL string) (*CreatePaymentResponse, error) {
+func (s *Service) CreatePayment(userID string, req *CreatePaymentRequest, baseURL string, clientIP string) (*CreatePaymentResponse, error) {
 	uid, _ := uuid.Parse(userID)
 	subID, _ := uuid.Parse(req.SubscriptionID)
 
@@ -61,9 +61,9 @@ func (s *Service) CreatePayment(userID string, req *CreatePaymentRequest, baseUR
 	case "momo":
 		paymentURL, err = s.createMoMoPayment(p)
 	case "vnpay":
-		paymentURL, err = s.createVNPayURL(p)
+		paymentURL, err = s.createVNPayURL(p, clientIP)
 	case "onepay":
-		paymentURL, err = s.createOnePayURL(p, baseURL)
+		paymentURL, err = s.createOnePayURL(p, baseURL, clientIP)
 	default:
 		return nil, fmt.Errorf("unsupported gateway: %s", req.Gateway)
 	}
@@ -186,7 +186,10 @@ func (s *Service) HandleMoMoWebhook(payload *MoMoWebhookPayload) error {
 
 // ─── VNPay ────────────────────────────────────────────────────
 
-func (s *Service) createVNPayURL(p *Payment) (string, error) {
+func (s *Service) createVNPayURL(p *Payment, clientIP string) (string, error) {
+	if clientIP == "" {
+		clientIP = "127.0.0.1"
+	}
 	params := url.Values{}
 	params.Set("vnp_Version", "2.1.0")
 	params.Set("vnp_Command", "pay")
@@ -198,7 +201,7 @@ func (s *Service) createVNPayURL(p *Payment) (string, error) {
 	params.Set("vnp_OrderType", "other")
 	params.Set("vnp_Locale", "vn")
 	params.Set("vnp_ReturnUrl", s.cfg.VNPay.ReturnURL)
-	params.Set("vnp_IpAddr", "127.0.0.1")
+	params.Set("vnp_IpAddr", clientIP)
 	params.Set("vnp_CreateDate", time.Now().Format("20060102150405"))
 
 	// Sort params for signature
@@ -240,7 +243,10 @@ func (s *Service) HandleVNPayWebhook(payload *VNPayWebhookPayload) error {
 
 // ─── OnePay ───────────────────────────────────────────────────
 
-func (s *Service) createOnePayURL(p *Payment, baseURL string) (string, error) {
+func (s *Service) createOnePayURL(p *Payment, baseURL string, clientIP string) (string, error) {
+	if clientIP == "" {
+		clientIP = "127.0.0.1"
+	}
 	params := url.Values{}
 	params.Set("vpc_Version", "2")
 	params.Set("vpc_Command", "pay")
@@ -264,7 +270,12 @@ func (s *Service) createOnePayURL(p *Payment, baseURL string) (string, error) {
 	vndAmount := p.Amount * 26390
 	params.Set("vpc_Amount", fmt.Sprintf("%d", int64(vndAmount*100)))
 	
-	params.Set("vpc_TicketNo", "127.0.0.1")
+	// OnePay expects vpc_TicketNo to be a valid customer IP up to 15 characters (IPv4 standard)
+	ticketNo := clientIP
+	if len(ticketNo) > 15 || !strings.Contains(ticketNo, ".") {
+		ticketNo = "127.0.0.1"
+	}
+	params.Set("vpc_TicketNo", ticketNo)
 
 	keys := make([]string, 0, len(params))
 	for k := range params {

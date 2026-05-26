@@ -7,13 +7,14 @@ import { Lock } from 'lucide-react';
 import { apiClient } from '../../api/client';
 
 interface Block {
-  type: 'heading' | 'text' | 'image' | 'pdf';
+  type: 'heading' | 'text' | 'image' | 'pdf' | 'html';
   level?: string;
   content?: string;
   url?: string;
   name?: string;
   thumbnail?: string;
   activeRole?: string;
+  html?: string;
 }
 
 interface Article {
@@ -28,6 +29,7 @@ interface Article {
   seo_title?: string;
   seo_description?: string;
   seo_keywords?: string;
+  html?: string;
 }
 
 const ROLE_LEVELS: Record<string, number> = {
@@ -258,7 +260,33 @@ export function ReportDetail() {
 
             {/* Content Headings & Paragraphs sequentially rendered from blocks */}
             <div className="flex flex-col gap-4">
+              {article.html && (
+                <div
+                  className="report-html-block"
+                  dangerouslySetInnerHTML={{ __html: article.html }}
+                />
+              )}
               {blocks.map((block, index) => {
+                if (block.type === 'html') {
+                  return (
+                    <div
+                      key={index}
+                      className="report-html-block"
+                      dangerouslySetInnerHTML={{ __html: block.content || block.html || '' }}
+                    />
+                  );
+                }
+
+                if (block.html) {
+                  return (
+                    <div
+                      key={index}
+                      className="report-html-block"
+                      dangerouslySetInnerHTML={{ __html: block.html }}
+                    />
+                  );
+                }
+
                 if (block.type === 'heading') {
                   const HeadingTag = `h${block.level || 2}` as any;
                   return (

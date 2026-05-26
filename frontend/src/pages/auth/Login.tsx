@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { GoogleLogin } from '@react-oauth/google';
-import { Mail, Lock } from 'lucide-react';
+// import { Mail, Lock } from 'lucide-react';
 
 const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
   const serverMsg = err.response?.data?.message || '';
@@ -20,31 +20,31 @@ const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
 };
 
 export function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [_, setLoading] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    
-    try {
-      const { data } = await apiClient.post('/auth/login', { email, password });
-      if (data.success) {
-        login(data.data.access_token, data.data.refresh_token);
-        navigate('/');
-      }
-    } catch (err: any) {
-      setError(getCleanErrorMessage(err, 'Login failed. Please check your credentials.'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleEmailSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError('');
+  //   
+  //   try {
+  //     const { data } = await apiClient.post('/auth/login', { email, password });
+  //     if (data.success) {
+  //       login(data.data.access_token, data.data.refresh_token);
+  //       navigate('/');
+  //     }
+  //   } catch (err: any) {
+  //     setError(getCleanErrorMessage(err, 'Login failed. Please check your credentials.'));
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setLoading(true);
@@ -101,7 +101,7 @@ export function Login() {
             </div>
           </div>
 
-          <div className="relative flex items-center justify-center my-8">
+          {/* <div className="relative flex items-center justify-center my-8">
             <div className="absolute inset-x-0 h-px bg-[#2a2a2a]"></div>
             <span className="relative px-4 bg-[#181818] text-[#777] text-[15px]">or</span>
           </div>
@@ -144,11 +144,11 @@ export function Login() {
             >
               {loading ? 'Processing...' : 'Sign in'}
             </button>
-          </form>
+          </form> */}
           
-          <p className="text-center mt-8 text-[#777] text-[15px]">
+          {/* <p className="text-center mt-8 text-[#777] text-[15px]">
             Don't have an account? <Link to="/register" className="text-[#a1a1aa] hover:text-white underline decoration-1 underline-offset-[5px] transition">Sign up</Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

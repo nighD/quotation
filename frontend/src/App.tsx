@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
 import { Profile } from './pages/auth/Profile';
 import { SubscriptionPlans } from './pages/subscriptions/SubscriptionPlans';
 import { Home, Reports, Deals, Benefits, Events } from './pages/public/Placeholders';
@@ -62,7 +61,7 @@ function AppContent() {
 
         {/* Auth routes (Only accessible when not logged in) */}
         <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
-        <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Register />} />
+        <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />} />
 
         {/* Protected Navigation Pages (Only accessible when logged in, otherwise redirect to login) */}
         <Route path="/home" element={!user ? <Navigate to="/login" replace /> : <Home />} />
@@ -93,7 +92,7 @@ function AppContent() {
 
       {/* Auth */}
       <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Register />} />
+      <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />} />
 
       {/* Protected Navigation Pages */}
       <Route path="/home" element={!user ? <Navigate to="/login" replace /> : <Home />} />

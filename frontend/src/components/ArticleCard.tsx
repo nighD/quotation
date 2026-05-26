@@ -12,30 +12,19 @@ interface ArticleCardProps {
   variant?: 'default' | 'report';
 }
 
-const ROLE_LEVELS: Record<string, number> = {
-  free: 0,
-  base: 1,
-  standard: 2,
-  premium: 3,
-  admin: 4,
-};
-
 export function ArticleCard({
   title,
   date,
   abstract,
   requiredRole = 'free',
-  userRole = 'free',
   onExpand,
   className = 'h-full min-h-[300px]',
   imageUrl,
   variant = 'default',
 }: ArticleCardProps) {
-  // Check access based on role hierarchy
-  const userLevel = ROLE_LEVELS[userRole] ?? 0;
-  const requiredLevel = ROLE_LEVELS[requiredRole] ?? 0;
-  const hasAccess = userLevel >= requiredLevel;
-  const isLocked = !hasAccess;
+  // All cards are unlocked to allow expanding/viewing details; access checks are deferred to the report details page for the PDF
+  const hasAccess = true;
+  const isLocked = false;
 
   const isHomepage = variant !== 'report';
 
@@ -127,8 +116,8 @@ export function ArticleCard({
           {abstract}
         </p>
 
-        {/* Image */}
-        {imageUrl && (
+        {/* Image - Only shown on reports page, not on homepage */}
+        {!isHomepage && imageUrl && (
           <div className="rounded-[24px] overflow-hidden shadow-sm border border-black/5 aspect-[16/9] w-full mt-auto mb-1">
             <img src={imageUrl} alt={title} className="w-full h-full object-cover select-none pointer-events-none" />
           </div>

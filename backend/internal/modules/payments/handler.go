@@ -2,6 +2,7 @@ package payments
 
 import (
 	"io"
+	"strings"
 
 	"github.com/baole/quotation/internal/middleware"
 	"github.com/baole/quotation/pkg/response"
@@ -16,6 +17,25 @@ type Handler struct {
 
 func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
+}
+
+func getClientIP(c *fiber.Ctx) string {
+	// Check X-Forwarded-For header
+	if xff := c.Get("X-Forwarded-For"); xff != "" {
+		ips := strings.Split(xff, ",")
+		if len(ips) > 0 {
+			ip := strings.TrimSpace(ips[0])
+			if ip != "" {
+				return ip
+			}
+		}
+	}
+	// Check X-Real-IP header
+	if xrip := c.Get("X-Real-IP"); xrip != "" {
+		return strings.TrimSpace(xrip)
+	}
+	// Fallback to Fiber's IP()
+	return c.IP()
 }
 
 // CreatePayment godoc
@@ -41,7 +61,7 @@ func (h *Handler) CreatePayment(c *fiber.Ctx) error {
 	baseURL := c.Protocol() + "://" + c.Get("Host")
 
 	userID := middleware.GetUserID(c)
-	result, err := h.service.CreatePayment(userID, &req, baseURL)
+	result, err := h.service.CreatePayment(userID, &req, baseURL, getClientIP(c))
 	if err != nil {
 		return response.BadRequest(c, err.Error(), nil)
 	}
