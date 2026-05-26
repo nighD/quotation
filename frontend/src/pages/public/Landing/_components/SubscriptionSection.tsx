@@ -11,7 +11,7 @@ const plans = [
         id: "free",
         name: "Free",
         price: "$0",
-        duration: "null",
+        duration: null,
         features: ["Dashboard", "Newsletter",  "Webinar"],
         icon: "/image/icon-subscription01.png",
     },
