@@ -93,8 +93,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
     }
   };
 
-  // Tabs when logged in
-  const navItems = [
+  const baseNavItems = [
     { label: 'Home', path: '/home' },
     { label: 'Reports', path: '/reports' },
     { label: 'Deals', path: '/deals' },
@@ -102,12 +101,14 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
     { label: 'Event', path: '/events' },
   ];
 
+  const navItems = user?.roles?.includes('admin')
+    ? [...baseNavItems, { label: 'Admin', path: '/admin' }]
+    : baseNavItems;
+
   return (
     <header className="relative z-50 flex items-center justify-between md:justify-center px-6 md:px-12 py-6 max-w-[2000px] mx-auto w-full">
-      {/* Mobile-only layout when logged in */}
       {user ? (
         <div className="flex md:hidden items-center justify-between w-full">
-          {/* Hamburger button */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
@@ -162,18 +163,17 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
                   style={indicatorStyle}
                 />
                 {navItems.map((item) => {
-                  const isActive = currentPath === item.path || 
-                                   (item.path === '/home' && currentPath === '/') ||
-                                   (item.path === '/reports' && currentPath.startsWith('/reports/detail'));
+                  const isActive = currentPath === item.path ||
+                    (item.path === '/home' && currentPath === '/') ||
+                    (item.path === '/reports' && currentPath.startsWith('/reports/detail'));
                   return (
                     <Link
                       key={item.label}
                       to={item.path}
-                      className={`px-5 py-2.5 rounded-[20px] text-[14px] font-medium tracking-wide transition-colors duration-300 relative z-10 ${
-                        isActive
-                          ? 'active-nav-link text-black font-semibold'
-                          : 'text-white hover:text-gray-200'
-                      }`}
+                      className={`px-5 py-2.5 rounded-[20px] text-[14px] font-medium tracking-wide transition-colors duration-300 relative z-10 ${isActive
+                        ? 'active-nav-link text-black font-semibold'
+                        : 'text-white hover:text-gray-200'
+                        }`}
                     >
                       {item.label}
                     </Link>
@@ -250,6 +250,21 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
                       <polyline points="7 7 17 7 17 17" />
                     </svg>
                   </Link>
+                  {user?.roles?.includes('admin') && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center justify-between text-[#1c1c1e] hover:opacity-75 transition-opacity font-medium text-[16px] tracking-normal"
+                    >
+                      <span>Admin Dashboard</span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1c1c1e]">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                      </svg>
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -295,17 +310,16 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
           {/* Menu Items */}
           <div className="flex flex-col gap-6 text-left">
             {mobileNavItems.map((item) => {
-              const isActive = currentPath === item.path || 
-                               (item.path === '/home' && currentPath === '/') ||
-                               (item.path === '/reports' && currentPath.startsWith('/reports/detail'));
+              const isActive = currentPath === item.path ||
+                (item.path === '/home' && currentPath === '/') ||
+                (item.path === '/reports' && currentPath.startsWith('/reports/detail'));
               return (
                 <Link
                   key={item.label}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`text-4xl font-semibold tracking-normal transition-colors font-poppins ${
-                    isActive ? 'text-white' : 'text-[#8E8E93]'
-                  }`}
+                  className={`text-4xl font-semibold tracking-normal transition-colors font-poppins ${isActive ? 'text-white' : 'text-[#8E8E93]'
+                    }`}
                 >
                   {item.label}
                 </Link>
@@ -317,14 +331,14 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
 
           {/* Profile Section */}
           <div className="flex items-center justify-between py-2">
-            <Link 
-              to="/profile" 
-              onClick={() => setMobileMenuOpen(false)} 
+            <Link
+              to="/profile"
+              onClick={() => setMobileMenuOpen(false)}
               className="text-4xl font-semibold text-white tracking-normal font-poppins"
             >
               Profile
             </Link>
-            
+
             {/* User Avatar */}
             <div className="w-14 h-14 rounded-[18px] overflow-hidden border border-white/10 bg-[#2d2a2a] flex items-center justify-center">
               {user?.avatar_url ? (
