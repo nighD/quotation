@@ -13,18 +13,79 @@
   --font-display: 'Poppins', sans-serif;
   --font-poppins: 'Poppins', sans-serif;
   --font-playfair: 'Poppins', sans-serif;
+  --font-cormorant-garamond: 'Cormorant Garamond', serif;
+  --font-cormorant: 'Cormorant Garamond', serif;
+  --font-inter: 'Inter', sans-serif;
 }
 
 body {
   @apply bg-verge-black text-verge-white font-sans antialiased m-0 min-h-screen;
 }
 
-h1, h2, h3, h4, h5, h6 {
+@layer utilities {
+  .font-cormorant-garamond {
+    font-family: 'Cormorant Garamond', serif !important;
+  }
+
+  .font-cormorant {
+    font-family: 'Cormorant Garamond', serif !important;
+  }
+
+  .font-inter {
+    font-family: 'Inter', sans-serif !important;
+  }
+
+  .active-menu-icon {
+    filter: invert(44%) sepia(81%) saturate(1750%) hue-rotate(352deg) brightness(91%) contrast(89%) !important;
+  }
+}
+
+/* Universal WebKit Custom Scrollbar for Entire Website */
+::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #E8D7C9 !important;
+  border-radius: 9999px !important;
+}
+
+::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #B58F6F !important;
+  border-radius: 9999px !important;
+}
+
+::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a67e63 !important;
+}
+
+::-webkit-scrollbar-button,
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   @apply font-display font-thin tracking-tight leading-none;
 }
 
 .verge-card {
-  @apply border-2 border-verge-border p-6 transition-all duration-200 hover:border-verge-magenta hover:shadow-[4px_4px_0px_0px_rgba(232,18,92,1)];
+  @apply border-2 border-verge-border p-6 transition-all duration-200 hover:border-verge-magenta hover:shadow-[4px_4px_0px_0px_#e8125c];
 }
 
 .verge-button {

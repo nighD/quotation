@@ -17,6 +17,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (access_token: string, refresh_token: string) => void;
+  devLogin: (role?: 'admin' | 'user') => void;
   logout: () => void;
   setUser: (user: User | null) => void;
 }
@@ -37,8 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (isLogout) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('dev_mock_user');
         setUser(null);
-        
+
         searchParams.delete('logout');
         const newSearch = searchParams.toString();
         const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
@@ -46,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (queryToken && queryRefreshToken) {
         localStorage.setItem('access_token', queryToken);
         localStorage.setItem('refresh_token', queryRefreshToken);
-        
+
         searchParams.delete('token');
         searchParams.delete('refresh_token');
         const newSearch = searchParams.toString();
@@ -55,15 +57,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const token = localStorage.getItem('access_token');
+      const cachedMockUser = localStorage.getItem('dev_mock_user');
+
+      if (token === 'dev-mock-token' && cachedMockUser) {
+        try {
+          setUser(JSON.parse(cachedMockUser));
+          setLoading(false);
+          return;
+        } catch (e) {
+          // ignore error
+        }
+      }
+
       if (token) {
         try {
           const { data } = await apiClient.get('/auth/profile');
           setUser(data.data);
         } catch (error) {
           console.error("Failed to fetch profile", error);
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          setUser(null);
+          if (cachedMockUser) {
+            setUser(JSON.parse(cachedMockUser));
+          } else {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('dev_mock_user');
+            setUser(null);
+          }
         }
       }
       setLoading(false);
@@ -79,14 +98,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     apiClient.get('/auth/profile').then(({ data }) => setUser(data.data));
   };
 
+  const devLogin = (role: 'admin' | 'user' = 'admin') => {
+    const mockUser: User = {
+      id: 'mock-admin-id',
+      email: 'hoanvuonq2002@gmail.com',
+      full_name: role === 'admin' ? 'Hoàng Vương (Admin)' : 'Hoàng Vương (User)',
+      roles: role === 'admin' ? ['admin', 'premium'] : ['user'],
+      company: 'VIFC',
+      title: role === 'admin' ? 'Administrator' : 'Member',
+      country: 'Vietnam',
+      is_joined_waitlist: true,
+    };
+    localStorage.setItem('access_token', 'dev-mock-token');
+    localStorage.setItem('refresh_token', 'dev-mock-refresh-token');
+    localStorage.setItem('dev_mock_user', JSON.stringify(mockUser));
+    setUser(mockUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('dev_mock_user');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, devLogin, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

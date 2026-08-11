@@ -7,6 +7,11 @@ import { Home, Reports, Deals, Benefits, Events } from './pages/public/Placehold
 import { ReportDetail } from './pages/public/ReportDetail';
 import { ReportPdf } from './pages/public/ReportPdf';
 import { Landing } from './pages/public/Landing/page';
+import { AdminDashboard } from './pages/(dashboard)/admin/AdminDashboard';
+import ReportPage from './pages/(dashboard)/report/page';
+import ReportDetailPage from './pages/(dashboard)/report/[slug]/page';
+import BookingPage from './pages/(dashboard)/booking/page';
+import { AdminLayout } from './pages/(dashboard)/_layouts';
 
 function PlansRedirect() {
   const [searchParams] = useSearchParams();
@@ -24,14 +29,11 @@ function AppContent() {
   const hostname = window.location.hostname;
   const isProd = import.meta.env.PROD;
 
-  // ==========================================
-  // PRODUCTION ROUTING (Subdomain-enforced)
-  // ==========================================
+
   if (isProd) {
     const isDashboard = hostname.startsWith('dashboard.');
     const dashboardDomainUrl = 'https://dashboard.vifcpass.com';
 
-    // ─── 1. ROOT DOMAIN (vifcpass.com) ──────────────────────
     if (!isDashboard) {
       // Redirect all paths other than / to dashboard.vifcpass.com
       const currentPath = window.location.pathname;
@@ -73,6 +75,13 @@ function AppContent() {
         <Route path="/subscriptions" element={!user ? <Navigate to="/login" replace /> : <SubscriptionPlans />} />
         <Route path="/events" element={!user ? <Navigate to="/login" replace /> : <Events />} />
         <Route path="/profile" element={!user ? <Navigate to="/login" replace /> : <Profile />} />
+        {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
+        <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/report" element={<ReportPage />} />
+          <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
+          <Route path="/admin/booking" element={<BookingPage />} />
+        </Route>
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to={defaultPath} replace />} />
@@ -104,6 +113,14 @@ function AppContent() {
       <Route path="/subscriptions" element={!user ? <Navigate to="/login" replace /> : <SubscriptionPlans />} />
       <Route path="/events" element={!user ? <Navigate to="/login" replace /> : <Events />} />
       <Route path="/profile" element={!user ? <Navigate to="/login" replace /> : <Profile />} />
+
+      {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
+      <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/report" element={<ReportPage />} />
+        <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
+        <Route path="/admin/booking" element={<BookingPage />} />
+      </Route>
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to={defaultPath} replace />} />
