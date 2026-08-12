@@ -77,7 +77,8 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
   const handleLogout = () => {
     logout();
     const isProd = import.meta.env.PROD;
-    if (isProd) {
+    const isVercel = window.location.hostname.includes('vercel.app');
+    if (isProd && !isVercel) {
       window.location.href = 'https://dashboard.vifcpass.com/login';
     } else {
       navigate('/login');
@@ -86,7 +87,8 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
 
   const handleAuthRedirect = (path: string) => {
     const isProd = import.meta.env.PROD;
-    if (isProd) {
+    const isVercel = window.location.hostname.includes('vercel.app');
+    if (isProd && !isVercel) {
       window.location.href = `https://dashboard.vifcpass.com${path}`;
     } else {
       navigate(path);

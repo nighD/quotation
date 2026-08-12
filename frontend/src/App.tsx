@@ -32,7 +32,8 @@ function AppContent() {
 
 
   if (isProd) {
-    const isDashboard = hostname.startsWith('dashboard.');
+    const isVercel = hostname.includes('vercel.app');
+    const isDashboard = hostname.startsWith('dashboard.') || isVercel;
     const dashboardDomainUrl = 'https://dashboard.vifcpass.com';
 
     if (!isDashboard) {

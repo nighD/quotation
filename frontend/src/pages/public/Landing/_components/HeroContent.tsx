@@ -10,7 +10,8 @@ export const HeroContent = () => {
 
     const handleAuthRedirect = (path: string) => {
         const isProd = import.meta.env.PROD;
-        if (isProd) {
+        const isVercel = window.location.hostname.includes('vercel.app');
+        if (isProd && !isVercel) {
             window.location.href = `https://dashboard.vifcpass.com${path}`;
         } else {
             navigate(path);
