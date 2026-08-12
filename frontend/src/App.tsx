@@ -8,6 +8,7 @@ import { ReportDetail } from './pages/public/ReportDetail';
 import { ReportPdf } from './pages/public/ReportPdf';
 import { Landing } from './pages/public/Landing/page';
 import { AdminDashboard } from './pages/(dashboard)/admin/AdminDashboard';
+import { NotificationsPage } from './pages/(dashboard)/admin/NotificationsPage';
 import ReportPage from './pages/(dashboard)/report/page';
 import ReportDetailPage from './pages/(dashboard)/report/[slug]/page';
 import BookingPage from './pages/(dashboard)/booking/page';
@@ -78,6 +79,7 @@ function AppContent() {
         {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
         <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/notifications" element={<NotificationsPage />} />
           <Route path="/admin/report" element={<ReportPage />} />
           <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
           <Route path="/admin/booking" element={<BookingPage />} />
@@ -117,6 +119,7 @@ function AppContent() {
       {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
       <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/notifications" element={<NotificationsPage />} />
         <Route path="/admin/report" element={<ReportPage />} />
         <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
         <Route path="/admin/booking" element={<BookingPage />} />

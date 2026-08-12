@@ -47,6 +47,11 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// DevLoginRequest is the payload for POST /auth/dev-login.
+type DevLoginRequest struct {
+	Role string `json:"role" validate:"omitempty,oneof=admin user"`
+}
+
 // ForgotPasswordRequest is the payload for POST /auth/forgot-password.
 type ForgotPasswordRequest struct {
 	Email string `json:"email" validate:"required,email"`

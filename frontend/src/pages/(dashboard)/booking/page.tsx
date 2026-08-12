@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Filter, Phone, Search, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { apiClient } from '../../../api/client';
 
 interface BookingItem {
     id: string;
@@ -13,55 +14,76 @@ interface BookingItem {
     totalPrice: string;
 }
 
-const INITIAL_BOOKINGS: BookingItem[] = [
-    {
-        id: '1',
-        orderCode: '#IFC12345',
-        roomType: 'Meeting Room',
-        bookDate: '16/7/26',
-        rentDate: '25/7/26-27/7/26',
-        rentDuration: '3 ngày',
-        deposit: '1tr',
-        totalPrice: '10tr',
-    },
-    {
-        id: '2',
-        orderCode: '#IFC12345',
-        roomType: 'Meeting Room',
-        bookDate: '16/7/26',
-        rentDate: '25/7/26-27/7/26',
-        rentDuration: '3 ngày',
-        deposit: '1tr',
-        totalPrice: '10tr',
-    },
-    {
-        id: '3',
-        orderCode: '#IFC12345',
-        roomType: 'Meeting Room',
-        bookDate: '16/7/26',
-        rentDate: '25/7/26-27/7/26',
-        rentDuration: '3 ngày',
-        deposit: '1tr',
-        totalPrice: '10tr',
-    },
-    {
-        id: '4',
-        orderCode: '#IFC12345',
-        roomType: 'Meeting Room',
-        bookDate: '16/7/26',
-        rentDate: '25/7/26-27/7/26',
-        rentDuration: '3 ngày',
-        deposit: '1tr',
-        totalPrice: '10tr',
-    },
-];
+interface BookingRequestResponse {
+    id: string;
+    booking_type: string;
+    booking_title: string;
+    status: string;
+    source: string;
+    created_at: string;
+}
+
+const formatDate = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return '--';
+    }
+    return new Intl.DateTimeFormat('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+    }).format(date);
+};
+
+const formatBookingType = (value: string) => {
+    if (value === 'meeting-room') {
+        return 'Meeting Room';
+    }
+    if (value === 'lounge') {
+        return 'Lounge';
+    }
+    return value;
+};
+
+const mapBooking = (item: BookingRequestResponse): BookingItem => ({
+    id: item.id,
+    orderCode: `#${item.id.slice(0, 8).toUpperCase()}`,
+    roomType: item.booking_title || formatBookingType(item.booking_type),
+    bookDate: formatDate(item.created_at),
+    rentDate: item.status === 'pending' ? 'Đang chờ xác nhận' : 'Đã xác nhận',
+    rentDuration: item.source === 'admin-dashboard' ? 'Yêu cầu từ Dashboard' : item.source,
+    deposit: '--',
+    totalPrice: '--',
+});
 
 export default function BookingPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+    const [bookings, setBookings] = useState<BookingItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    const filteredBookings = INITIAL_BOOKINGS.filter(
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                const { data } = await apiClient.get('/engagement/booking-requests/me');
+                if (data.success && Array.isArray(data.data)) {
+                    setBookings(data.data.map((item: BookingRequestResponse) => mapBooking(item)));
+                } else {
+                    setBookings([]);
+                }
+            } catch (fetchError: any) {
+                setError(fetchError.response?.data?.message || 'Không thể tải lịch sử booking.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBookings();
+    }, []);
+
+    const filteredBookings = bookings.filter(
         (b) =>
             b.orderCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
             b.roomType.toLowerCase().includes(searchQuery.toLowerCase())
@@ -124,7 +146,25 @@ export default function BookingPage() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        {filteredBookings.map((booking, index) => (
+                        {loading && (
+                            <div className="bg-white rounded-2xl py-8 px-6 text-center font-['Inter']! text-[14px] text-[#664E48] shadow-2xs border border-[#F2E8E0]">
+                                Đang tải lịch sử booking...
+                            </div>
+                        )}
+
+                        {!loading && error && (
+                            <div className="bg-[#F8E4DD] rounded-2xl py-8 px-6 text-center font-['Inter']! text-[14px] text-[#9A4D3A] shadow-2xs border border-[#E9C6B8]">
+                                {error}
+                            </div>
+                        )}
+
+                        {!loading && !error && filteredBookings.length === 0 && (
+                            <div className="bg-white rounded-2xl py-8 px-6 text-center font-['Inter']! text-[14px] text-[#664E48] shadow-2xs border border-[#F2E8E0]">
+                                Chưa có booking request nào được lưu.
+                            </div>
+                        )}
+
+                        {!loading && !error && filteredBookings.map((booking, index) => (
                             <motion.div
                                 key={booking.id + index}
                                 initial={{ opacity: 0, y: 10 }}
@@ -146,7 +186,7 @@ export default function BookingPage() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-center gap-3 mt-8 select-none">
+            <div className="flex items-center justify-center gap-3 mt-8 select-none opacity-40 pointer-events-none">
                 {[1, 2, 3].map((page) => (
                     <button
                         key={page}

@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Filter, Maximize2, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AdminLayout } from '../_layouts/AdminLayout';
 
 interface Article {
     id: number;

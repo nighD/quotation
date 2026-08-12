@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, Search } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { AdminLayout } from '../../_layouts/AdminLayout';
+import { useNavigate } from 'react-router-dom';
 
 interface Article {
     id: number;

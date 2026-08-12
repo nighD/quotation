@@ -1,7 +1,28 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
-export const BookingSection: React.FC = () => {
+export interface BookingCardRequest {
+  bookingType: string;
+  bookingTitle: string;
+}
+
+interface BookingSectionProps {
+  onSubmitRequest: (request: BookingCardRequest) => void | Promise<void>;
+  submittingBookingType: string | null;
+  requestedBookingTypes: string[];
+}
+
+export const BookingSection: React.FC<BookingSectionProps> = ({
+  onSubmitRequest,
+  submittingBookingType,
+  requestedBookingTypes,
+}) => {
+  const navigate = useNavigate();
+
+  const isSubmitting = (bookingType: string) => submittingBookingType === bookingType;
+  const hasRequested = (bookingType: string) => requestedBookingTypes.includes(bookingType);
+
   return (
     <div className="w-full min-h-[498.78px] bg-[#B58F6F] rounded-[28px] p-5 shadow-sm flex flex-col justify-between border border-[#a67e63]">
       <h2 className="text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-4 select-none">
@@ -34,12 +55,25 @@ export const BookingSection: React.FC = () => {
           </div>
 
           <div className="mt-4">
-            <button
-              type="button"
-              className="bg-[#48372D] hover:bg-[#382b24] text-white font-medium text-[11px] tracking-wider uppercase px-4 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5 active:scale-[0.98]"
-            >
-              GỬI YÊU CẦU <span className="text-sm">→</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {hasRequested('meeting-room') && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin/booking')}
+                  className="bg-[#48372D] hover:bg-[#382b24] text-white font-medium text-[11px] tracking-wider uppercase px-3 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1 active:scale-[0.98]"
+                >
+                  ĐÃ ĐĂNG KÝ <span className="text-sm">→</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => onSubmitRequest({ bookingType: 'meeting-room', bookingTitle: 'Meeting Room' })}
+                disabled={isSubmitting('meeting-room')}
+                className="bg-[#48372D] hover:bg-[#382b24] text-white font-medium text-[11px] tracking-wider uppercase px-4 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5 active:scale-[0.98]"
+              >
+                {isSubmitting('meeting-room') ? 'ĐANG GỬI...' : hasRequested('meeting-room') ? 'GỬI THÊM YÊU CẦU' : 'GỬI YÊU CẦU'} <span className="text-sm">→</span>
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -68,17 +102,22 @@ export const BookingSection: React.FC = () => {
           </div>
 
           <div className="mt-4 flex items-center gap-2 flex-wrap">
+            {hasRequested('lounge') && (
+              <button
+                type="button"
+                onClick={() => navigate('/admin/booking')}
+                className="bg-[#48372D] hover:bg-[#382b24] text-white font-medium text-[11px] tracking-wider uppercase px-3 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1 active:scale-[0.98]"
+              >
+                ĐÃ ĐĂNG KÝ <span className="text-sm">→</span>
+              </button>
+            )}
             <button
               type="button"
-              className="bg-[#48372D] hover:bg-[#382b24] text-white font-medium text-[11px] tracking-wider uppercase px-3 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1 active:scale-[0.98]"
-            >
-              XEM LOUNGE ĐÃ ĐẶT <span className="text-sm">→</span>
-            </button>
-            <button
-              type="button"
+              onClick={() => onSubmitRequest({ bookingType: 'lounge', bookingTitle: 'Lounge' })}
+              disabled={isSubmitting('lounge')}
               className="bg-[#B58F6F] hover:bg-[#94715b] text-white font-medium text-[11px] tracking-wider uppercase px-3 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1 active:scale-[0.98]"
             >
-              GỬI THÊM YÊU CẦU <span className="text-sm">→</span>
+              {isSubmitting('lounge') ? 'ĐANG GỬI...' : hasRequested('lounge') ? 'GỬI THÊM YÊU CẦU' : 'GỬI YÊU CẦU'} <span className="text-sm">→</span>
             </button>
           </div>
         </motion.div>

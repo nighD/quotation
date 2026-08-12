@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Maximize2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../../../api/client';
 
 const FilledLock = ({ size = 15, className = '' }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
@@ -21,7 +23,8 @@ const FilledLock = ({ size = 15, className = '' }: { size?: number; className?: 
 );
 
 interface ReportItem {
-  id: number;
+  id: string;
+  slug: string;
   title: string;
   date: string;
   description: string;
@@ -29,50 +32,84 @@ interface ReportItem {
   isLocked?: boolean;
 }
 
-const reportItems: ReportItem[] = [
-  {
-    id: 1,
-    title: 'Article Name 01',
-    date: 'SUN 17 MAY 15:29',
-    description:
-      'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, in...',
-    isDark: false,
-  },
-  {
-    id: 2,
-    title: 'Article Name 01',
-    date: 'SUN 17 MAY 15:29',
-    description:
-      'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, in...',
-    isDark: true,
-    isLocked: true,
-  },
-  {
-    id: 3,
-    title: 'Article Name 01',
-    date: 'SUN 17 MAY 15:29',
-    description:
-      'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, in...',
-    isDark: false,
-  },
-  {
-    id: 4,
-    title: 'Article Name 01',
-    date: 'SUN 17 MAY 15:29',
-    description:
-      'Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, in...',
-    isDark: false,
-  },
-];
+const getArticleRequiredRole = (article: any): string => {
+  if (!article) return 'free';
+  if (article.required_role) return article.required_role;
+  if (!article.blocks) return 'free';
+
+  try {
+    const blocks = typeof article.blocks === 'string' ? JSON.parse(article.blocks) : article.blocks;
+    if (Array.isArray(blocks)) {
+      const pdfBlock = blocks.find((block: any) => block.type === 'pdf');
+      if (pdfBlock?.activeRole) {
+        return pdfBlock.activeRole;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to parse article blocks', error);
+  }
+
+  return 'free';
+};
+
+const formatArticleDate = (dateStr: string): string => {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  } catch {
+    return dateStr;
+  }
+};
 
 export const ReportSection: React.FC = () => {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isDraggingTrack, setIsDraggingTrack] = useState(false);
   const [isDraggingCards, setIsDraggingCards] = useState(false);
+  const [reportItems, setReportItems] = useState<ReportItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const startYRef = useRef(0);
   const startScrollTopRef = useRef(0);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const { data } = await apiClient.get('/cms/articles?page=1&page_size=6');
+        if (data.success) {
+          const items = (data.data || []).slice(0, 4).map((article: any, index: number) => ({
+            id: article.id,
+            slug: article.slug,
+            title: article.title,
+            date: formatArticleDate(article.created_at),
+            description: article.description || article.title,
+            isDark: index % 2 === 1,
+            isLocked: getArticleRequiredRole(article) !== 'free',
+          }));
+          setReportItems(items);
+        }
+      } catch (fetchError) {
+        console.error('Failed to fetch reports', fetchError);
+        setError('Failed to load reports.');
+        setReportItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -148,13 +185,14 @@ export const ReportSection: React.FC = () => {
         <h2 className="text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
           Report
         </h2>
-        <a
-          href="#all"
+        <button
+          type="button"
+          onClick={() => navigate('/reports')}
           className="relative group font-['Inter']! text-[10px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block"
         >
           <span>XEM TẤT CẢ</span>
           <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-[#664E48] transition-all duration-300 ease-out group-hover:w-full" />
-        </a>
+        </button>
       </div>
 
       <div className="flex-1 min-h-0 flex gap-3 relative">
@@ -166,18 +204,35 @@ export const ReportSection: React.FC = () => {
             }`}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {reportItems.map((item, index) => (
+          {loading && (
+            <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">
+              Loading reports...
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="rounded-2xl bg-[#F9ECE8] p-5 text-[12px] font-['Inter']! text-[#9A4D3A]">
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && reportItems.map((item, index) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: index * 0.05 }}
               whileHover={{ scale: 1.01, y: -2 }}
+              onClick={() => navigate(`/reports/detail/${item.slug}`)}
               className={`rounded-2xl p-5 flex flex-col justify-between relative transition-shadow shadow-xs ${item.isDark ? 'bg-[#B58F6F] text-white' : 'bg-[#E8D7C9]'
-                }`}
+                } cursor-pointer`}
             >
               <button
                 type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  navigate(`/reports/detail/${item.slug}`);
+                }}
                 className={`absolute top-4 right-4 w-9 h-9 rounded-xl flex items-center justify-center hover:opacity-90 transition cursor-pointer ${item.isDark
                   ? 'bg-[#E8D7C9] text-[#3D281F]'
                   : 'bg-[#664E48] text-white'
@@ -214,6 +269,12 @@ export const ReportSection: React.FC = () => {
               </div>
             </motion.div>
           ))}
+
+          {!loading && !error && reportItems.length === 0 && (
+            <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">
+              No reports available.
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-center h-full py-1">

@@ -1,14 +1,14 @@
 import axios from 'axios';
 
-const isLocal = 
-  window.location.hostname === 'localhost' || 
-  window.location.hostname === '127.0.0.1' || 
+const isLocal =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
   window.location.hostname.startsWith('192.168.') ||
   window.location.hostname.startsWith('10.') ||
   window.location.hostname.endsWith('.local');
 
-const API_URL = isLocal 
-  ? `${window.location.protocol}//${window.location.hostname}:8080` 
+const API_URL = isLocal
+  ? `${window.location.protocol}//${window.location.hostname}:8080`
   : window.location.origin;
 
 export const apiClient = axios.create({
@@ -18,10 +18,47 @@ export const apiClient = axios.create({
   },
 });
 
+let devLoginPromise: Promise<string | null> | null = null;
+
+const getLocalDevRole = () => window.location.pathname.startsWith('/admin') ? 'admin' : 'user';
+
+const exchangeLegacyDevToken = async (): Promise<string | null> => {
+  if (!isLocal) {
+    return null;
+  }
+
+  if (!devLoginPromise) {
+    devLoginPromise = axios.post(`${API_URL}/auth/dev-login`, {
+      role: getLocalDevRole(),
+    }).then(({ data }) => {
+      const accessToken = data.data.access_token as string;
+      const refreshToken = data.data.refresh_token as string;
+      localStorage.removeItem('dev_mock_user');
+      localStorage.setItem('access_token', accessToken);
+      localStorage.setItem('refresh_token', refreshToken);
+      return accessToken;
+    }).catch((error) => {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('dev_mock_user');
+      throw error;
+    }).finally(() => {
+      devLoginPromise = null;
+    });
+  }
+
+  return devLoginPromise;
+};
+
 // Request interceptor to attach JWT token
 apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token');
+  async (config) => {
+    let token = localStorage.getItem('access_token');
+
+    if (token === 'dev-mock-token') {
+      token = await exchangeLegacyDevToken();
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -36,10 +73,11 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const url = originalRequest.url || '';
-    const isAuthRoute = 
-      url.includes('/auth/login') || 
-      url.includes('/auth/social') || 
-      url.includes('/auth/register') || 
+    const isAuthRoute =
+      url.includes('/auth/dev-login') ||
+      url.includes('/auth/login') ||
+      url.includes('/auth/social') ||
+      url.includes('/auth/register') ||
       url.includes('/auth/refresh');
 
     if (error.response?.status === 401 && !isAuthRoute && !originalRequest._retry) {

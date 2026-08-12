@@ -107,6 +107,39 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 	return response.OK(c, result, "Login successful")
 }
 
+// DevLogin godoc
+// @Summary      Dev login
+// @Description  Development-only shortcut login that returns a real JWT
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body body DevLoginRequest false "Dev login payload"
+// @Success      200  {object}  response.Response{data=AuthResponse}
+// @Failure      400  {object}  response.Response
+// @Failure      401  {object}  response.Response
+// @Router       /auth/dev-login [post]
+func (h *Handler) DevLogin(c *fiber.Ctx) error {
+	if !middleware.IsLocalRequest(c) {
+		return response.Unauthorized(c, "dev login is only available on local requests")
+	}
+
+	var req DevLoginRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	result, err := h.service.DevLogin(&req)
+	if err != nil {
+		return response.Unauthorized(c, err.Error())
+	}
+
+	return response.OK(c, result, "Development login successful")
+}
+
 // ForgotPassword godoc
 // @Summary      Forgot password
 // @Description  Send a password reset email

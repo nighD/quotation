@@ -17,12 +17,28 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (access_token: string, refresh_token: string) => void;
-  devLogin: (role?: 'admin' | 'user') => void;
+  devLogin: (role?: 'admin' | 'user') => Promise<void>;
   logout: () => void;
   setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const isLocalEnvironment = () => {
+  const hostname = window.location.hostname;
+  return hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.startsWith('192.168.') ||
+    hostname.startsWith('10.') ||
+    hostname.endsWith('.local');
+};
+
+const isProtectedRoute = (path: string) => {
+  if (path === '/' || path === '/login' || path === '/register') {
+    return false;
+  }
+  return true;
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -56,16 +72,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.history.replaceState({}, '', newPath);
       }
 
-      const token = localStorage.getItem('access_token');
-      const cachedMockUser = localStorage.getItem('dev_mock_user');
+      let token = localStorage.getItem('access_token');
+      const pathname = window.location.pathname;
 
-      if (token === 'dev-mock-token' && cachedMockUser) {
+      if (token === 'dev-mock-token') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('dev_mock_user');
+        token = null;
+      }
+
+      if (!token && isLocalEnvironment() && isProtectedRoute(pathname)) {
         try {
-          setUser(JSON.parse(cachedMockUser));
+          const role = pathname.startsWith('/admin') ? 'admin' : 'user';
+          const { data } = await apiClient.post('/auth/dev-login', { role });
+          localStorage.removeItem('dev_mock_user');
+          localStorage.setItem('access_token', data.data.access_token);
+          localStorage.setItem('refresh_token', data.data.refresh_token);
+          setUser(data.data.user);
           setLoading(false);
           return;
-        } catch (e) {
-          // ignore error
+        } catch (error) {
+          console.error('Auto dev login failed', error);
         }
       }
 
@@ -75,14 +103,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(data.data);
         } catch (error) {
           console.error("Failed to fetch profile", error);
-          if (cachedMockUser) {
-            setUser(JSON.parse(cachedMockUser));
-          } else {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('dev_mock_user');
-            setUser(null);
-          }
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('dev_mock_user');
+          setUser(null);
         }
       }
       setLoading(false);
@@ -98,21 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     apiClient.get('/auth/profile').then(({ data }) => setUser(data.data));
   };
 
-  const devLogin = (role: 'admin' | 'user' = 'admin') => {
-    const mockUser: User = {
-      id: 'mock-admin-id',
-      email: 'hoanvuonq2002@gmail.com',
-      full_name: role === 'admin' ? 'Hoàng Vương (Admin)' : 'Hoàng Vương (User)',
-      roles: role === 'admin' ? ['admin', 'premium'] : ['user'],
-      company: 'VIFC',
-      title: role === 'admin' ? 'Administrator' : 'Member',
-      country: 'Vietnam',
-      is_joined_waitlist: true,
-    };
-    localStorage.setItem('access_token', 'dev-mock-token');
-    localStorage.setItem('refresh_token', 'dev-mock-refresh-token');
-    localStorage.setItem('dev_mock_user', JSON.stringify(mockUser));
-    setUser(mockUser);
+  const devLogin = async (role: 'admin' | 'user' = 'admin') => {
+    const { data } = await apiClient.post('/auth/dev-login', { role });
+    localStorage.removeItem('dev_mock_user');
+    localStorage.setItem('access_token', data.data.access_token);
+    localStorage.setItem('refresh_token', data.data.refresh_token);
+    setUser(data.data.user);
   };
 
   const logout = () => {

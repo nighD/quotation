@@ -23,9 +23,9 @@ export function Login() {
   // const [email, setEmail] = useState('');
   // const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [_, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, devLogin } = useAuth();
   const navigate = useNavigate();
 
   // const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -65,6 +65,19 @@ export function Login() {
     }
   };
 
+  const handleDevLogin = async (role: 'admin' | 'user' = 'admin') => {
+    setLoading(true);
+    setError('');
+    try {
+      await devLogin(role);
+      navigate('/');
+    } catch (err: any) {
+      setError(getCleanErrorMessage(err, 'Development login failed.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#111] bg-cover bg-center bg-no-repeat flex flex-col font-poppins relative" style={{ backgroundImage: "url('/bg.png')" }}>
       {/* Dark overlay for readability */}
@@ -91,14 +104,14 @@ export function Login() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => handleDevLogin('admin')}
+                onClick={() => void handleDevLogin('admin')}
                 className="py-2.5 px-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs rounded-xl transition cursor-pointer shadow-lg shadow-amber-500/10 flex items-center justify-center gap-1"
               >
                 <span>⚡ Admin Dashboard</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleDevLogin('user')}
+                onClick={() => void handleDevLogin('user')}
                 className="py-2.5 px-3 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-white/10"
               >
                 <span>👤 User Dashboard</span>

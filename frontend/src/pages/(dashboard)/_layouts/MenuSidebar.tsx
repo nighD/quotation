@@ -1,12 +1,33 @@
 import {
     ChevronRight,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../context/AuthContext';
+import { apiClient } from '../../../api/client';
 import { cn } from '../../../utils/cn';
 import { mainMenuItems, secondaryMenuItems, type MenuItem } from '../admin/_constants/menu';
+
+interface ApiError {
+    response?: {
+        data?: {
+            message?: string;
+        };
+    };
+}
+
+interface UpgradeRequestSummary {
+    id: string;
+    company: string;
+    country: string;
+    note: string;
+    status: 'pending' | 'approved' | 'rejected';
+    requested_role: string;
+    queue_number: number;
+    card_number?: string;
+    review_note?: string;
+}
 
 export interface MenuSidebarProps {
     activePath?: string;
@@ -25,6 +46,19 @@ export const MenuSidebar = ({
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeLoading, setUpgradeLoading] = useState(false);
+    const [upgradeSubmitting, setUpgradeSubmitting] = useState(false);
+    const [upgradeRequest, setUpgradeRequest] = useState<UpgradeRequestSummary | null>(null);
+    const [upgradeMessage, setUpgradeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const defaultUpgradeForm = {
+        company: user?.company || '',
+        country: user?.country || '',
+        note: '',
+    };
+    const [upgradeForm, setUpgradeForm] = useState({
+        ...defaultUpgradeForm,
+    });
 
     const isCollapsed = collapsed !== undefined ? collapsed : internalCollapsed;
 
@@ -39,6 +73,25 @@ export const MenuSidebar = ({
 
     const currentPath = activePath || location.pathname || '/admin';
 
+    useEffect(() => {
+        if (!user) return;
+
+        const fetchUpgradeRequest = async () => {
+            setUpgradeLoading(true);
+            try {
+                const { data } = await apiClient.get('/engagement/upgrade-requests/me');
+                setUpgradeRequest(data.data || null);
+            } catch (error) {
+                console.error('Failed to fetch upgrade request status', error);
+                setUpgradeRequest(null);
+            } finally {
+                setUpgradeLoading(false);
+            }
+        };
+
+        fetchUpgradeRequest();
+    }, [user]);
+
     const handleItemClick = (path: string) => {
         if (onNavigate) {
             onNavigate(path);
@@ -46,6 +99,50 @@ export const MenuSidebar = ({
             navigate(path);
         }
     };
+
+    const handleUpgradeClick = () => {
+        setUpgradeMessage(null);
+        setUpgradeForm(defaultUpgradeForm);
+        setShowUpgradeModal(true);
+    };
+
+    const handleUpgradeSubmit = async () => {
+        setUpgradeSubmitting(true);
+        setUpgradeMessage(null);
+        try {
+            const { data } = await apiClient.post('/engagement/upgrade-requests', upgradeForm);
+            setUpgradeRequest(data.data);
+            setUpgradeMessage({ type: 'success', text: 'Upgrade request submitted to admin.' });
+        } catch (error: unknown) {
+            const message = (error as ApiError).response?.data?.message || 'Failed to submit upgrade request.';
+            setUpgradeMessage({ type: 'error', text: message });
+
+            try {
+                const { data } = await apiClient.get('/engagement/upgrade-requests/me');
+                setUpgradeRequest(data.data || null);
+            } catch (fetchError) {
+                console.error('Failed to refresh upgrade request status', fetchError);
+            }
+        } finally {
+            setUpgradeSubmitting(false);
+        }
+    };
+
+    const getUpgradeButtonLabel = () => {
+        if (upgradeLoading) return 'LOADING...';
+        if (!upgradeRequest) return 'UPGRADE FOR FREE';
+        if (upgradeRequest.status === 'pending') return `PENDING #${upgradeRequest.queue_number}`;
+        if (upgradeRequest.status === 'approved') return upgradeRequest.card_number
+            ? `REGISTERED ${upgradeRequest.card_number}`
+            : `REGISTERED #${upgradeRequest.queue_number}`;
+        return 'REAPPLY UPGRADE';
+    };
+
+    const upgradeButtonClass = upgradeRequest?.status === 'approved'
+        ? 'bg-[#2F4B3C] hover:bg-[#24382d]'
+        : upgradeRequest?.status === 'pending'
+            ? 'bg-[#8A6A52] hover:bg-[#7b5d49]'
+            : 'bg-[#523C37] hover:bg-[#382b24]';
 
     const renderMenuItem = (item: MenuItem) => {
         const isActive =
@@ -243,10 +340,10 @@ export const MenuSidebar = ({
 
                                 <button
                                     type="button"
-                                    onClick={() => handleItemClick('/admin/subscriptions')}
-                                    className="w-full max-w-57.5 bg-[#523C37] hover:bg-[#382b24] font-['Inter'] text-white font-medium text-[13px] tracking-wider uppercase py-3 px-4 rounded-lg shadow-md transition-all duration-200 cursor-pointer text-center active:scale-[0.98]"
+                                    onClick={handleUpgradeClick}
+                                    className={`w-full max-w-57.5 ${upgradeButtonClass} font-['Inter'] text-white font-medium text-[13px] tracking-wider uppercase py-3 px-4 rounded-lg shadow-md transition-all duration-200 cursor-pointer text-center active:scale-[0.98]`}
                                 >
-                                    UPGRADE FOR FREE
+                                    {getUpgradeButtonLabel()}
                                 </button>
                             </motion.div>
                         )}
@@ -289,6 +386,160 @@ export const MenuSidebar = ({
                     </div>
                 </div>
             </div>
+
+            <AnimatePresence>
+                {showUpgradeModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-40 bg-black/35 px-4 py-8 flex items-center justify-center"
+                        onClick={() => setShowUpgradeModal(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+                            transition={{ duration: 0.2 }}
+                            onClick={(event) => event.stopPropagation()}
+                            className="w-full max-w-xl rounded-[28px] bg-[#F8F1EA] p-6 shadow-2xl border border-[#E4D6CA]"
+                        >
+                            <div className="flex items-start justify-between gap-4 mb-5">
+                                <div>
+                                    <h2 className="text-[30px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
+                                        Upgrade For Free
+                                    </h2>
+                                    <p className="mt-1 text-[12px] font-['Inter']! text-[#664E48] leading-relaxed">
+                                        Gửi thông tin cho admin để xét duyệt, cấp số thứ tự và gắn role cho tài khoản.
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowUpgradeModal(false)}
+                                    className="text-[#664E48] hover:text-[#1B1A16] text-xl cursor-pointer"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {upgradeMessage && (
+                                <div className={`mb-4 rounded-2xl px-4 py-3 text-[12px] font-['Inter']! ${upgradeMessage.type === 'success'
+                                    ? 'bg-[#E8D7C9] text-[#523C37]'
+                                    : 'bg-[#F8E4DD] text-[#9A4D3A]'
+                                    }`}>
+                                    {upgradeMessage.text}
+                                </div>
+                            )}
+
+                            {upgradeRequest && upgradeRequest.status !== 'rejected' ? (
+                                <div className="space-y-4">
+                                    <div className="rounded-3xl bg-white/70 border border-[#E4D6CA] p-5">
+                                        <div className="flex items-center justify-between gap-4 flex-wrap">
+                                            <div>
+                                                <p className="text-[11px] font-['Inter']! uppercase tracking-[0.2em] text-[#B58F6F]">Current status</p>
+                                                <h3 className="mt-2 text-[26px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] capitalize">
+                                                    {upgradeRequest.status}
+                                                </h3>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[11px] font-['Inter']! uppercase tracking-[0.2em] text-[#B58F6F]">Queue</p>
+                                                <p className="mt-2 text-[22px] font-['Cormorant_Garamond']! font-semibold! text-[#523C37]">
+                                                    #{upgradeRequest.queue_number}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] font-['Inter']! text-[#523C37]">
+                                            <div className="rounded-2xl bg-[#F7EEE7] p-3">
+                                                <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">Role</span>
+                                                <span className="block mt-1 font-medium uppercase">Premium</span>
+                                            </div>
+                                            <div className="rounded-2xl bg-[#F7EEE7] p-3">
+                                                <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">Card</span>
+                                                <span className="block mt-1 font-medium uppercase">{upgradeRequest.card_number || 'Waiting for approval'}</span>
+                                            </div>
+                                        </div>
+
+                                        {upgradeRequest.review_note && (
+                                            <div className="mt-4 rounded-2xl bg-[#F7EEE7] p-3 text-[12px] font-['Inter']! text-[#523C37] leading-relaxed">
+                                                {upgradeRequest.review_note}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowUpgradeModal(false)}
+                                            className="bg-[#523C37] hover:bg-[#382b24] text-white text-[12px] font-['Inter']! font-medium px-5 py-3 rounded-xl uppercase tracking-wider cursor-pointer"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <label className="block">
+                                            <span className="block text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-2">Company</span>
+                                            <input
+                                                type="text"
+                                                value={upgradeForm.company}
+                                                onChange={(event) => setUpgradeForm((prev) => ({ ...prev, company: event.target.value }))}
+                                                className="w-full rounded-2xl border border-[#D9C8BA] bg-white px-4 py-3 text-[13px] text-[#1B1A16] outline-none focus:border-[#B58F6F]"
+                                            />
+                                        </label>
+
+                                        <label className="block">
+                                            <span className="block text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-2">Country</span>
+                                            <input
+                                                type="text"
+                                                value={upgradeForm.country}
+                                                onChange={(event) => setUpgradeForm((prev) => ({ ...prev, country: event.target.value }))}
+                                                className="w-full rounded-2xl border border-[#D9C8BA] bg-white px-4 py-3 text-[13px] text-[#1B1A16] outline-none focus:border-[#B58F6F]"
+                                            />
+                                        </label>
+                                    </div>
+
+                                    <div className="rounded-2xl bg-[#F7EEE7] px-4 py-3 text-[12px] font-['Inter']! text-[#523C37]">
+                                        <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">Assigned role</span>
+                                        <span className="mt-1 block font-medium uppercase">Premium</span>
+                                    </div>
+
+                                    <label className="block">
+                                        <span className="block text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-2">Note for admin</span>
+                                        <textarea
+                                            rows={4}
+                                            value={upgradeForm.note}
+                                            onChange={(event) => setUpgradeForm((prev) => ({ ...prev, note: event.target.value }))}
+                                            className="w-full rounded-2xl border border-[#D9C8BA] bg-white px-4 py-3 text-[13px] text-[#1B1A16] outline-none focus:border-[#B58F6F] resize-none"
+                                        />
+                                    </label>
+
+                                    <div className="flex items-center justify-end gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowUpgradeModal(false)}
+                                            className="px-5 py-3 rounded-xl border border-[#D9C8BA] text-[12px] font-['Inter']! font-medium uppercase tracking-wider text-[#523C37] cursor-pointer"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={upgradeSubmitting || !upgradeForm.company.trim()}
+                                            onClick={handleUpgradeSubmit}
+                                            className="bg-[#523C37] hover:bg-[#382b24] disabled:opacity-60 text-white text-[12px] font-['Inter']! font-medium px-5 py-3 rounded-xl uppercase tracking-wider cursor-pointer"
+                                        >
+                                            {upgradeSubmitting ? 'Submitting...' : 'Send To Admin'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.aside>
     );
 };

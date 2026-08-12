@@ -10,6 +10,7 @@ func RegisterRoutes(router fiber.Router, handler *Handler, jwtSecret string) {
 	auth := router.Group("/auth")
 
 	// Public routes (with strict rate limiting)
+	auth.Post("/dev-login", handler.DevLogin)
 	auth.Post("/social", middleware.StrictRateLimit(), handler.SocialLogin)
 	auth.Post("/register", middleware.StrictRateLimit(), handler.Register)
 	auth.Post("/login", middleware.StrictRateLimit(), handler.Login)

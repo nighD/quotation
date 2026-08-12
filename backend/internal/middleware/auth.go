@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/baole/quotation/internal/constants"
@@ -106,4 +107,49 @@ func HasRole(c *fiber.Ctx, role string) bool {
 		}
 	}
 	return false
+}
+
+// IsLocalRequest returns true for localhost/private-network development requests.
+func IsLocalRequest(c *fiber.Ctx) bool {
+	if isLocalHost(c.Hostname()) {
+		return true
+	}
+
+	for _, header := range []string{"Origin", "Referer"} {
+		value := strings.TrimSpace(c.Get(header))
+		if value == "" {
+			continue
+		}
+
+		parsed, err := url.Parse(value)
+		if err != nil {
+			continue
+		}
+
+		if isLocalHost(parsed.Hostname()) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isLocalHost(host string) bool {
+	host = strings.ToLower(strings.TrimSpace(host))
+	if host == "" {
+		return false
+	}
+
+	return host == "localhost" ||
+		host == "127.0.0.1" ||
+		host == "0.0.0.0" ||
+		host == "::1" ||
+		strings.HasPrefix(host, "192.168.") ||
+		strings.HasPrefix(host, "10.") ||
+		strings.HasPrefix(host, "172.16.") ||
+		strings.HasPrefix(host, "172.17.") ||
+		strings.HasPrefix(host, "172.18.") ||
+		strings.HasPrefix(host, "172.19.") ||
+		strings.HasPrefix(host, "172.2") ||
+		strings.HasSuffix(host, ".local")
 }

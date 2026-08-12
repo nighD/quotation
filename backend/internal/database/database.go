@@ -71,6 +71,81 @@ func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 		log.Printf("⚠️ Failed to add is_joined_waitlist column: %v\n", err)
 	}
 
+	// Ensure engagement tables exist for local environments that were initialized
+	// before these models were added.
+	if err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS newsletter_subscriptions (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID,
+			email VARCHAR(255) NOT NULL UNIQUE,
+			full_name VARCHAR(255),
+			source VARCHAR(100) DEFAULT 'dashboard',
+			status VARCHAR(50) DEFAULT 'subscribed',
+			created_at TIMESTAMPTZ DEFAULT NOW(),
+			updated_at TIMESTAMPTZ DEFAULT NOW()
+		)
+	`).Error; err != nil {
+		log.Printf("⚠️ Failed to ensure newsletter_subscriptions table: %v\n", err)
+	}
+	if err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS event_registrations (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID,
+			email VARCHAR(255) NOT NULL,
+			full_name VARCHAR(255),
+			event_id VARCHAR(100),
+			event_title VARCHAR(255) NOT NULL,
+			event_date VARCHAR(100),
+			location VARCHAR(255),
+			status VARCHAR(50) DEFAULT 'pending',
+			notes TEXT,
+			created_at TIMESTAMPTZ DEFAULT NOW(),
+			updated_at TIMESTAMPTZ DEFAULT NOW()
+		)
+	`).Error; err != nil {
+		log.Printf("⚠️ Failed to ensure event_registrations table: %v\n", err)
+	}
+	if err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS booking_requests (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL,
+			email VARCHAR(255) NOT NULL,
+			full_name VARCHAR(255),
+			booking_type VARCHAR(100) NOT NULL,
+			booking_title VARCHAR(255) NOT NULL,
+			status VARCHAR(50) DEFAULT 'pending',
+			source VARCHAR(100) DEFAULT 'admin-dashboard',
+			note TEXT,
+			created_at TIMESTAMPTZ DEFAULT NOW(),
+			updated_at TIMESTAMPTZ DEFAULT NOW()
+		)
+	`).Error; err != nil {
+		log.Printf("⚠️ Failed to ensure booking_requests table: %v\n", err)
+	}
+	if err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS upgrade_requests (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL,
+			email VARCHAR(255) NOT NULL,
+			full_name VARCHAR(255),
+			company VARCHAR(255),
+			title VARCHAR(255),
+			country VARCHAR(100),
+			note TEXT,
+			status VARCHAR(50) DEFAULT 'pending',
+			requested_role VARCHAR(100) DEFAULT 'premium',
+			queue_number INTEGER NOT NULL UNIQUE,
+			card_number VARCHAR(100),
+			review_note TEXT,
+			reviewed_at TIMESTAMPTZ,
+			reviewed_by UUID,
+			created_at TIMESTAMPTZ DEFAULT NOW(),
+			updated_at TIMESTAMPTZ DEFAULT NOW()
+		)
+	`).Error; err != nil {
+		log.Printf("⚠️ Failed to ensure upgrade_requests table: %v\n", err)
+	}
+
 	if err := db.AutoMigrate(models...); err != nil {
 		return fmt.Errorf("auto migration failed: %w", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/baole/quotation/internal/config"
 	"github.com/baole/quotation/internal/constants"
 	"github.com/baole/quotation/internal/utils"
+	"github.com/google/uuid"
 	jwtpkg "github.com/baole/quotation/pkg/jwt"
 	"google.golang.org/api/idtoken"
 	"gorm.io/gorm"
@@ -123,6 +124,86 @@ func (s *Service) Login(req *LoginRequest) (*AuthResponse, error) {
 
 	if user.Password == nil || !utils.CheckPassword(req.Password, *user.Password) {
 		return nil, fmt.Errorf("invalid email or password")
+	}
+
+	return s.issueTokens(&user)
+}
+
+// DevLogin issues a real JWT for local development bypass.
+func (s *Service) DevLogin(req *DevLoginRequest) (*AuthResponse, error) {
+	role := req.Role
+	if role == "" {
+		role = "admin"
+	}
+
+	profile := struct {
+		Email    string
+		FullName string
+		Company  string
+		Title    string
+		Country  string
+		Roles    []string
+	}{
+		Email:    "dev-user@localhost",
+		FullName: "Hoàng Vương (User)",
+		Company:  "VIFC",
+		Title:    "Member",
+		Country:  "Vietnam",
+		Roles:    []string{"user"},
+	}
+
+	if role == "admin" {
+		profile.Email = "dev-admin@localhost"
+		profile.FullName = "Hoàng Vương (Admin)"
+		profile.Title = "Administrator"
+		profile.Roles = []string{"admin", "premium"}
+	}
+
+	var user User
+	err := s.db.Where("email = ?", profile.Email).First(&user).Error
+	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("failed to query dev user: %w", err)
+		}
+
+		user = User{
+			Email:        profile.Email,
+			FullName:     profile.FullName,
+			Status:       constants.UserStatusActive,
+			AuthProvider: "dev",
+			AvatarURL:    generateRandomAvatar(profile.Email),
+			Company:      profile.Company,
+			Title:        profile.Title,
+			Country:      profile.Country,
+		}
+
+		if err := s.db.Create(&user).Error; err != nil {
+			return nil, fmt.Errorf("failed to create dev user: %w", err)
+		}
+	} else {
+		updates := map[string]interface{}{
+			"full_name":     profile.FullName,
+			"status":        constants.UserStatusActive,
+			"auth_provider": "dev",
+			"company":       profile.Company,
+			"title":         profile.Title,
+			"country":       profile.Country,
+		}
+		if user.AvatarURL == "" {
+			updates["avatar_url"] = generateRandomAvatar(profile.Email)
+		}
+		if err := s.db.Model(&user).Updates(updates).Error; err != nil {
+			return nil, fmt.Errorf("failed to update dev user: %w", err)
+		}
+		if err := s.db.Where("id = ?", user.ID).First(&user).Error; err != nil {
+			return nil, fmt.Errorf("failed to reload dev user: %w", err)
+		}
+	}
+
+	for _, roleName := range profile.Roles {
+		if err := s.ensureRoleAssignment(user.ID, roleName); err != nil {
+			return nil, err
+		}
 	}
 
 	return s.issueTokens(&user)
@@ -327,4 +408,61 @@ func toUserInfo(u *User, roles []string) *UserInfo {
 		Roles:            roles,
 		IsJoinedWaitlist: u.IsJoinedWaitlist,
 	}
+}
+
+func (s *Service) ensureRoleAssignment(userID uuid.UUID, roleName string) error {
+	if roleName == "" {
+		return nil
+	}
+
+	roleID, err := s.findRoleIDByName(roleName)
+	if err != nil {
+		return fmt.Errorf("failed to query role %s: %w", roleName, err)
+	}
+
+	if roleID == uuid.Nil {
+		roleID = uuid.New()
+		if err := s.db.Exec(
+			"INSERT INTO roles (id, name, description, created_at) VALUES (?, ?, ?, NOW()) ON CONFLICT (name) DO NOTHING",
+			roleID,
+			roleName,
+			"Development login role",
+		).Error; err != nil {
+			return fmt.Errorf("failed to create role %s: %w", roleName, err)
+		}
+
+		roleID, err = s.findRoleIDByName(roleName)
+		if err != nil {
+			return fmt.Errorf("failed to reload role %s: %w", roleName, err)
+		}
+	}
+
+	if roleID == uuid.Nil {
+		return fmt.Errorf("role %s is unavailable", roleName)
+	}
+
+	if err := s.db.Exec(
+		"INSERT INTO user_roles (user_id, role_id, created_at) VALUES (?, ?, NOW()) ON CONFLICT DO NOTHING",
+		userID,
+		roleID,
+	).Error; err != nil {
+		return fmt.Errorf("failed to assign role %s: %w", roleName, err)
+	}
+
+	return nil
+}
+
+func (s *Service) findRoleIDByName(roleName string) (uuid.UUID, error) {
+	var roleIDValue string
+	if err := s.db.Raw("SELECT id FROM roles WHERE name = ?", roleName).Scan(&roleIDValue).Error; err != nil {
+		return uuid.Nil, err
+	}
+	if roleIDValue == "" {
+		return uuid.Nil, nil
+	}
+	roleID, err := uuid.Parse(roleIDValue)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return roleID, nil
 }

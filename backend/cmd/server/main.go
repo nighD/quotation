@@ -13,6 +13,7 @@ import (
 	"github.com/baole/quotation/internal/modules/analytics"
 	"github.com/baole/quotation/internal/modules/auth"
 	"github.com/baole/quotation/internal/modules/cms"
+	"github.com/baole/quotation/internal/modules/engagement"
 	"github.com/baole/quotation/internal/modules/payments"
 	"github.com/baole/quotation/internal/modules/rbac"
 	"github.com/baole/quotation/internal/modules/subscriptions"
@@ -23,7 +24,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"go.uber.org/zap"
-
 	// _ "github.com/baole/quotation/docs" // Swagger docs (generated via swag init)
 )
 
@@ -70,7 +70,7 @@ func main() {
 	}
 
 	// ── Database Auto-Migration ───────────────────────────────
-	if err := database.AutoMigrate(db, &users.User{}, &cms.Article{}, &cms.Category{}); err != nil {
+	if err := database.AutoMigrate(db, &users.User{}, &cms.Article{}, &cms.Category{}, &engagement.NewsletterSubscription{}, &engagement.EventRegistration{}, &engagement.BookingRequest{}, &engagement.UpgradeRequest{}); err != nil {
 		logger.Warn("Database auto-migration failed", zap.Error(err))
 	}
 
@@ -168,6 +168,11 @@ func main() {
 	analyticsSvc := analytics.NewService(db)
 	analyticsHandler := analytics.NewHandler(analyticsSvc)
 	analytics.RegisterRoutes(app, analyticsHandler, jwtSecret)
+
+	// Engagement
+	engagementSvc := engagement.NewService(db)
+	engagementHandler := engagement.NewHandler(engagementSvc)
+	engagement.RegisterRoutes(app, engagementHandler, jwtSecret)
 
 	// ── 404 handler ───────────────────────────────────────────
 	app.Use(func(c *fiber.Ctx) error {

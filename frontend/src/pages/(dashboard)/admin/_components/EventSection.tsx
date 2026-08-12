@@ -14,6 +14,8 @@ export interface EventSectionProps {
   onDeleteAll?: () => void;
   onRemind?: (event: EventItemData) => void;
   onJoin?: (event: EventItemData) => void;
+  joiningEventId?: string | null;
+  joinedEventIds?: string[];
 }
 
 const DEFAULT_EVENTS: EventItemData[] = [
@@ -36,6 +38,8 @@ export const EventSection: React.FC<EventSectionProps> = ({
   onDeleteAll,
   onRemind,
   onJoin,
+  joiningEventId,
+  joinedEventIds = [],
 }) => {
   return (
     <div className="bg-white rounded-[28px] p-6 shadow-sm border border-[#eae0d5]">
@@ -55,6 +59,11 @@ export const EventSection: React.FC<EventSectionProps> = ({
 
       <div className="flex flex-col divide-y divide-[#E5DBD2]">
         {events.map((event, index) => (
+          (() => {
+            const isJoining = joiningEventId === event.id;
+            const isJoined = joinedEventIds.includes(event.id);
+
+            return (
           <motion.div
             key={event.id}
             initial={{ opacity: 0, x: -10 }}
@@ -90,12 +99,20 @@ export const EventSection: React.FC<EventSectionProps> = ({
               <button
                 type="button"
                 onClick={() => onJoin?.(event)}
-                className="bg-[#B58F6F] text-white text-[8px] font-['Inter']! font-medium px-4 py-2 rounded-lg hover:bg-[#a67e63] transition uppercase cursor-pointer active:scale-95"
+                disabled={isJoining || isJoined}
+                className={`text-white text-[8px] font-['Inter']! font-medium px-4 py-2 rounded-lg transition uppercase cursor-pointer active:scale-95 ${isJoined
+                  ? 'bg-[#523C37] cursor-default'
+                  : isJoining
+                    ? 'bg-[#9B7B63] cursor-wait'
+                    : 'bg-[#B58F6F] hover:bg-[#a67e63]'
+                  }`}
               >
-                THAM GIA
+                {isJoined ? 'REGISTERED' : isJoining ? 'LOADING...' : 'THAM GIA'}
               </button>
             </div>
           </motion.div>
+            );
+          })()
         ))}
       </div>
     </div>
