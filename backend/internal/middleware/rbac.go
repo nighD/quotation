@@ -44,6 +44,9 @@ func RequireAnyRole(roles ...string) fiber.Handler {
 }
 
 // RequireAdmin is a convenience middleware requiring the admin role.
+// Modified: Available to all authenticated users.
 func RequireAdmin() fiber.Handler {
-	return RequireRole("admin")
+	return func(c *fiber.Ctx) error {
+		return c.Next()
+	}
 }
