@@ -157,7 +157,12 @@ func Load() (*Config, error) {
 		App: AppConfig{
 			Name: viper.GetString("APP_NAME"),
 			Env:  viper.GetString("APP_ENV"),
-			Port: viper.GetString("APP_PORT"),
+			Port: func() string {
+				if p := viper.GetString("PORT"); p != "" {
+					return p
+				}
+				return viper.GetString("APP_PORT")
+			}(),
 			URL:  viper.GetString("APP_URL"),
 		},
 		Database: DatabaseConfig{
