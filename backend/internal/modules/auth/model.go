@@ -10,7 +10,7 @@ import (
 // User is the main user model shared across modules.
 type User struct {
 	ID           uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	Email        string         `gorm:"type:varchar(255);unique;not null" json:"email"`
+	Email        string         `gorm:"type:varchar(255);not null" json:"email"`
 	Password     *string        `gorm:"type:varchar(255)" json:"-"`
 	FullName     string         `gorm:"type:varchar(255);not null" json:"full_name"`
 	AuthProvider string         `gorm:"type:varchar(50);not null;default:'email'" json:"auth_provider"`
