@@ -7,9 +7,9 @@ const isLocal =
   window.location.hostname.startsWith('10.') ||
   window.location.hostname.endsWith('.local');
 
-const API_URL = isLocal
+const API_URL = import.meta.env.VITE_API_URL || (isLocal
   ? `${window.location.protocol}//${window.location.hostname}:8080`
-  : window.location.origin;
+  : window.location.origin);
 
 export const apiClient = axios.create({
   baseURL: API_URL,
