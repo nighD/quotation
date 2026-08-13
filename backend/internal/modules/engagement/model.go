@@ -9,7 +9,7 @@ import (
 type NewsletterSubscription struct {
 	ID        uuid.UUID  `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	UserID    *uuid.UUID `gorm:"type:uuid;index" json:"user_id,omitempty"`
-	Email     string     `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
+	Email     string     `gorm:"type:varchar(255);not null" json:"email"`
 	FullName  string     `gorm:"type:varchar(255)" json:"full_name"`
 	Source    string     `gorm:"type:varchar(100);default:'dashboard'" json:"source"`
 	Status    string     `gorm:"type:varchar(50);default:'subscribed'" json:"status"`
@@ -57,7 +57,7 @@ type UpgradeRequest struct {
 	Note          string     `gorm:"type:text" json:"note"`
 	Status        string     `gorm:"type:varchar(50);default:'pending';index" json:"status"`
 	RequestedRole string     `gorm:"type:varchar(100);default:'premium'" json:"requested_role"`
-	QueueNumber   int        `gorm:"not null;uniqueIndex" json:"queue_number"`
+	QueueNumber   int        `gorm:"not null" json:"queue_number"`
 	CardNumber    string     `gorm:"type:varchar(100)" json:"card_number"`
 	ReviewNote    string     `gorm:"type:text" json:"review_note"`
 	ReviewedAt    *time.Time `json:"reviewed_at,omitempty"`
