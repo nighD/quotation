@@ -222,7 +222,9 @@ func (s *Service) GetProfile(userID string) (*UserInfo, error) {
 	}
 
 	roles := s.getUserRoles(userID)
-	return toUserInfo(&user, roles), nil
+	userInfo := toUserInfo(&user, roles)
+	s.populateCardInfo(userInfo)
+	return userInfo, nil
 }
 
 // UpdateProfile updates the authenticated user's profile information.
@@ -250,7 +252,9 @@ func (s *Service) UpdateProfile(userID string, req *UpdateProfileRequest) (*User
 	}
 
 	roles := s.getUserRoles(userID)
-	return toUserInfo(&user, roles), nil
+	userInfo := toUserInfo(&user, roles)
+	s.populateCardInfo(userInfo)
+	return userInfo, nil
 }
 
 // ForgotPassword initiates a password reset (stub — integrate email service).
@@ -318,11 +322,14 @@ func (s *Service) issueTokens(user *User) (*AuthResponse, error) {
 		return nil, fmt.Errorf("failed to generate tokens: %w", err)
 	}
 
+	userInfo := toUserInfo(user, roles)
+	s.populateCardInfo(userInfo)
+
 	return &AuthResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 		ExpiresAt:    tokens.ExpiresAt,
-		User:         *toUserInfo(user, roles),
+		User:         *userInfo,
 	}, nil
 }
 
@@ -466,3 +473,15 @@ func (s *Service) findRoleIDByName(roleName string) (uuid.UUID, error) {
 	}
 	return roleID, nil
 }
+
+func (s *Service) populateCardInfo(userInfo *UserInfo) {
+	var userCard struct {
+		SoThe   string
+		LoaiThe string
+	}
+	if err := s.db.Table("user_cards").Where("username = ?", userInfo.Email).Select("so_the, loai_the").First(&userCard).Error; err == nil {
+		userInfo.CardNumber = userCard.SoThe
+		userInfo.CardType = userCard.LoaiThe
+	}
+}
+

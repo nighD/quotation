@@ -203,6 +203,8 @@ func (s *Service) SubmitUpgradeRequest(userID string, req *SubmitUpgradeRequestR
 		return nil, err
 	}
 
+	cardNumber := fmt.Sprintf("VIFC-%04d", queueNumber)
+
 	item := &UpgradeRequest{
 		UserID:        user.ID,
 		Email:         user.Email,
@@ -214,12 +216,27 @@ func (s *Service) SubmitUpgradeRequest(userID string, req *SubmitUpgradeRequestR
 		Status:        "pending",
 		RequestedRole: requestedRole,
 		QueueNumber:   queueNumber,
+		CardNumber:    cardNumber,
 	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(item).Error; err != nil {
 			return err
 		}
+
+		cardRole := s.getUserRole(user.ID)
+		userCard := &UserCard{
+			ID:        uuid.New(),
+			Username:  user.Email,
+			SoThe:     cardNumber,
+			LoaiThe:   cardRole,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := tx.Create(userCard).Error; err != nil {
+			return err
+		}
+
 		return tx.Exec("UPDATE users SET is_joined_waitlist = TRUE WHERE id = ?", user.ID).Error
 	}); err != nil {
 		return nil, fmt.Errorf("failed to create upgrade request: %w", err)
@@ -345,3 +362,53 @@ func (s *Service) assignRoleToUser(userID uuid.UUID, roleName string) error {
 
 	return nil
 }
+
+func (s *Service) getUserRole(userID uuid.UUID) string {
+	var roles []string
+	s.db.Raw(`
+		SELECT r.name FROM roles r
+		INNER JOIN user_roles ur ON r.id = ur.role_id
+		WHERE ur.user_id = ?
+	`, userID).Scan(&roles)
+
+	// Check active subscription plans
+	var planNames []string
+	s.db.Table("user_subscriptions").
+		Joins("JOIN subscription_plans ON subscription_plans.id = user_subscriptions.subscription_plan_id").
+		Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW()", userID).
+		Pluck("subscription_plans.name", &planNames)
+
+	for _, name := range planNames {
+		if name == "Monthly Basic" {
+			roles = append(roles, "base")
+		} else if name == "Quarterly Pro" {
+			roles = append(roles, "standard")
+		} else if name == "Annual Premium" {
+			roles = append(roles, "premium")
+		}
+	}
+
+	hasRole := func(name string) bool {
+		for _, r := range roles {
+			if r == name {
+				return true
+			}
+		}
+		return false
+	}
+
+	if hasRole("admin") {
+		return "admin"
+	}
+	if hasRole("premium") {
+		return "premium"
+	}
+	if hasRole("standard") {
+		return "standard"
+	}
+	if hasRole("base") {
+		return "base"
+	}
+	return "user"
+}
+

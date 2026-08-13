@@ -96,3 +96,13 @@ type ReviewUpgradeRequestRequest struct {
 	RoleName string `json:"role_name" validate:"omitempty,oneof=base standard premium"`
 	Note     string `json:"note" validate:"omitempty,max=2000"`
 }
+
+type UserCard struct {
+	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Username  string    `gorm:"type:varchar(255);not null;index" json:"username"`
+	SoThe     string    `gorm:"type:varchar(100);not null" json:"so_the"`
+	LoaiThe   string    `gorm:"type:varchar(100);not null" json:"loai_the"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+

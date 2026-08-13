@@ -11,6 +11,8 @@ export interface User {
   title?: string;
   country?: string;
   is_joined_waitlist?: boolean;
+  card_number?: string;
+  card_type?: string;
 }
 
 interface AuthContextType {

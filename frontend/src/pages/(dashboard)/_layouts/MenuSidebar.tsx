@@ -45,7 +45,7 @@ export const MenuSidebar = ({
     const [internalCollapsed, setInternalCollapsed] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, setUser } = useAuth();
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [upgradeLoading, setUpgradeLoading] = useState(false);
     const [upgradeSubmitting, setUpgradeSubmitting] = useState(false);
@@ -113,6 +113,13 @@ export const MenuSidebar = ({
             const { data } = await apiClient.post('/engagement/upgrade-requests', upgradeForm);
             setUpgradeRequest(data.data);
             setUpgradeMessage({ type: 'success', text: 'Upgrade request submitted to admin.' });
+
+            try {
+                const profileRes = await apiClient.get('/auth/profile');
+                setUser(profileRes.data.data);
+            } catch (profileError) {
+                console.error('Failed to reload profile after card registration', profileError);
+            }
         } catch (error: unknown) {
             const message = (error as ApiError).response?.data?.message || 'Failed to submit upgrade request.';
             setUpgradeMessage({ type: 'error', text: message });
@@ -130,7 +137,7 @@ export const MenuSidebar = ({
 
     const getUpgradeButtonLabel = () => {
         if (upgradeLoading) return 'LOADING...';
-        if (!upgradeRequest) return 'UPGRADE FOR FREE';
+        if (!upgradeRequest) return 'Đăng kí card';
         if (upgradeRequest.status === 'pending') return `PENDING #${upgradeRequest.queue_number}`;
         if (upgradeRequest.status === 'approved') return upgradeRequest.card_number
             ? `REGISTERED ${upgradeRequest.card_number}`

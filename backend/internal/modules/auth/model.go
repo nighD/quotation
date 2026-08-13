@@ -88,14 +88,16 @@ type AuthResponse struct {
 
 // UserInfo is a safe subset of User fields returned to the client.
 type UserInfo struct {
-	ID        string   `json:"id"`
-	Email     string   `json:"email"`
-	FullName  string   `json:"full_name"`
-	Status    string   `json:"status"`
-	AvatarURL string   `json:"avatar_url"`
+	ID               string   `json:"id"`
+	Email            string   `json:"email"`
+	FullName         string   `json:"full_name"`
+	Status           string   `json:"status"`
+	AvatarURL        string   `json:"avatar_url"`
 	Company          string   `json:"company"`
 	Title            string   `json:"title"`
 	Country          string   `json:"country"`
 	Roles            []string `json:"roles"`
 	IsJoinedWaitlist bool     `json:"is_joined_waitlist"`
+	CardNumber       string   `json:"card_number,omitempty"`
+	CardType         string   `json:"card_type,omitempty"`
 }

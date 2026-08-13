@@ -146,6 +146,19 @@ func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 		log.Printf("⚠️ Failed to ensure upgrade_requests table: %v\n", err)
 	}
 
+	if err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS user_cards (
+			id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			username    VARCHAR(255) NOT NULL,
+			so_the      VARCHAR(100) NOT NULL,
+			loai_the    VARCHAR(100) NOT NULL,
+			created_at  TIMESTAMPTZ DEFAULT NOW(),
+			updated_at  TIMESTAMPTZ DEFAULT NOW()
+		)
+	`).Error; err != nil {
+		log.Printf("⚠️ Failed to ensure user_cards table: %v\n", err)
+	}
+
 	if err := db.AutoMigrate(models...); err != nil {
 		return fmt.Errorf("auto migration failed: %w", err)
 	}
