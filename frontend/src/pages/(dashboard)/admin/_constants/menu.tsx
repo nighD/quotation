@@ -1,13 +1,4 @@
-import {
-    Armchair,
-    Bell,
-    Calendar,
-    CalendarDays,
-    FileText,
-    Headphones,
-    Home,
-    User
-} from 'lucide-react';
+import { Home } from 'lucide-react';
 
 export interface MenuItem {
     id: string;
@@ -22,10 +13,11 @@ export const mainMenuItems: MenuItem[] = [
     {
         id: 'home',
         label: 'Home',
-        path: '/admin',
+        path: '/home',
         iconName: '/admin/icon/icon-home.png',
         lucideIcon: Home,
     },
+    /*
     {
         id: 'report',
         label: 'Report',
@@ -55,9 +47,11 @@ export const mainMenuItems: MenuItem[] = [
         iconName: '/admin/icon/icon-private.png',
         lucideIcon: Armchair,
     },
+    */
 ];
 
 export const secondaryMenuItems: MenuItem[] = [
+    /*
     {
         id: 'notifications',
         label: 'Notifications',
@@ -80,4 +74,5 @@ export const secondaryMenuItems: MenuItem[] = [
         iconName: '/admin/icon/icon-support.png',
         lucideIcon: Headphones,
     },
+    */
 ];

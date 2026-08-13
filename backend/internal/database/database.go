@@ -149,6 +149,7 @@ func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 	if err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS user_cards (
 			id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id     UUID NOT NULL,
 			username    VARCHAR(255) NOT NULL,
 			so_the      VARCHAR(100) NOT NULL,
 			loai_the    VARCHAR(100) NOT NULL,
@@ -157,6 +158,10 @@ func AutoMigrate(db *gorm.DB, models ...interface{}) error {
 		)
 	`).Error; err != nil {
 		log.Printf("⚠️ Failed to ensure user_cards table: %v\n", err)
+	}
+
+	if err := db.Exec("ALTER TABLE user_cards ADD COLUMN IF NOT EXISTS user_id UUID").Error; err != nil {
+		log.Printf("⚠️ Failed to add user_id column to user_cards: %v\n", err)
 	}
 
 	if err := db.AutoMigrate(models...); err != nil {

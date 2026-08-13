@@ -479,7 +479,7 @@ func (s *Service) populateCardInfo(userInfo *UserInfo) {
 		SoThe   string
 		LoaiThe string
 	}
-	if err := s.db.Table("user_cards").Where("username = ?", userInfo.Email).Select("so_the, loai_the").First(&userCard).Error; err == nil {
+	if err := s.db.Table("user_cards").Where("user_id = ?", userInfo.ID).Select("so_the, loai_the").First(&userCard).Error; err == nil {
 		userInfo.CardNumber = userCard.SoThe
 		userInfo.CardType = userCard.LoaiThe
 	}

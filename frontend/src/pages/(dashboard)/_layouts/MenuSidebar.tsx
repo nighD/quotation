@@ -71,7 +71,7 @@ export const MenuSidebar = ({
         }
     };
 
-    const currentPath = activePath || location.pathname || '/admin';
+    const currentPath = activePath || location.pathname || '/home';
 
     useEffect(() => {
         if (!user) return;
@@ -154,8 +154,8 @@ export const MenuSidebar = ({
     const renderMenuItem = (item: MenuItem) => {
         const isActive =
             currentPath === item.path ||
-            (item.path !== '/admin' && currentPath.startsWith(item.path + '/')) ||
-            (item.path === '/admin' && (currentPath === '/admin' || currentPath === '/admin/home'));
+            (item.path !== '/home' && currentPath.startsWith(item.path + '/')) ||
+            (item.path === '/home' && (currentPath === '/home' || currentPath === '/home/home'));
 
         const LucideIconComp = item.lucideIcon;
 
@@ -254,7 +254,7 @@ export const MenuSidebar = ({
                         className={`flex items-center mb-8 pt-2 transition-all duration-200 ${isCollapsed ? 'justify-center px-0' : 'px-3 justify-start'
                             }`}
                     >
-                        <Link to="/admin" className="flex items-center gap-1.5 hover:opacity-90 transition">
+                        <Link to="/home" className="flex items-center gap-1.5 hover:opacity-90 transition">
                             <AnimatePresence mode="wait">
                                 <motion.img
                                     key={isCollapsed ? 'logo-collapsed' : 'logo-expanded'}

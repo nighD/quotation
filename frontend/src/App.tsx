@@ -3,15 +3,15 @@ import { useAuth } from './context/AuthContext';
 import { Login } from './pages/auth/Login';
 import { Profile } from './pages/auth/Profile';
 import { SubscriptionPlans } from './pages/subscriptions/SubscriptionPlans';
-import { Home, Reports, Deals, Benefits, Events } from './pages/public/Placeholders';
+import { Reports, Deals, Benefits, Events } from './pages/public/Placeholders';
 import { ReportDetail } from './pages/public/ReportDetail';
 import { ReportPdf } from './pages/public/ReportPdf';
 import { Landing } from './pages/public/Landing/page';
 import { AdminDashboard } from './pages/(dashboard)/admin/AdminDashboard';
-import { NotificationsPage } from './pages/(dashboard)/admin/NotificationsPage';
-import ReportPage from './pages/(dashboard)/report/page';
-import ReportDetailPage from './pages/(dashboard)/report/[slug]/page';
-import BookingPage from './pages/(dashboard)/booking/page';
+// import { NotificationsPage } from './pages/(dashboard)/admin/NotificationsPage';
+// import ReportPage from './pages/(dashboard)/report/page';
+// import ReportDetailPage from './pages/(dashboard)/report/[slug]/page';
+// import BookingPage from './pages/(dashboard)/booking/page';
 import { AdminLayout } from './pages/(dashboard)/_layouts';
 
 function PlansRedirect() {
@@ -68,7 +68,6 @@ function AppContent() {
         <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />} />
 
         {/* Protected Navigation Pages (Only accessible when logged in, otherwise redirect to login) */}
-        <Route path="/home" element={!user ? <Navigate to="/login" replace /> : <Home />} />
         <Route path="/reports" element={!user ? <Navigate to="/login" replace /> : <Reports />} />
         <Route path="/reports/detail/:id" element={!user ? <Navigate to="/login" replace /> : <ReportDetail />} />
         <Route path="/reports/:id/pdf" element={!user ? <Navigate to="/login" replace /> : <ReportPdf />} />
@@ -79,11 +78,12 @@ function AppContent() {
         <Route path="/profile" element={!user ? <Navigate to="/login" replace /> : <Profile />} />
         {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
         <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/notifications" element={<NotificationsPage />} />
-          <Route path="/admin/report" element={<ReportPage />} />
-          <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
-          <Route path="/admin/booking" element={<BookingPage />} />
+          <Route path="/home" element={<AdminDashboard />} />
+          {/* Disabled paths direct from /admin */}
+          {/* <Route path="/admin/notifications" element={<NotificationsPage />} /> */}
+          {/* <Route path="/admin/report" element={<ReportPage />} /> */}
+          {/* <Route path="/admin/report/:slug" element={<ReportDetailPage />} /> */}
+          {/* <Route path="/admin/booking" element={<BookingPage />} /> */}
         </Route>
 
         {/* Catch-all */}
@@ -107,7 +107,6 @@ function AppContent() {
       <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />} />
 
       {/* Protected Navigation Pages */}
-      <Route path="/home" element={!user ? <Navigate to="/login" replace /> : <Home />} />
       <Route path="/reports" element={!user ? <Navigate to="/login" replace /> : <Reports />} />
       <Route path="/reports/detail/:id" element={!user ? <Navigate to="/login" replace /> : <ReportDetail />} />
       <Route path="/reports/:id/pdf" element={!user ? <Navigate to="/login" replace /> : <ReportPdf />} />
@@ -119,11 +118,12 @@ function AppContent() {
 
       {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
       <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/notifications" element={<NotificationsPage />} />
-        <Route path="/admin/report" element={<ReportPage />} />
-        <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
-        <Route path="/admin/booking" element={<BookingPage />} />
+        <Route path="/home" element={<AdminDashboard />} />
+        {/* Disabled paths direct from /admin */}
+        {/* <Route path="/admin/notifications" element={<NotificationsPage />} /> */}
+        {/* <Route path="/admin/report" element={<ReportPage />} /> */}
+        {/* <Route path="/admin/report/:slug" element={<ReportDetailPage />} /> */}
+        {/* <Route path="/admin/booking" element={<BookingPage />} /> */}
       </Route>
 
       {/* Catch-all */}

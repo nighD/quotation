@@ -99,6 +99,7 @@ type ReviewUpgradeRequestRequest struct {
 
 type UserCard struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null;index" json:"user_id"`
 	Username  string    `gorm:"type:varchar(255);not null;index" json:"username"`
 	SoThe     string    `gorm:"type:varchar(100);not null" json:"so_the"`
 	LoaiThe   string    `gorm:"type:varchar(100);not null" json:"loai_the"`

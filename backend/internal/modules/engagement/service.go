@@ -227,6 +227,7 @@ func (s *Service) SubmitUpgradeRequest(userID string, req *SubmitUpgradeRequestR
 		cardRole := s.getUserRole(user.ID)
 		userCard := &UserCard{
 			ID:        uuid.New(),
+			UserID:    user.ID,
 			Username:  user.Email,
 			SoThe:     cardNumber,
 			LoaiThe:   cardRole,
