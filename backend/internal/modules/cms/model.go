@@ -11,7 +11,7 @@ import (
 // Category is the GORM model for the categories table.
 type Category struct {
 	ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	Name      string         `gorm:"type:varchar(255);not null" json:"name"`
+	Name      string         `gorm:"type:varchar(255);unique;not null" json:"name"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
@@ -21,7 +21,7 @@ type Category struct {
 type Article struct {
 	ID             string         `gorm:"type:varchar(255);primaryKey" json:"id"`
 	Title          string         `gorm:"type:varchar(500);not null" json:"title"`
-	Slug           string         `gorm:"type:varchar(600);not null" json:"slug"`
+	Slug           string         `gorm:"type:varchar(600);unique;not null" json:"slug"`
 	Description    string         `gorm:"type:text" json:"description"`
 	Thumbnail      string         `gorm:"type:text" json:"thumbnail"`
 	Layouts        string         `gorm:"type:varchar(255)" json:"layouts"`
