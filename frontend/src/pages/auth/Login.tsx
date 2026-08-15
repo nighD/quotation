@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { apiClient } from '../../api/client';
 import { GoogleLogin } from '@react-oauth/google';
-import { Mail, Lock } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
   const serverMsg = err.response?.data?.message || '';
@@ -22,16 +22,34 @@ const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, devLogin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    let hasError = false;
+    setEmailError('');
+    setPasswordError('');
     setError('');
+
+    if (!email.trim()) {
+      setEmailError('Email là bắt buộc');
+      hasError = true;
+    }
+
+    if (!password.trim()) {
+      setPasswordError('Mật khẩu là bắt buộc');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    setLoading(true);
 
     try {
       const { data } = await apiClient.post('/auth/login', { email, password });
@@ -65,56 +83,16 @@ export function Login() {
     }
   };
 
-  const handleDevLogin = async (role: 'admin' | 'user' = 'admin') => {
-    setLoading(true);
-    setError('');
-    try {
-      await devLogin(role);
-      navigate('/');
-    } catch (err: any) {
-      setError(getCleanErrorMessage(err, 'Development login failed.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#111] bg-cover bg-center bg-no-repeat flex flex-col font-poppins relative" style={{ backgroundImage: "url('/bg.png')" }}>
-      <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
+    <div className="min-h-screen bg-[#111] bg-cover bg-top bg-no-repeat flex flex-col font-poppins relative" style={{ backgroundImage: "url('/bg-login.png')" }}>
+      <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 w-full pb-20">
-        <div className="bg-[#181818] rounded-[32px] p-8 md:p-10 md:py-9 w-full max-w-[460px] shadow-2xl border border-white/5">
+        <div className="bg-[#181818] rounded-4xl p-8 md:p-10 md:py-9 w-full max-w-115 shadow-2xl border border-white/5">
           <h2 className="text-[28px] font-semibold text-white text-center mb-6 tracking-tight">
             Sign In
           </h2>
 
-          <div className="mb-6 p-4 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-[18px]">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-amber-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                Dev Bypass / Access Dashboard
-              </span>
-            </div>
-            <p className="text-[#a1a1aa] text-xs mb-3 leading-relaxed">
-              Bỏ qua Google OAuth (lỗi Client ID trên localhost) để truy cập trực tiếp:
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => void handleDevLogin('admin')}
-                className="py-2.5 px-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs rounded-xl transition cursor-pointer shadow-lg shadow-amber-500/10 flex items-center justify-center gap-1"
-              >
-                <span>⚡ Admin Dashboard</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleDevLogin('user')}
-                className="py-2.5 px-3 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-white/10"
-              >
-                <span>👤 User Dashboard</span>
-              </button>
-            </div>
-          </div>
 
           {error && (
             <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm text-center">
@@ -131,7 +109,7 @@ export function Login() {
             <div className="absolute z-10 opacity-[0.01]" style={{ transform: 'scale(1.5)' }}>
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => setError('Google Login Client ID chưa được cấu hình cho localhost. Vui lòng bấm "⚡ Admin Dashboard" ở trên để truy cập nhanh.')}
+                onError={() => setError('Google Login Client ID chưa được cấu hình cho localhost.')}
                 text="continue_with"
                 width="350"
               />
@@ -143,7 +121,7 @@ export function Login() {
             <span className="relative px-4 bg-[#181818] text-[#8c8c8c] text-[14px]">or</span>
           </div>
 
-          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleEmailSubmit} noValidate className="flex flex-col gap-4">
             <div>
               <label className="block mb-2 text-[14px] text-[#a1a1aa]">Email</label>
               <div className="relative flex items-center">
@@ -151,12 +129,18 @@ export function Login() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError('');
+                  }}
                   placeholder="your.email@example.com"
-                  className="w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border border-transparent focus:border-white/30 transition"
+                  className={`w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border transition ${emailError ? 'border-red-500/80 focus:border-red-500' : 'border-transparent focus:border-white/30'
+                    }`}
                 />
               </div>
+              {emailError && (
+                <p className="mt-1.5 text-[13px] text-red-500 font-['Inter'] font-medium">{emailError}</p>
+              )}
             </div>
 
             <div>
@@ -166,12 +150,18 @@ export function Login() {
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
                   placeholder="********"
-                  className="w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border border-transparent focus:border-white/30 transition"
+                  className={`w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border transition ${passwordError ? 'border-red-500/80 focus:border-red-500' : 'border-transparent focus:border-white/30'
+                    }`}
                 />
               </div>
+              {passwordError && (
+                <p className="mt-1.5 text-[13px] text-red-500 font-['Inter'] font-medium">{passwordError}</p>
+              )}
             </div>
 
             <div className="flex justify-center mt-3">
@@ -185,9 +175,7 @@ export function Login() {
             </div>
           </form>
 
-          <p className="text-center mt-6 text-[#a1a1aa] text-[14px]">
-            Don’t have an account? <Link to="/register" className="text-white hover:underline underline-offset-4 decoration-white/60 transition">Sign up</Link>
-          </p>
+
         </div>
       </div>
     </div>
