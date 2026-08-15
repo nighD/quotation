@@ -26,7 +26,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
   return (
     <div className="w-full min-h-[498.78px] bg-[#B58F6F] rounded-[28px] p-5 shadow-sm flex flex-col justify-between border border-[#a67e63]">
       <h2 className="text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-4 select-none">
-        Booking Title here
+        Khóa học
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 items-stretch min-w-0">
@@ -47,10 +47,10 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
               />
             </div>
             <h3 className="text-[24px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-1.5">
-              Meeting Room
+              On-chain 101
             </h3>
             <p className="text-[#523C37] font-['Inter']! font-normal! text-[12px] leading-relaxed line-clamp-3">
-              Phòng Grand Ballroom là trung tâm hội nghị quốc tế lớn và hiện đại bậc nhất miền Trung. Với sức chứa tối đa 750 khách hội nghị và 500 khách tiệc ngồi, đây là không gia...
+              Phòng Grand Ballroom là trung tâm hội nghị quốc tế lớn và hiện đại bậc nhất miền Trung. Với sức chứa tối đa 750 khách hội nghị và 500 khách tiệc ngồi, đây là không gian lý tưởng cho các sự kiện quy mô lớn.
             </p>
           </div>
 
@@ -71,7 +71,7 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                 disabled={isSubmitting('meeting-room')}
                 className="bg-[#48372D] hover:bg-[#382b24] text-white font-medium text-[11px] tracking-wider uppercase px-4 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5 active:scale-[0.98]"
               >
-                {isSubmitting('meeting-room') ? 'ĐANG GỬI...' : hasRequested('meeting-room') ? 'GỬI THÊM YÊU CẦU' : 'GỬI YÊU CẦU'} <span className="text-sm">→</span>
+                {isSubmitting('meeting-room') ? 'ĐANG GỬI...' : hasRequested('meeting-room') ? 'GỬI THÊM YÊU CẦU' : 'ĐĂNG KÝ'} <span className="text-sm">→</span>
               </button>
             </div>
           </div>
@@ -94,10 +94,10 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
               />
             </div>
             <h3 className="text-[24px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-1.5">
-              Lounge
+              Quantum Trading
             </h3>
             <p className="text-[#523C37] font-['Inter']! font-normal! text-[12px] leading-relaxed line-clamp-3">
-              Phòng Grand Ballroom là trung tâm hội nghị quốc tế lớn và hiện đại bậc nhất miền Trung. Với sức chứa tối đa 750 khách hội nghị và 500 khách tiệc ngồi, đây là không gia...
+              Phòng Grand Ballroom là trung tâm hội nghị quốc tế lớn và hiện đại bậc nhất miền Trung. Với sức chứa tối đa 750 khách hội nghị và 500 khách tiệc ngồi, đây là không gian lý tưởng cho các sự kiện quy mô lớn.
             </p>
           </div>
 
@@ -113,11 +113,11 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
             )}
             <button
               type="button"
-              onClick={() => onSubmitRequest({ bookingType: 'lounge', bookingTitle: 'Lounge' })}
-              disabled={isSubmitting('lounge')}
-              className="bg-[#B58F6F] hover:bg-[#94715b] text-white font-medium text-[11px] tracking-wider uppercase px-3 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1 active:scale-[0.98]"
+              onClick={() => onSubmitRequest({ bookingType: 'meeting-room', bookingTitle: 'Meeting Room' })}
+              disabled={isSubmitting('meeting-room')}
+              className="bg-[#48372D] hover:bg-[#382b24] text-white font-medium text-[11px] tracking-wider uppercase px-4 py-2.5 rounded-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5 active:scale-[0.98]"
             >
-              {isSubmitting('lounge') ? 'ĐANG GỬI...' : hasRequested('lounge') ? 'GỬI THÊM YÊU CẦU' : 'GỬI YÊU CẦU'} <span className="text-sm">→</span>
+              {isSubmitting('meeting-room') ? 'ĐANG GỬI...' : hasRequested('meeting-room') ? 'GỬI THÊM YÊU CẦU' : 'ĐĂNG KÝ'} <span className="text-sm">→</span>
             </button>
           </div>
         </motion.div>

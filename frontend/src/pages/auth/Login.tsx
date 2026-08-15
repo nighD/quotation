@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { GoogleLogin } from '@react-oauth/google';
-// import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 
 const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
   const serverMsg = err.response?.data?.message || '';
@@ -20,31 +20,31 @@ const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
 };
 
 export function Login() {
-  // const [email, setEmail] = useState('');
-  // const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { login, devLogin } = useAuth();
   const navigate = useNavigate();
 
-  // const handleEmailSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setError('');
-  //
-  //   try {
-  //     const { data } = await apiClient.post('/auth/login', { email, password });
-  //     if (data.success) {
-  //       login(data.data.access_token, data.data.refresh_token);
-  //       navigate('/');
-  //     }
-  //   } catch (err: any) {
-  //     setError(getCleanErrorMessage(err, 'Login failed. Please check your credentials.'));
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const { data } = await apiClient.post('/auth/login', { email, password });
+      if (data.success) {
+        login(data.data.access_token, data.data.refresh_token);
+        navigate('/');
+      }
+    } catch (err: any) {
+      setError(getCleanErrorMessage(err, 'Login failed. Please check your credentials.'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setLoading(true);
@@ -80,17 +80,14 @@ export function Login() {
 
   return (
     <div className="min-h-screen bg-[#111] bg-cover bg-center bg-no-repeat flex flex-col font-poppins relative" style={{ backgroundImage: "url('/bg.png')" }}>
-      {/* Dark overlay for readability */}
       <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
 
-      {/* Main content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 w-full pb-20">
         <div className="bg-[#181818] rounded-[32px] p-8 md:p-10 md:py-9 w-full max-w-[460px] shadow-2xl border border-white/5">
           <h2 className="text-[28px] font-semibold text-white text-center mb-6 tracking-tight">
-            Sign in
+            Sign In
           </h2>
 
-          {/* Quick Dev Login Bypass Box */}
           <div className="mb-6 p-4 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-[18px]">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-amber-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
@@ -125,14 +122,12 @@ export function Login() {
             </div>
           )}
 
-          {/* Custom Google Button UI with hidden real button on top */}
           <div className="relative w-full h-13.5 rounded-[14px] overflow-hidden bg-white hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-center">
             <div className="absolute inset-0 z-0 flex items-center justify-center gap-3 pointer-events-none">
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5.5 h-5.5" />
               <span className="text-black font-medium text-[16px]">Continue with Google</span>
             </div>
 
-            {/* Invisible real button, scaled up to guarantee it fills the entire 54px height click area */}
             <div className="absolute z-10 opacity-[0.01]" style={{ transform: 'scale(1.5)' }}>
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -143,56 +138,59 @@ export function Login() {
             </div>
           </div>
 
-          {/* <div className="relative flex items-center justify-center my-8">
-            <div className="absolute inset-x-0 h-px bg-[#2a2a2a]"></div>
-            <span className="relative px-4 bg-[#181818] text-[#777] text-[15px]">or</span>
+          <div className="relative flex items-center justify-center my-6">
+            <div className="absolute inset-x-0 h-px bg-white/10"></div>
+            <span className="relative px-4 bg-[#181818] text-[#8c8c8c] text-[14px]">or</span>
           </div>
 
-          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block mb-2 text-[14px] text-[#8c8c8c]">Email</label>
+              <label className="block mb-2 text-[14px] text-[#a1a1aa]">Email</label>
               <div className="relative flex items-center">
-                <Mail className="absolute left-4 w-[22px] h-[22px] text-[#666] pointer-events-none" strokeWidth={1.5} />
+                <Mail className="absolute left-4 w-5 h-5 text-white/60 pointer-events-none" strokeWidth={1.5} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="your.email@example.com"
-                  className="w-full bg-[#121212] text-white text-[15px] rounded-[14px] py-4 pl-[3.25rem] pr-4 outline-none border border-transparent focus:border-gray-500 transition placeholder:text-[#666]"
+                  className="w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border border-transparent focus:border-white/30 transition"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block mb-2 text-[14px] text-[#8c8c8c]">Password</label>
+              <label className="block mb-2 text-[14px] text-[#a1a1aa]">Password</label>
               <div className="relative flex items-center">
-                <Lock className="absolute left-4 w-[22px] h-[22px] text-[#666] pointer-events-none" strokeWidth={1.5} />
+                <Lock className="absolute left-4 w-5 h-5 text-white/60 pointer-events-none" strokeWidth={1.5} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="********"
-                  className="w-full bg-[#121212] text-white text-[15px] rounded-[14px] py-4 pl-[3.25rem] pr-4 outline-none border border-transparent focus:border-gray-500 transition placeholder:text-[#666]"
+                  className="w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border border-transparent focus:border-white/30 transition"
                 />
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-6 mx-auto block bg-white text-black px-12 py-[12px] rounded-full font-medium text-[16px] hover:bg-gray-200 transition disabled:opacity-50 cursor-pointer shadow-sm"
-            >
-              {loading ? 'Processing...' : 'Sign in'}
-            </button>
-          </form> */}
+            <div className="flex justify-center mt-3">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-white text-black font-medium text-[15px] px-9 py-2.5 rounded-full hover:bg-gray-100 transition disabled:opacity-50 cursor-pointer shadow-sm"
+              >
+                {loading ? 'Processing...' : 'Sign in'}
+              </button>
+            </div>
+          </form>
 
-          {/* <p className="text-center mt-8 text-[#777] text-[15px]">
-            Don't have an account? <Link to="/register" className="text-[#a1a1aa] hover:text-white underline decoration-1 underline-offset-[5px] transition">Sign up</Link>
-          </p> */}
+          <p className="text-center mt-6 text-[#a1a1aa] text-[14px]">
+            Don’t have an account? <Link to="/register" className="text-white hover:underline underline-offset-4 decoration-white/60 transition">Sign up</Link>
+          </p>
         </div>
       </div>
     </div>
   );
 }
+

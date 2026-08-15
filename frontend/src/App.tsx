@@ -79,11 +79,10 @@ function AppContent() {
         {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
         <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
           <Route path="/home" element={<AdminDashboard />} />
-          {/* Disabled paths direct from /admin */}
-          {/* <Route path="/admin/notifications" element={<NotificationsPage />} /> */}
-          {/* <Route path="/admin/report" element={<ReportPage />} /> */}
-          {/* <Route path="/admin/report/:slug" element={<ReportDetailPage />} /> */}
-          {/* <Route path="/admin/booking" element={<BookingPage />} /> */}
+          {/* Direct all unbuilt sub-routes back to /home */}
+          <Route path="/admin/*" element={<Navigate to="/home" replace />} />
+          <Route path="/booking/*" element={<Navigate to="/home" replace />} />
+          <Route path="/report/*" element={<Navigate to="/home" replace />} />
         </Route>
 
         {/* Catch-all */}
@@ -119,11 +118,10 @@ function AppContent() {
       {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
       <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
         <Route path="/home" element={<AdminDashboard />} />
-        {/* Disabled paths direct from /admin */}
-        {/* <Route path="/admin/notifications" element={<NotificationsPage />} /> */}
-        {/* <Route path="/admin/report" element={<ReportPage />} /> */}
-        {/* <Route path="/admin/report/:slug" element={<ReportDetailPage />} /> */}
-        {/* <Route path="/admin/booking" element={<BookingPage />} /> */}
+        {/* Direct all unbuilt sub-routes back to /home */}
+        <Route path="/admin/*" element={<Navigate to="/home" replace />} />
+        <Route path="/booking/*" element={<Navigate to="/home" replace />} />
+        <Route path="/report/*" element={<Navigate to="/home" replace />} />
       </Route>
 
       {/* Catch-all */}

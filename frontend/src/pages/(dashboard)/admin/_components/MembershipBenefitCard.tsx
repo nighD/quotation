@@ -23,7 +23,7 @@ export const MembershipBenefitCard: React.FC<MembershipBenefitCardProps> = ({ on
   };
 
   return (
-    <div className="w-full bg-[#E8D7C9] rounded-[20px] p-3 shadow-sm flex flex-col justify-between border border-[#e2d5c7]">
+    <div className="w-full bg-[#E8D7C9] rounded-[20px] p-3 shadow-sm flex flex-col justify-between ">
       <motion.div
         whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.25 }}
@@ -31,7 +31,7 @@ export const MembershipBenefitCard: React.FC<MembershipBenefitCardProps> = ({ on
       >
         <div className="relative w-full aspect-[1.585/1] rounded-2xl overflow-hidden shadow-xl border border-[#c8b7a6]">
           <img
-            src="/admin/card-vifc-pass.png"
+            src="/admin/card-vifc-pass-v2.png"
             alt="IFC Pass Membership Card"
             className="w-full h-full object-cover rounded-2xl"
             onError={(e) => {
@@ -57,10 +57,10 @@ export const MembershipBenefitCard: React.FC<MembershipBenefitCardProps> = ({ on
                 whileHover={{ scale: 1.12 }}
                 whileTap={{ scale: 0.92 }}
                 onClick={handleAddCard}
-                className="w-12 h-12 sm:w-15 sm:h-15 rounded-full bg-gradient-to-tr from-[#C5A059] via-[#E8C88A] to-[#B89047] text-[#141317] flex items-center justify-center shadow-2xl shadow-[#C5A059]/70 cursor-pointer border-2 border-white/80 transition-all duration-300 group/btn"
+                className="w-12 h-12 sm:w-15 sm:h-15 rounded-full bg-linear-to-tr from-[#C5A059] via-[#E8C88A] to-[#B89047] text-[#141317] flex items-center justify-center shadow-2xl shadow-[#C5A059]/70 cursor-pointer border-2 border-white/80 transition-all duration-300 group/btn"
                 title="Thêm thẻ thành viên"
               >
-                <Plus className="w-6 h-6 sm:w-7 sm:h-7 text-[#141317] stroke-[3] group-hover/btn:rotate-90 transition-transform duration-300" />
+                <Plus className="w-6 h-6 sm:w-7 sm:h-7 text-[#141317] stroke-3 group-hover/btn:rotate-90 transition-transform duration-300" />
               </motion.button>
             </div>
           )}
