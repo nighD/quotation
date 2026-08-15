@@ -78,20 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const pathname = window.location.pathname;
 
       if (token === 'dev-mock-token') {
-        //  localStorage.removeItem('access_token');
-        // localStorage.removeItem('refresh_token');
-        // localStorage.removeItem('dev_mock_user');
-        // token = null;
-        const savedMock = localStorage.getItem('dev_mock_user');
-        if (savedMock) {
-          try {
-            setUser(JSON.parse(savedMock));
-            setLoading(false);
-            return;
-          } catch (e) {
-            // ignore
-          }
-        }
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('dev_mock_user');
+        token = null;
       }
 
       if (!token && isLocalEnvironment() && isProtectedRoute(pathname)) {
@@ -135,25 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const devLogin = async (role: 'admin' | 'user' = 'admin') => {
-    try {
-      const { data } = await apiClient.post('/auth/dev-login', { role });
-      localStorage.removeItem('dev_mock_user');
-      localStorage.setItem('access_token', data.data.access_token);
-      localStorage.setItem('refresh_token', data.data.refresh_token);
-      setUser(data.data.user);
-    } catch (error) {
-      console.warn('Backend dev-login endpoint unavailable, falling back to mock user', error);
-      const mockUser: User = {
-        id: 'dev-bypass-id',
-        email: role === 'admin' ? 'admin@goealliance.org' : 'user@goealliance.org',
-        full_name: role === 'admin' ? 'Dev Admin' : 'Dev User',
-        roles: role === 'admin' ? ['admin'] : ['user'],
-      };
-      localStorage.setItem('access_token', 'dev-mock-token');
-      localStorage.setItem('refresh_token', 'dev-mock-refresh-token');
-      localStorage.setItem('dev_mock_user', JSON.stringify(mockUser));
-      setUser(mockUser);
-    }
+    const { data } = await apiClient.post('/auth/dev-login', { role });
+    localStorage.removeItem('dev_mock_user');
+    localStorage.setItem('access_token', data.data.access_token);
+    localStorage.setItem('refresh_token', data.data.refresh_token);
+    setUser(data.data.user);
   };
 
   const logout = () => {
