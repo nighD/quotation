@@ -11,13 +11,13 @@ interface ClubCardItem {
 const clubCards: ClubCardItem[] = [
   {
     id: 1,
-    title: 'Conviction',
+    title: 'Chương trình thí điểm...',
     location: 'HCMC, Viet Nam',
     image: '/admin/card-event-01.png',
   },
   {
     id: 2,
-    title: 'Korea Blockchain Week',
+    title: 'CEO Summit',
     location: 'Seoul, korean',
     image: '/admin/card-event-02.png',
   },

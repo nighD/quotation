@@ -50,12 +50,12 @@ export function AdminDashboard() {
           setRequestedBookingTypes(Array.from(new Set(bookingTypes)));
         }
 
-		if (eventResponse.data.success && Array.isArray(eventResponse.data.data)) {
-		  const eventIds = eventResponse.data.data
-		    .map((item: { event_id?: string }) => item.event_id)
-		    .filter((eventID: string | undefined): eventID is string => Boolean(eventID));
-		  setJoinedEventIds(Array.from(new Set(eventIds)));
-		}
+        if (eventResponse.data.success && Array.isArray(eventResponse.data.data)) {
+          const eventIds = eventResponse.data.data
+            .map((item: { event_id?: string }) => item.event_id)
+            .filter((eventID: string | undefined): eventID is string => Boolean(eventID));
+          setJoinedEventIds(Array.from(new Set(eventIds)));
+        }
       } catch (err: any) {
         setError('Failed to load dashboard metrics.');
       } finally {

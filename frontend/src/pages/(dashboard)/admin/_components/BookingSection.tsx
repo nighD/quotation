@@ -46,12 +46,12 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                 }}
               />
             </div>
-            <h3 className="text-[24px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-1.5">
-              On-chain 101
+            <h3 className="text-[22px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-1.5">
+              KHÓA HỌC CHUYÊN SÂU — NGÀNH HÀNG HÓA
             </h3>
             <p className="text-[#523C37] font-['Inter']! font-normal! text-[12px] leading-relaxed line-clamp-3">
-              Phòng Grand Ballroom là trung tâm hội nghị quốc tế lớn và hiện đại bậc nhất miền Trung. Với sức chứa tối đa 750 khách hội nghị và 500 khách tiệc ngồi, đây là không gian lý tưởng cho các sự kiện quy mô lớn.
-            </p>
+              Dành cho doanh nghiệp xuất khẩu, nhà sản xuất và nhà giao dịch hàng hóa đang muốn thoát khỏi thế bị động — khi tài sản nằm trong kho nhưng dòng vốn vẫn phụ thuộc vào sàn nước ngoài và ngân hàng truyền thống.
+              Hạ tầng on-chain đang mở ra cơ chế mới: lô hàng cà phê, gạo, hồ tiêu có thể được số hóa thành chứng từ có giá trị tài chính — xác thực độc lập, giao dịch được, và tiếp cận thẳng dòng vốn quốc tế mà không qua trung gian bảo lãnh.            </p>
           </div>
 
           <div className="mt-4">
@@ -93,11 +93,13 @@ export const BookingSection: React.FC<BookingSectionProps> = ({
                 }}
               />
             </div>
-            <h3 className="text-[24px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-1.5">
-              Quantum Trading
+            <h3 className="text-[22px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] mb-1.5">
+              KHÓA HỌC CHUYÊN SÂU — NGÀNH DU LỊCH
+
             </h3>
             <p className="text-[#523C37] font-['Inter']! font-normal! text-[12px] leading-relaxed line-clamp-3">
-              Phòng Grand Ballroom là trung tâm hội nghị quốc tế lớn và hiện đại bậc nhất miền Trung. Với sức chứa tối đa 750 khách hội nghị và 500 khách tiệc ngồi, đây là không gian lý tưởng cho các sự kiện quy mô lớn.
+              Dành cho doanh nghiệp phát triển bất động sản du lịch, chủ tài sản và nhà đầu tư đang bị kẹt giữa tài sản lớn và thanh khoản thấp — khi muốn huy động vốn quốc tế nhưng không có cấu trúc tài chính phù hợp.
+              Hạ tầng on-chain cho phép phân nhỏ quyền sở hữu tài sản nghỉ dưỡng thành các đơn vị đầu tư có thể giao dịch — mở ra nhóm nhà đầu tư tổ chức quốc tế mà trước đây không thể tiếp cận do rào cản ticket size và pháp lý.
             </p>
           </div>
 
