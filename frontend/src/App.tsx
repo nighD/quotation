@@ -65,7 +65,6 @@ function AppContent() {
 
         {/* Auth routes (Only accessible when not logged in) */}
         <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
-        <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />} />
 
         {/* Protected Navigation Pages (Only accessible when logged in, otherwise redirect to login) */}
         <Route path="/reports" element={!user ? <Navigate to="/login" replace /> : <Reports />} />
@@ -104,7 +103,6 @@ function AppContent() {
 
       {/* Auth */}
       <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />} />
 
       {/* Protected Navigation Pages */}
       <Route path="/reports" element={!user ? <Navigate to="/login" replace /> : <Reports />} />
