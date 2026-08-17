@@ -11,15 +11,15 @@ interface ClubCardItem {
 const clubCards: ClubCardItem[] = [
   {
     id: 1,
-    title: 'The St.Regis Doha',
-    location: 'LOCATION ADDRESS HERE',
-    image: '/admin/private/private-01.png',
+    title: 'Conviction',
+    location: 'HCMC, Viet Nam',
+    image: '/admin/card-event-01.png',
   },
   {
     id: 2,
-    title: 'The St.Regis Doha',
-    location: 'LOCATION ADDRESS HERE',
-    image: '/admin/private/private-02.png',
+    title: 'Korea Blockchain Week',
+    location: 'Seoul, korean',
+    image: '/admin/card-event-02.png',
   },
   {
     id: 3,
@@ -156,17 +156,12 @@ export const PrivateClubSection: React.FC = () => {
             />
             <div className="absolute top-3.5 right-3.5 z-10">
               <span className="bg-[#E09A30] hover:bg-[#d9941b] text-white text-[11px] font-['Inter']! font-medium! px-3.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm transition-colors block">
-                BOOK NOW
+                Đăng Ký
               </span>
             </div>
 
             <div
-              className="absolute bottom-3.5 left-3.5 w-[70%] p-4 rounded-[18px] border border-white/10 flex flex-col gap-1 shadow-lg"
-              style={{
-                backgroundColor: 'rgba(82, 60, 55, 0.40)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-              }}
+              className="absolute bottom-3.5 left-3.5 w-[80%] p-4 rounded-[18px] border border-white/10 flex flex-col gap-1 shadow-lg bg-[#523C37]/40 backdrop-blur-[12px]"
             >
               <h3
                 className="text-[24px] font-semibold! text-[#F2E8E0] leading-tight tracking-wide font-['Cormorant_Garamond']!"
