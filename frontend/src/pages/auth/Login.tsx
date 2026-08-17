@@ -71,18 +71,29 @@ export function Login() {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setLoading(true);
+<<<<<<< HEAD
     setError("");
     try {
       const { data } = await apiClient.post("/auth/social", {
         provider: "google",
         token: credentialResponse.credential,
       });
+=======
+    setError('');
+
+    try {
+      const { data } = await apiClient.post('/auth/login', { email, password });
+>>>>>>> 581e303f5aba7301e8030c3f127a428477bde9fd
       if (data.success) {
         login(data.data.access_token, data.data.refresh_token);
         navigate("/");
       }
     } catch (err: any) {
+<<<<<<< HEAD
       setError(getCleanErrorMessage(err, "Google Login failed."));
+=======
+      setError(getCleanErrorMessage(err, 'Login failed. Please check your credentials.'));
+>>>>>>> 581e303f5aba7301e8030c3f127a428477bde9fd
     } finally {
       setLoading(false);
     }
@@ -103,6 +114,7 @@ export function Login() {
               Sign In
             </h2>
 
+<<<<<<< HEAD
             {error && (
               <div className="mt-4 p-3.5 bg-[#F8E4DD] border border-[#E9C6B8] rounded-2xl text-[#9A4D3A] font-['Inter'] text-sm text-center">
                 {error}
@@ -139,6 +151,28 @@ export function Login() {
                       emailError
                         ? "border-[#9A4D3A] focus:border-[#9A4D3A]"
                         : "border-[#E4D6CA] focus:border-[#B58F6F] focus:bg-white"
+=======
+          {error && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-5">
+            <div>
+              <label className="block mb-2 text-[14px] text-[#a1a1aa]">Email</label>
+              <div className="relative flex items-center">
+                <Mail className="absolute left-4 w-5 h-5 text-white/60 pointer-events-none" strokeWidth={1.5} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) setEmailError('');
+                  }}
+                  placeholder="your.email@example.com"
+                  className={`w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border transition ${emailError ? 'border-red-500/80 focus:border-red-500' : 'border-transparent focus:border-white/30'
+>>>>>>> 581e303f5aba7301e8030c3f127a428477bde9fd
                     }`}
                   />
                 </div>
@@ -181,6 +215,7 @@ export function Login() {
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* Bottom: Sign In Button */}
             <div className="flex justify-center pt-6">
               <button
@@ -191,6 +226,36 @@ export function Login() {
                 {loading ? "Processing..." : "Sign in"}
               </button>
             </div>
+=======
+            <div>
+              <label className="block mb-2 text-[14px] text-[#a1a1aa]">Password</label>
+              <div className="relative flex items-center">
+                <Lock className="absolute left-4 w-5 h-5 text-white/60 pointer-events-none" strokeWidth={1.5} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
+                  placeholder="********"
+                  className={`w-full bg-[#313131] text-white/60 placeholder:text-white/40 text-[15px] rounded-[14px] py-3.5 pl-12 pr-4 outline-none border transition ${passwordError ? 'border-red-500/80 focus:border-red-500' : 'border-transparent focus:border-white/30'
+                    }`}
+                />
+              </div>
+              {passwordError && (
+                <p className="mt-1.5 text-[13px] text-red-500 font-['Inter'] font-medium">{passwordError}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-6 mx-auto block bg-white text-black px-12 py-[12px] rounded-full font-medium text-[16px] hover:bg-gray-200 transition disabled:opacity-50 cursor-pointer shadow-sm"
+            >
+              {loading ? 'Processing...' : 'Sign in'}
+            </button>
+>>>>>>> 581e303f5aba7301e8030c3f127a428477bde9fd
           </form>
         </div>
       </div>
