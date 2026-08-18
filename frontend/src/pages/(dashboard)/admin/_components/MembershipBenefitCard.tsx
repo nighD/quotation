@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useAuth } from "../../../../context/AuthContext";
