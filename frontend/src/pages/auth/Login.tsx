@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 const getCleanErrorMessage = (err: any, defaultMsg: string): string => {
   const serverMsg = err.response?.data?.message || "";
@@ -68,6 +69,30 @@ export function Login() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setLoading(true);
+    setError("");
+    try {
+      const { data } = await apiClient.post("/auth/social", {
+        provider: "google",
+        token: credentialResponse.credential,
+      });
+      if (data.success) {
+        login(data.data.access_token, data.data.refresh_token);
+        navigate("/");
+      }
+    } catch (err: any) {
+      setError(
+        getCleanErrorMessage(
+          err,
+          "Google Login failed.",
+        ),
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-[#111] bg-cover bg-top bg-no-repeat flex flex-col font-poppins relative"
@@ -87,6 +112,28 @@ export function Login() {
                 {error}
               </div>
             )}
+          </div>
+
+          <div className="mt-6 relative w-full h-13.5 rounded-[14px] overflow-hidden bg-white border border-[#EBE1D5] hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-center shadow-sm">
+            <div className="absolute inset-0 z-0 flex items-center justify-center gap-3 pointer-events-none">
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+              <span className="text-[#523C37] font-medium text-[15px] font-['Inter']">Continue with Google</span>
+            </div>
+            
+            {/* Invisible real button */}
+            <div className="absolute z-10 opacity-[0.01]" style={{ transform: 'scale(1.5)' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google Login failed.')}
+                text="continue_with"
+                width="350"
+              />
+            </div>
+          </div>
+
+          <div className="relative flex items-center justify-center my-6">
+            <div className="absolute inset-x-0 h-px bg-[#EBE1D5]"></div>
+            <span className="relative px-4 bg-white text-[#8B837C] text-[13px] font-['Inter']">or continue with email</span>
           </div>
 
           <form
