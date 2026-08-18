@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/baole/quotation/internal/config"
 	"github.com/baole/quotation/internal/constants"
@@ -102,7 +103,7 @@ func (s *Service) SocialLogin(req *SocialLoginRequest) (*AuthResponse, error) {
 		}
 	} else {
 		// User exists. Update provider if they didn't have one? We can just ensure status is active.
-		if user.Status != constants.UserStatusActive {
+		if strings.ToLower(user.Status) != constants.UserStatusActive {
 			return nil, fmt.Errorf("user account is inactive")
 		}
 		// If they don't have an avatar URL yet, save the one from Google
@@ -118,7 +119,7 @@ func (s *Service) SocialLogin(req *SocialLoginRequest) (*AuthResponse, error) {
 // Login authenticates a user and returns tokens.
 func (s *Service) Login(req *LoginRequest) (*AuthResponse, error) {
 	var user User
-	if err := s.db.Where("email = ? AND status = ?", req.Email, constants.UserStatusActive).First(&user).Error; err != nil {
+	if err := s.db.Where("email = ? AND LOWER(status) = ?", req.Email, constants.UserStatusActive).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("invalid email or password")
 	}
 
@@ -297,7 +298,7 @@ func (s *Service) RefreshTokens(req *RefreshTokenRequest) (*AuthResponse, error)
 	}
 
 	var user User
-	if err := s.db.Where("id = ? AND status = ?", claims.UserID, constants.UserStatusActive).First(&user).Error; err != nil {
+	if err := s.db.Where("id = ? AND LOWER(status) = ?", claims.UserID, constants.UserStatusActive).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("user not found or inactive")
 	}
 
