@@ -18,7 +18,8 @@ export const Header = () => {
     const handleAuthRedirect = (path: string) => {
         const isProd = import.meta.env.PROD;
         const isVercel = window.location.hostname.includes('vercel.app');
-        if (isProd && !isVercel) {
+        const isCustomDomain = window.location.hostname.includes('goealliance.org');
+        if (isProd && !isVercel && !isCustomDomain) {
             window.location.href = `https://dashboard.vifcpass.com${path}`;
         } else {
             navigate(path);
