@@ -33,8 +33,8 @@ function AppContent() {
 
   if (isProd) {
     const isVercel = hostname.includes('vercel.app');
-    const isDashboard = hostname.startsWith('dashboard.') || isVercel;
-    const dashboardDomainUrl = 'https://dashboard.vifcpass.com';
+    const isDashboard = hostname.startsWith('dashboard.') || isVercel || hostname.includes('goealliance.org');
+    const dashboardDomainUrl = hostname.includes('goealliance.org') ? 'https://on-chaincard.goealliance.org' : 'https://dashboard.vifcpass.com';
 
     if (!isDashboard) {
       // Redirect all paths other than / to dashboard.vifcpass.com
