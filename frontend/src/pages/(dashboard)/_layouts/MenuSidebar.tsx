@@ -96,7 +96,7 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
     }
   };
 
-  const currentPath = activePath || location.pathname || "/home";
+  const currentPath = activePath || location.pathname || "/";
 
   useEffect(() => {
     if (!user) return;
@@ -186,8 +186,8 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
     const collapsedState = forceExpanded ? false : isCollapsed;
     const isActive =
       currentPath === item.path ||
-      (item.path !== "/home" && currentPath.startsWith(item.path + "/")) ||
-      (item.path === "/home" && (currentPath === "/home" || currentPath === "/home/home"));
+      (item.path !== "/" && currentPath.startsWith(item.path + "/")) ||
+      (item.path === "/" && currentPath === "/");
 
     const LucideIconComp = item.lucideIcon;
 
@@ -250,7 +250,7 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
         <div>
           {/* Logo Section */}
           <div className={`flex items-center mb-6 pt-1 transition-all duration-200 ${collapsedState ? "justify-center px-0" : "px-2 justify-between"}`}>
-            <Link to="/home" onClick={() => isDrawer && onCloseMobile?.()} className="flex items-center gap-1.5 hover:opacity-90 transition">
+            <Link to="/" onClick={() => isDrawer && onCloseMobile?.()} className="flex items-center gap-1.5 hover:opacity-90 transition">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={collapsedState ? "logo-collapsed" : "logo-expanded"}

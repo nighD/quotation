@@ -350,7 +350,7 @@ export function ReportPdf() {
               Upgrade Membership
             </button>
             <button
-              onClick={() => navigate("/home")}
+              onClick={() => navigate("/")}
               className="w-full py-3.5 bg-[#252528] text-white hover:bg-[#323236] border border-white/5 rounded-full font-semibold transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />

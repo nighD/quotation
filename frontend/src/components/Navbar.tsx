@@ -12,7 +12,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const mobileNavItems = [
-    { label: 'Home', path: '/home' },
+    { label: 'Home', path: '/' },
     { label: 'Reports', path: '/reports' },
     { label: 'Deals', path: '/deals' },
     { label: 'Benefit', path: '/benefits' },
@@ -98,7 +98,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
   };
 
   const baseNavItems = [
-    { label: 'Home', path: '/home' },
+    { label: 'Home', path: '/' },
     { label: 'Reports', path: '/reports' },
     { label: 'Deals', path: '/deals' },
     { label: 'Subscription', path: '/subscriptions' },
@@ -165,9 +165,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
                   style={indicatorStyle}
                 />
                 {navItems.map((item) => {
-                  const isActive = currentPath === item.path ||
-                    (item.path === '/home' && currentPath === '/') ||
-                    (item.path === '/reports' && currentPath.startsWith('/reports/detail'));
+                  const isActive = currentPath.startsWith(item.path) && (item.path !== '/' || currentPath === '/');
                   return (
                     <Link
                       key={item.label}
@@ -310,9 +308,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
           {/* Menu Items */}
           <div className="flex flex-col gap-6 text-left">
             {mobileNavItems.map((item) => {
-              const isActive = currentPath === item.path ||
-                (item.path === '/home' && currentPath === '/') ||
-                (item.path === '/reports' && currentPath.startsWith('/reports/detail'));
+              const isActive = currentPath.startsWith(item.path) && (item.path !== '/' || currentPath === '/');
               return (
                 <Link
                   key={item.label}

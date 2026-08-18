@@ -13,7 +13,7 @@ export const mainMenuItems: MenuItem[] = [
   {
     id: "home",
     label: "Home",
-    path: "/home",
+    path: "/",
     iconName: "/admin/icon/icon-home.png",
     lucideIcon: Home,
   },

@@ -53,7 +53,7 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
           <Menu size={20} strokeWidth={2.2} />
         </button>
 
-        <Link to="/home" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <img
             src="/admin/logo-vifc.png"
             alt="VIFC Pass"

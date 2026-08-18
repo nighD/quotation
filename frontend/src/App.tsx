@@ -17,7 +17,7 @@ import { AdminLayout } from "./pages/(dashboard)/_layouts";
 function PlansRedirect() {
   const [searchParams] = useSearchParams();
   const payment = searchParams.get("payment");
-  return <Navigate to={`/home${payment ? `?payment=${payment}` : ""}`} replace />;
+  return <Navigate to={`/${payment ? `?payment=${payment}` : ""}`} replace />;
 }
 
 function AppContent() {
@@ -54,16 +54,14 @@ function AppContent() {
     }
 
     // ─── 2. DASHBOARD DOMAIN (dashboard.vifcpass.com) ────────
-    const defaultPath = user ? "/home" : "/login";
+    const defaultPath = user ? "/" : "/login";
 
     return (
       <Routes>
-        {/* Root path redirect based on auth */}
-        <Route path="/" element={user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />} />
         <Route path="/plans" element={<PlansRedirect />} />
 
         {/* Auth routes (Only accessible when not logged in) */}
-        <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
+        <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
 
         {/* Protected Navigation Pages (Only accessible when logged in, otherwise redirect to login) */}
         <Route path="/reports" element={!user ? <Navigate to="/login" replace /> : <Reports />} />
@@ -76,7 +74,7 @@ function AppContent() {
         <Route path="/profile" element={!user ? <Navigate to="/login" replace /> : <Profile />} />
         {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
         <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
-          <Route path="/home" element={<AdminDashboard />} />
+          <Route path="/" element={<AdminDashboard />} />
           <Route path="/report" element={<ReportPage />} />
           <Route path="/report/:slug" element={<ReportDetailPage />} />
           <Route path="/admin/report" element={<ReportPage />} />
@@ -85,8 +83,8 @@ function AppContent() {
           <Route path="/admin/booking" element={<BookingPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/admin/notifications" element={<NotificationsPage />} />
-          {/* Direct other unbuilt sub-routes back to /home */}
-          <Route path="/admin/*" element={<Navigate to="/home" replace />} />
+          {/* Direct other unbuilt sub-routes back to / */}
+          <Route path="/admin/*" element={<Navigate to="/" replace />} />
           <Route path="/booking/*" element={<Navigate to="/booking" replace />} />
           <Route path="/report/*" element={<Navigate to="/report" replace />} />
         </Route>
@@ -100,15 +98,15 @@ function AppContent() {
   // ==========================================
   // LOCAL DEVELOPMENT ROUTING (Single-origin)
   // ==========================================
-  const defaultPath = user ? "/home" : "/login";
+  const defaultPath = user ? "/" : "/login";
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/home" replace /> : <Landing />} />
+      <Route path="/landing" element={<Landing />} />
       <Route path="/plans" element={<PlansRedirect />} />
 
       {/* Auth */}
-      <Route path="/login" element={user ? <Navigate to="/home" replace /> : <Login />} />
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
 
       {/* Protected Navigation Pages */}
       <Route path="/reports" element={!user ? <Navigate to="/login" replace /> : <Reports />} />
@@ -122,7 +120,7 @@ function AppContent() {
 
       {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
       <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
-        <Route path="/home" element={<AdminDashboard />} />
+        <Route path="/" element={<AdminDashboard />} />
         <Route path="/report" element={<ReportPage />} />
         <Route path="/report/:slug" element={<ReportDetailPage />} />
         <Route path="/admin/report" element={<ReportPage />} />
@@ -131,8 +129,8 @@ function AppContent() {
         <Route path="/admin/booking" element={<BookingPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admin/notifications" element={<NotificationsPage />} />
-        {/* Direct other unbuilt sub-routes back to /home */}
-        <Route path="/admin/*" element={<Navigate to="/home" replace />} />
+        {/* Direct other unbuilt sub-routes back to / */}
+        <Route path="/admin/*" element={<Navigate to="/" replace />} />
         <Route path="/booking/*" element={<Navigate to="/booking" replace />} />
         <Route path="/report/*" element={<Navigate to="/report" replace />} />
       </Route>
