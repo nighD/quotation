@@ -89,7 +89,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem("dev_mock_user");
           localStorage.setItem("access_token", data.data.access_token);
           localStorage.setItem("refresh_token", data.data.refresh_token);
-          setUser(data.data.user);
+          
+          const userData = data.data.user;
+          try {
+            const subRes = await apiClient.get("/subscriptions/me");
+            if (subRes.data.success && subRes.data.data && subRes.data.data.is_active && subRes.data.data.plan) {
+              const planName = subRes.data.data.plan.name;
+              userData.roles = (userData.roles || []).filter(
+                (r: string) => !["base", "standard", "premium"].includes(r)
+              );
+              
+              if (planName === "Monthly Basic") userData.roles.push("base");
+              if (planName === "Quarterly Pro") userData.roles.push("standard");
+              if (planName === "Annual Premium") userData.roles.push("premium");
+            }
+          } catch (e) {
+            console.error("Failed to fetch subscription during auto dev login", e);
+          }
+          
+          setUser(userData);
           setLoading(false);
           return;
         } catch (error) {
@@ -100,7 +118,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const { data } = await apiClient.get("/auth/profile");
-          setUser(data.data);
+          const userData = data.data;
+
+          try {
+            const subRes = await apiClient.get("/subscriptions/me");
+            if (subRes.data.success && subRes.data.data && subRes.data.data.is_active && subRes.data.data.plan) {
+              const planName = subRes.data.data.plan.name;
+              // Clean existing subscription roles just in case
+              userData.roles = (userData.roles || []).filter(
+                (r: string) => !["base", "standard", "premium"].includes(r)
+              );
+              
+              if (planName === "Monthly Basic") userData.roles.push("base");
+              if (planName === "Quarterly Pro") userData.roles.push("standard");
+              if (planName === "Annual Premium") userData.roles.push("premium");
+            }
+          } catch (e) {
+            console.error("Failed to fetch subscription", e);
+          }
+
+          setUser(userData);
         } catch (error) {
           console.error("Failed to fetch profile", error);
           localStorage.removeItem("access_token");
@@ -119,7 +156,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("access_token", access_token);
     localStorage.setItem("refresh_token", refresh_token);
     // Fetch profile after login
-    apiClient.get("/auth/profile").then(({ data }) => setUser(data.data));
+    apiClient.get("/auth/profile").then(async ({ data }) => {
+      const userData = data.data;
+      try {
+        const subRes = await apiClient.get("/subscriptions/me");
+        if (subRes.data.success && subRes.data.data && subRes.data.data.is_active && subRes.data.data.plan) {
+          const planName = subRes.data.data.plan.name;
+          userData.roles = (userData.roles || []).filter(
+            (r: string) => !["base", "standard", "premium"].includes(r)
+          );
+          
+          if (planName === "Monthly Basic") userData.roles.push("base");
+          if (planName === "Quarterly Pro") userData.roles.push("standard");
+          if (planName === "Annual Premium") userData.roles.push("premium");
+        }
+      } catch (e) {
+        console.error("Failed to fetch subscription after login", e);
+      }
+      setUser(userData);
+    });
   };
 
   const devLogin = async (role: "admin" | "user" = "admin") => {
@@ -127,7 +182,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("dev_mock_user");
     localStorage.setItem("access_token", data.data.access_token);
     localStorage.setItem("refresh_token", data.data.refresh_token);
-    setUser(data.data.user);
+    
+    const userData = data.data.user;
+    try {
+      const subRes = await apiClient.get("/subscriptions/me");
+      if (subRes.data.success && subRes.data.data && subRes.data.data.is_active && subRes.data.data.plan) {
+        const planName = subRes.data.data.plan.name;
+        userData.roles = (userData.roles || []).filter(
+          (r: string) => !["base", "standard", "premium"].includes(r)
+        );
+        
+        if (planName === "Monthly Basic") userData.roles.push("base");
+        if (planName === "Quarterly Pro") userData.roles.push("standard");
+        if (planName === "Annual Premium") userData.roles.push("premium");
+      }
+    } catch (e) {
+      console.error("Failed to fetch subscription in devLogin", e);
+    }
+    
+    setUser(userData);
   };
 
   const logout = () => {

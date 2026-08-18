@@ -1,0 +1,23 @@
+--- src/context/AuthContext.tsx
++++ src/context/AuthContext.tsx
+@@ -101,6 +101,17 @@
+         try {
+           const { data } = await apiClient.get("/auth/profile");
+-          setUser(data.data);
++          const userData = data.data;
++          
++          try {
++            const subRes = await apiClient.get("/subscriptions/me");
++            if (subRes.data.success && subRes.data.data && subRes.data.data.is_active && subRes.data.data.plan) {
++               const planName = subRes.data.data.plan.name;
++               if (planName === "Monthly Basic") userData.roles = [...(userData.roles || []), "base"];
++               if (planName === "Quarterly Pro") userData.roles = [...(userData.roles || []), "standard"];
++               if (planName === "Annual Premium") userData.roles = [...(userData.roles || []), "premium"];
++            }
++          } catch (e) {
++            console.error("Failed to fetch subscription", e);
++          }
++          
++          setUser(userData);
+         } catch (error) {
+           console.error("Failed to fetch profile", error);

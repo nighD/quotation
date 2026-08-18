@@ -48,7 +48,7 @@ func (r *Repository) FindSubscriptionByID(id string) (*UserSubscription, error) 
 func (r *Repository) FindActiveSubscription(userID string) (*UserSubscription, error) {
 	var sub UserSubscription
 	err := r.db.Preload("Plan").
-		Where("user_id = ? AND status = ? AND end_date > ?", userID, "active", time.Now()).
+		Where("user_id = ? AND LOWER(status) = ? AND end_date > ?", userID, "active", time.Now()).
 		Order("end_date DESC").
 		First(&sub).Error
 	if err != nil {

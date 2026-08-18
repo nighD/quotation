@@ -257,7 +257,7 @@ func (h *Handler) StreamReportPDF(c *fiber.Ctx) error {
 		var activePlans []string
 		h.service.repo.db.Table("user_subscriptions").
 			Joins("JOIN subscription_plans ON subscription_plans.id = user_subscriptions.subscription_plan_id").
-			Where("user_subscriptions.user_id = ? AND user_subscriptions.status = 'active' AND user_subscriptions.end_date > NOW()", userID).
+			Where("user_subscriptions.user_id = ? AND LOWER(user_subscriptions.status) = 'active' AND user_subscriptions.end_date > NOW()", userID).
 			Pluck("subscription_plans.name", &activePlans)
 		
 		var dbRoles []string

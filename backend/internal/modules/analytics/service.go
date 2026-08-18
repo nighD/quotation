@@ -42,9 +42,9 @@ func (s *Service) GetDashboard() (*DashboardStats, error) {
 	stats := &DashboardStats{}
 
 	s.db.Raw("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL").Scan(&stats.TotalUsers)
-	s.db.Raw("SELECT COUNT(*) FROM users WHERE status = 'active' AND deleted_at IS NULL").Scan(&stats.ActiveUsers)
+	s.db.Raw("SELECT COUNT(*) FROM users WHERE LOWER(status) = 'active' AND deleted_at IS NULL").Scan(&stats.ActiveUsers)
 	s.db.Raw("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'success'").Scan(&stats.TotalRevenue)
-	s.db.Raw("SELECT COUNT(*) FROM user_subscriptions WHERE status = 'active' AND end_date > NOW()").Scan(&stats.ActiveSubscription)
+	s.db.Raw("SELECT COUNT(*) FROM user_subscriptions WHERE LOWER(status) = 'active' AND end_date > NOW()").Scan(&stats.ActiveSubscription)
 	s.db.Raw("SELECT COUNT(*) FROM articles WHERE deleted_at IS NULL").Scan(&stats.TotalArticles)
 	s.db.Raw("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURRENT_DATE").Scan(&stats.NewUsersToday)
 
@@ -82,7 +82,7 @@ func (s *Service) GetSubscriptionReport() ([]SubscriptionReport, error) {
 			COUNT(us.id) AS count
 		FROM user_subscriptions us
 		INNER JOIN subscription_plans sp ON sp.id = us.subscription_plan_id
-		WHERE us.status = 'active'
+		WHERE LOWER(us.status) = 'active'
 		GROUP BY sp.name
 		ORDER BY count DESC
 	`).Scan(&report)
