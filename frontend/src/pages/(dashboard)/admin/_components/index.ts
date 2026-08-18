@@ -7,3 +7,5 @@ export { ReportSection } from "./ReportSection";
 export { EventSection } from "./EventSection";
 export type { EventItemData, EventSectionProps } from "./EventSection";
 export { PrivateClubSection } from "./PrivateClubSection";
+export { UpgradeModal } from "../../../../components/UpgradeModal";
+export type { UpgradeModalProps, UpgradeRequestSummary } from "../../../../components/UpgradeModal";

@@ -154,7 +154,6 @@ function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
         </div>
       )}
       <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} className="block select-none pointer-events-none" />
-      {/* Invisible overlay shield catching all clicks, context menus, dragging */}
       <div
         className="absolute inset-0 z-10 bg-transparent select-none cursor-default"
         onContextMenu={(e) => e.preventDefault()}

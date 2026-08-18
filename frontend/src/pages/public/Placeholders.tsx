@@ -140,7 +140,7 @@ export function Home() {
             </p>
 
             {/* Overlapping Cards Container (Tilted Card + Benefit Card) on Mobile */}
-            <div className="relative w-full h-[240px] sm:h-75 lg:hidden mb-6">
+            <div className="relative w-full h-60 sm:h-75 lg:hidden mb-6">
               {/* Tilted Card Image */}
               <div className="absolute left-[-20px] top-6 w-[70%] z-10">
                 <img
@@ -264,7 +264,7 @@ export function Home() {
                   title={articles[0].title}
                   date={formatArticleDate(articles[0].created_at)}
                   abstract={articles[0].description || articles[0].title}
-                  requiredRole="free"
+                  requiredRole={articles[0].required_role || getArticleRequiredRole(articles[0])}
                   userRole={userRole}
                   onExpand={() => navigate(`/reports/detail/${articles[0].slug}`)}
                   imageUrl={articles[0].thumbnail}
@@ -276,7 +276,7 @@ export function Home() {
                   title={articles[1].title}
                   date={formatArticleDate(articles[1].created_at)}
                   abstract={articles[1].description || articles[1].title}
-                  requiredRole="premium"
+                  requiredRole={articles[1].required_role || getArticleRequiredRole(articles[1])}
                   userRole={userRole}
                   onExpand={() => navigate(`/reports/detail/${articles[1].slug}`)}
                   imageUrl={articles[1].thumbnail}
@@ -309,7 +309,7 @@ export function Home() {
                     title={articles[2].title}
                     date={formatArticleDate(articles[2].created_at)}
                     abstract={articles[2].description || articles[2].title}
-                    requiredRole="free"
+                    requiredRole={articles[2].required_role || getArticleRequiredRole(articles[2])}
                     userRole={userRole}
                     onExpand={() => navigate(`/reports/detail/${articles[2].slug}`)}
                     imageUrl={articles[2].thumbnail}
