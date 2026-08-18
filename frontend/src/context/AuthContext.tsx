@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { apiClient } from "../api/client";
 
 export interface User {
@@ -32,42 +26,20 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user để bypass authentication và vào thẳng dashboard
-const MOCK_BYPASS_USER: User = {
-  id: "bypass-admin-id",
-  email: "admin@example.com",
-  full_name: "Admin Dev",
-  roles: ["admin", "user"],
-  company: "Quotation App",
-  title: "Administrator",
-  country: "Vietnam",
-  is_joined_waitlist: true,
-  card_number: "8888 8888 8888 8888",
-  card_type: "VIP",
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // BYPASS AUTH: Set mock user và tắt loading để vào thẳng dashboard
-  const [user, setUser] = useState<User | null>(MOCK_BYPASS_USER);
-  const [loading, _setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ==========================================
-    // BYPASS MODE: Tạm comment logic fetch profile & check token
-    // (Mở comment lại khi cần khôi phục flow auth thật)
-    // ==========================================
-    /*
     const isLocalEnvironment = () => {
       const hostname = window.location.hostname;
-      return hostname === 'localhost' ||
-        hostname === '127.0.0.1' ||
-        hostname.startsWith('192.168.') ||
-        hostname.startsWith('10.') ||
-        hostname.endsWith('.local');
+      return (
+        hostname === "localhost" || hostname === "127.0.0.1" || hostname.startsWith("192.168.") || hostname.startsWith("10.") || hostname.endsWith(".local")
+      );
     };
 
     const isProtectedRoute = (path: string) => {
-      if (path === '/' || path === '/login' || path === '/register') {
+      if (path === "/" || path === "/login" || path === "/register") {
         return false;
       }
       return true;
@@ -75,73 +47,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchProfile = async () => {
       const searchParams = new URLSearchParams(window.location.search);
-      const queryToken = searchParams.get('token');
-      const queryRefreshToken = searchParams.get('refresh_token');
-      const isLogout = searchParams.get('logout') === 'true';
+      const queryToken = searchParams.get("token");
+      const queryRefreshToken = searchParams.get("refresh_token");
+      const isLogout = searchParams.get("logout") === "true";
 
       if (isLogout) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('dev_mock_user');
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("dev_mock_user");
         setUser(null);
 
-        searchParams.delete('logout');
+        searchParams.delete("logout");
         const newSearch = searchParams.toString();
-        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
-        window.history.replaceState({}, '', newPath);
+        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+        window.history.replaceState({}, "", newPath);
       } else if (queryToken && queryRefreshToken) {
-        localStorage.setItem('access_token', queryToken);
-        localStorage.setItem('refresh_token', queryRefreshToken);
+        localStorage.setItem("access_token", queryToken);
+        localStorage.setItem("refresh_token", queryRefreshToken);
 
-        searchParams.delete('token');
-        searchParams.delete('refresh_token');
+        searchParams.delete("token");
+        searchParams.delete("refresh_token");
         const newSearch = searchParams.toString();
-        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
-        window.history.replaceState({}, '', newPath);
+        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+        window.history.replaceState({}, "", newPath);
       }
 
-      let token = localStorage.getItem('access_token');
+      let token = localStorage.getItem("access_token");
       const pathname = window.location.pathname;
 
-      if (token === 'dev-mock-token') {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('dev_mock_user');
+      if (token === "dev-mock-token") {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("dev_mock_user");
         token = null;
       }
 
       if (!token && isLocalEnvironment() && isProtectedRoute(pathname)) {
         try {
-          const role = pathname.startsWith('/admin') ? 'admin' : 'user';
-          const { data } = await apiClient.post('/auth/dev-login', { role });
-          localStorage.removeItem('dev_mock_user');
-          localStorage.setItem('access_token', data.data.access_token);
-          localStorage.setItem('refresh_token', data.data.refresh_token);
+          const role = pathname.startsWith("/admin") ? "admin" : "user";
+          const { data } = await apiClient.post("/auth/dev-login", { role });
+          localStorage.removeItem("dev_mock_user");
+          localStorage.setItem("access_token", data.data.access_token);
+          localStorage.setItem("refresh_token", data.data.refresh_token);
           setUser(data.data.user);
-          _setLoading(false);
+          setLoading(false);
           return;
         } catch (error) {
-          console.error('Auto dev login failed', error);
+          console.error("Auto dev login failed", error);
         }
       }
 
       if (token) {
         try {
-          const { data } = await apiClient.get('/auth/profile');
+          const { data } = await apiClient.get("/auth/profile");
           setUser(data.data);
         } catch (error) {
           console.error("Failed to fetch profile", error);
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('dev_mock_user');
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("dev_mock_user");
           setUser(null);
         }
       }
-      _setLoading(false);
+      setLoading(false);
     };
 
     fetchProfile();
-    */
   }, []);
 
   const login = (access_token: string, refresh_token: string) => {
@@ -166,13 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  return (
-    <AuthContext.Provider
-      value={{ user, loading, login, devLogin, logout, setUser }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, loading, login, devLogin, logout, setUser }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
