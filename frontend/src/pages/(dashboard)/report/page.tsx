@@ -115,7 +115,6 @@ export default function ReportPage() {
 
   return (
     <div className="w-full space-y-6 sm:space-y-8">
-      {/* Page Header */}
       <div className="select-none">
         <h1 className="font-['Cormorant_Garamond']! text-[28px] sm:text-[34px] md:text-[40px] font-semibold! text-[#1B1A16] mb-2 leading-tight">Report</h1>
         <p className="font-['Inter']! text-[13px] sm:text-[14px] md:text-[15px] text-[#523C37] font-normal! leading-relaxed max-w-3xl">
@@ -124,7 +123,6 @@ export default function ReportPage() {
         </p>
       </div>
 
-      {/* Articles Header bar (Search + Filter) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 select-none pt-2">
         <h2 className="font-['Cormorant_Garamond']! text-[22px] sm:text-[26px] font-semibold! text-[#1B1A16]">Articles</h2>
 
@@ -150,7 +148,6 @@ export default function ReportPage() {
         </div>
       </div>
 
-      {/* Loading Skeleton */}
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {[1, 2, 3, 4, 5, 6].map((n) => (

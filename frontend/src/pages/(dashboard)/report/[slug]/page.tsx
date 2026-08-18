@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Calendar, Maximize2, Search, X } from "lucide-react";
+import { ArrowLeft, Calendar, Maximize2, Search, X, FileText, Lock, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../../../api/client";
+import { useAuth } from "../../../../context/AuthContext";
+import { UpgradeModal } from "../../../../components/UpgradeModal";
 
 interface ArticleItem {
   id: string;
@@ -14,6 +16,17 @@ interface ArticleItem {
   isLocked?: boolean;
 }
 
+interface Block {
+  type: "heading" | "text" | "image" | "pdf" | "html";
+  level?: string;
+  content?: string;
+  url?: string;
+  name?: string;
+  thumbnail?: string;
+  activeRole?: string;
+  html?: string;
+}
+
 interface ArticleDetail {
   id: string;
   slug: string;
@@ -21,10 +34,20 @@ interface ArticleDetail {
   subtitle?: string;
   description?: string;
   content: string[];
+  blocks: Block[];
+  html?: string;
   bannerUrl: string;
   date: string;
   isLocked?: boolean;
 }
+
+const ROLE_LEVELS: Record<string, number> = {
+  free: 0,
+  base: 1,
+  standard: 2,
+  premium: 3,
+  admin: 4,
+};
 
 const FilledLock = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
@@ -102,12 +125,30 @@ const formatArticleDate = (dateStr: string): string => {
 export default function ReportDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [userRole, setUserRole] = useState<"free" | "base" | "standard" | "premium" | "admin">("free");
   const [searchQuery, setSearchQuery] = useState("");
   const [article, setArticle] = useState<ArticleDetail | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  useEffect(() => {
+    if (user && user.roles) {
+      const roleOrder = ["free", "base", "standard", "premium", "admin"];
+      let maxRole = "free";
+      for (const r of user.roles) {
+        if (roleOrder.indexOf(r) > roleOrder.indexOf(maxRole)) {
+          maxRole = r;
+        }
+      }
+      setUserRole(maxRole as any);
+    } else {
+      setUserRole("free");
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -138,21 +179,28 @@ export default function ReportDetailPage() {
             parsedParagraphs = [d.description];
           }
 
-          if (parsedParagraphs.length === 0) {
-            parsedParagraphs = [
-              "XRP, the digital asset associated with Ripple Labs, is showing promising technical indicators that suggest potential positive momentum in the coming days.",
-              "Recent on-chain data reveals increased institutional activity with expanding global payment solutions across international financial centers and regulatory sandboxes.",
-              "Detailed frameworks and compliance mechanisms continue to support broader technological adoption and sustainable long-term utility.",
-            ];
+          let parsedBlocks: Block[] = [];
+          if (d.blocks) {
+            if (typeof d.blocks === "string") {
+              try {
+                parsedBlocks = JSON.parse(d.blocks);
+              } catch {
+                // ignore
+              }
+            } else if (Array.isArray(d.blocks)) {
+              parsedBlocks = d.blocks;
+            }
           }
 
           setArticle({
             id: d.id,
             slug: d.slug || d.id,
             title: d.title,
-            subtitle: d.description && d.description.trim().length > 0 ? d.description : "Unlock privileged access with a seamless experience.",
+            subtitle: d.description && d.description.trim().length > 0 ? d.description : undefined,
             description: d.description || "",
             content: parsedParagraphs,
+            blocks: parsedBlocks,
+            html: d.html,
             bannerUrl: d.thumbnail || d.banner_url || "/admin/banner-report.png",
             date: formatArticleDate(d.created_at),
             isLocked: d.required_role ? d.required_role !== "free" : getArticleRequiredRole(d) !== "free",
@@ -189,6 +237,14 @@ export default function ReportDetailPage() {
 
     fetchDetailAndRelated();
   }, [slug]);
+
+  useEffect(() => {
+    if (article?.title) {
+      document.title = `${article.title} — On-Chain Card`;
+    }
+  }, [article?.title]);
+
+  const userLevel = ROLE_LEVELS[userRole] || 0;
 
   return (
     <div className="w-full pb-12">
@@ -291,10 +347,113 @@ export default function ReportDetailPage() {
               </div>
             </div>
 
-            <div className="space-y-4 sm:space-y-5 text-[#523C37] font-['Inter']! text-[14px] sm:text-[15px] md:text-[16px] leading-relaxed font-normal! text-justify">
+            {/* Article Content Paragraphs & Blocks */}
+            <div className="space-y-5 text-[#523C37] font-['Inter']! text-[14px] sm:text-[15px] md:text-[16px] leading-relaxed font-normal! text-justify">
+              {article.html && <div dangerouslySetInnerHTML={{ __html: article.html }} className="prose max-w-none text-[#523C37]" />}
+
               {article.content.map((paragraph, idx) => (
                 <p key={idx}>{paragraph}</p>
               ))}
+
+              {/* Dynamic Blocks Rendering (PDFs, Images, Headings) */}
+              {article.blocks && article.blocks.length > 0 && (
+                <div className="space-y-6 pt-4">
+                  {article.blocks.map((block, bIdx) => {
+                    if (block.type === "heading") {
+                      const HeadingTag = `h${block.level || 2}` as any;
+                      return (
+                        <HeadingTag key={bIdx} className="text-[20px] sm:text-[22px] font-semibold text-[#1B1A16] pt-2">
+                          {block.content}
+                        </HeadingTag>
+                      );
+                    }
+
+                    if (block.type === "text") {
+                      return <p key={bIdx}>{block.content}</p>;
+                    }
+
+                    if (block.type === "image") {
+                      return (
+                        <div key={bIdx} className="w-full rounded-2xl overflow-hidden shadow-sm border border-[#E4D6CA] my-4">
+                          <img src={block.url} alt="" className="w-full h-auto object-cover" />
+                        </div>
+                      );
+                    }
+
+                    if (block.type === "pdf") {
+                      const requiredLevel = ROLE_LEVELS[block.activeRole || "free"] || 0;
+                      const hasPdfAccess = userLevel >= requiredLevel;
+                      const roleName = block.activeRole ? block.activeRole.toUpperCase() : "STANDARD";
+
+                      return (
+                        <div key={bIdx} className="my-8 flex flex-col items-center">
+                          <div className="w-[320px] sm:w-[350px] max-w-full aspect-[1/1.42] bg-[#1E1B18] rounded-[24px] overflow-hidden shadow-2xl flex flex-col justify-between border border-[#D9C8BA]/40 relative select-none group transition-transform hover:scale-[1.01] duration-300">
+                            {/* Real Thumbnail from S3 or Clean Modern Cover */}
+                            {block.thumbnail ? (
+                              <div className="absolute inset-0 w-full h-full">
+                                <img src={block.thumbnail} alt={block.name || article.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/35 to-black/85" />
+                              </div>
+                            ) : (
+                              <div className="absolute inset-0 bg-gradient-to-b from-[#3E2D28] to-[#1E1614] p-6 flex flex-col justify-between">
+                                <div className="flex justify-between items-center text-[#E8D7C9]/70 text-[11px] font-semibold uppercase tracking-wider">
+                                  <span>Official Report</span>
+                                  <span className="bg-white/10 px-2 py-0.5 rounded text-white/90">PDF</span>
+                                </div>
+                                <div className="my-auto py-6">
+                                  <h3 className="text-[20px] font-semibold text-white leading-snug">{block.name || article.title}</h3>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Top Badge Header */}
+                            <div className="relative z-10 flex justify-between items-center p-5">
+                              <span className="bg-black/50 backdrop-blur-md text-white/90 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5">
+                                <FileText size={12} className="text-[#B58F6F]" />
+                                <span>PDF DOCUMENT</span>
+                              </span>
+                              {!hasPdfAccess && (
+                                <span className="bg-red-500/20 text-red-300 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-red-500/30 flex items-center gap-1">
+                                  <Lock className="w-3 h-3" />
+                                  <span>{roleName} ONLY</span>
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Bottom Action Section */}
+                            <div className="relative z-10 p-5 flex flex-col gap-3">
+                              <h4 className="text-white text-[15px] font-semibold line-clamp-2 drop-shadow-md font-['Inter']">{block.name || article.title}</h4>
+
+                              {hasPdfAccess ? (
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/report/${article.slug}/pdf`)}
+                                  className="w-full bg-[#E8D7C9] hover:bg-[#F2E8E0] text-[#523C37] text-[13px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-98"
+                                >
+                                  <span>Đọc báo cáo PDF</span>
+                                  <ExternalLink size={14} />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setShowUpgradeModal(true)}
+                                  className="w-full bg-white/15 hover:bg-white/25 border border-white/20 text-white text-[12px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg backdrop-blur-md"
+                                >
+                                  <Lock className="w-3.5 h-3.5 text-white/80" />
+                                  <span>Yêu cầu gói {roleName} trở lên</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-center text-[#7C6354] text-[13px] mt-3 font-semibold">{block.name || `${article.title}.pdf`}</p>
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -426,6 +585,15 @@ export default function ReportDetailPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onSuccess={() => {
+          setShowUpgradeModal(false);
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

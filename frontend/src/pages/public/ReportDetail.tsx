@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Navbar } from '../../components/Navbar';
-import { ArticleCard } from '../../components/ArticleCard';
-import { useAuth } from '../../context/AuthContext';
-import { Lock } from 'lucide-react';
-import { apiClient } from '../../api/client';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Navbar } from "../../components/Navbar";
+import { ArticleCard } from "../../components/ArticleCard";
+import { useAuth } from "../../context/AuthContext";
+import { Lock } from "lucide-react";
+import { apiClient } from "../../api/client";
 
 interface Block {
-  type: 'heading' | 'text' | 'image' | 'pdf' | 'html';
+  type: "heading" | "text" | "image" | "pdf" | "html";
   level?: string;
   content?: string;
   url?: string;
@@ -41,16 +41,16 @@ const ROLE_LEVELS: Record<string, number> = {
 };
 
 const formatArticleDate = (dateStr: string): string => {
-  if (!dateStr) return '';
+  if (!dateStr) return "";
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
   } catch (e) {
     return dateStr;
@@ -58,24 +58,24 @@ const formatArticleDate = (dateStr: string): string => {
 };
 
 const getArticleRequiredRole = (blocksStr: string | Block[] | undefined): string => {
-  if (!blocksStr) return 'free';
+  if (!blocksStr) return "free";
   try {
-    const blocks = typeof blocksStr === 'string' ? JSON.parse(blocksStr) : blocksStr;
+    const blocks = typeof blocksStr === "string" ? JSON.parse(blocksStr) : blocksStr;
     if (Array.isArray(blocks)) {
-      const pdfBlock = blocks.find(b => b.type === 'pdf');
+      const pdfBlock = blocks.find((b) => b.type === "pdf");
       if (pdfBlock && pdfBlock.activeRole) {
         return pdfBlock.activeRole;
       }
     }
   } catch (e) {
-    console.error('Error parsing article blocks', e);
+    console.error("Error parsing article blocks", e);
   }
-  return 'free';
+  return "free";
 };
 
 export function ReportDetail() {
   const { user, setUser } = useAuth();
-  const [userRole, setUserRole] = useState<'free' | 'base' | 'standard' | 'premium' | 'admin'>('free');
+  const [userRole, setUserRole] = useState<"free" | "base" | "standard" | "premium" | "admin">("free");
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>(); // id is the slug
 
@@ -85,10 +85,10 @@ export function ReportDetail() {
 
   useEffect(() => {
     const verifyTokenAndRoles = async () => {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem("access_token");
       if (token) {
         try {
-          const { data } = await apiClient.get('/auth/profile');
+          const { data } = await apiClient.get("/auth/profile");
           if (data && data.data) {
             setUser(data.data);
           }
@@ -102,8 +102,8 @@ export function ReportDetail() {
 
   useEffect(() => {
     if (user && user.roles) {
-      const roleOrder = ['free', 'base', 'standard', 'premium', 'admin'];
-      let maxRole = 'free';
+      const roleOrder = ["free", "base", "standard", "premium", "admin"];
+      let maxRole = "free";
       for (const r of user.roles) {
         if (roleOrder.indexOf(r) > roleOrder.indexOf(maxRole)) {
           maxRole = r;
@@ -111,7 +111,7 @@ export function ReportDetail() {
       }
       setUserRole(maxRole as any);
     } else {
-      setUserRole('free');
+      setUserRole("free");
     }
   }, [user]);
 
@@ -125,7 +125,7 @@ export function ReportDetail() {
           setArticle(data.data);
         }
       } catch (err) {
-        console.error('Failed to fetch article details', err);
+        console.error("Failed to fetch article details", err);
       } finally {
         setLoading(false);
       }
@@ -140,56 +140,56 @@ export function ReportDetail() {
       // Update meta description
       let metaDesc = document.querySelector('meta[name="description"]');
       if (!metaDesc) {
-        metaDesc = document.createElement('meta');
-        metaDesc.setAttribute('name', 'description');
+        metaDesc = document.createElement("meta");
+        metaDesc.setAttribute("name", "description");
         document.head.appendChild(metaDesc);
       }
-      metaDesc.setAttribute('content', article.seo_description || article.description || '');
+      metaDesc.setAttribute("content", article.seo_description || article.description || "");
 
       // Update meta keywords
       let metaKeywords = document.querySelector('meta[name="keywords"]');
       if (!metaKeywords) {
-        metaKeywords = document.createElement('meta');
-        metaKeywords.setAttribute('name', 'keywords');
+        metaKeywords = document.createElement("meta");
+        metaKeywords.setAttribute("name", "keywords");
         document.head.appendChild(metaKeywords);
       }
-      metaKeywords.setAttribute('content', article.seo_keywords || '');
+      metaKeywords.setAttribute("content", article.seo_keywords || "");
 
       // Update Open Graph tags helper
       const updateOGTag = (property: string, content: string) => {
         let tag = document.querySelector(`meta[property="${property}"]`);
         if (!tag) {
-          tag = document.createElement('meta');
-          tag.setAttribute('property', property);
+          tag = document.createElement("meta");
+          tag.setAttribute("property", property);
           document.head.appendChild(tag);
         }
-        tag.setAttribute('content', content);
+        tag.setAttribute("content", content);
       };
 
-      updateOGTag('og:title', article.seo_title || article.title);
-      updateOGTag('og:description', article.seo_description || article.description || '');
-      updateOGTag('og:image', article.thumbnail || '');
-      updateOGTag('og:url', window.location.href);
-      updateOGTag('og:type', 'article');
+      updateOGTag("og:title", article.seo_title || article.title);
+      updateOGTag("og:description", article.seo_description || article.description || "");
+      updateOGTag("og:image", article.thumbnail || "");
+      updateOGTag("og:url", window.location.href);
+      updateOGTag("og:type", "article");
     }
   }, [article]);
 
   useEffect(() => {
     const fetchRelated = async () => {
       try {
-        const { data } = await apiClient.get('/cms/articles?page=1&page_size=10');
+        const { data } = await apiClient.get("/cms/articles?page=1&page_size=10");
         if (data.success && data.data) {
           setRelatedArticles(data.data.filter((a: any) => a.slug !== id).slice(0, 4));
         }
       } catch (err) {
-        console.error('Failed to fetch related articles', err);
+        console.error("Failed to fetch related articles", err);
       }
     };
     fetchRelated();
   }, [id]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id]);
 
   if (loading) {
@@ -205,7 +205,7 @@ export function ReportDetail() {
       <div className="min-h-screen bg-[#111] flex items-center justify-center text-white font-sans">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Report not found</h2>
-          <button onClick={() => navigate('/reports')} className="px-6 py-2 bg-white text-black rounded-full font-semibold">
+          <button onClick={() => navigate("/reports")} className="px-6 py-2 bg-white text-black rounded-full font-semibold">
             Back to Reports
           </button>
         </div>
@@ -216,11 +216,11 @@ export function ReportDetail() {
   // Parse blocks
   let blocks: Block[] = [];
   if (article.blocks) {
-    if (typeof article.blocks === 'string') {
+    if (typeof article.blocks === "string") {
       try {
         blocks = JSON.parse(article.blocks);
       } catch (e) {
-        console.error('Failed to parse blocks JSON', e);
+        console.error("Failed to parse blocks JSON", e);
       }
     } else if (Array.isArray(article.blocks)) {
       blocks = article.blocks;
@@ -235,59 +235,33 @@ export function ReportDetail() {
       <div className="relative z-10 flex-1 flex flex-col px-6 md:px-12 max-w-[1400px] mx-auto w-full pt-4">
         {/* Main Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 w-full mt-6 mb-16">
-
           {/* Left Column: Report Contents */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             <div>
-              <h1 className="text-3xl md:text-[34px] font-semibold text-white tracking-tight leading-snug">
-                {article.title}
-              </h1>
-              <p className="text-[#8E8E93] text-[14px] font-medium mt-2">
-                {formatArticleDate(article.created_at)}
-              </p>
+              <h1 className="text-3xl md:text-[34px] font-semibold text-white tracking-tight leading-snug">{article.title}</h1>
+              <p className="text-[#8E8E93] text-[14px] font-medium mt-2">{formatArticleDate(article.created_at)}</p>
             </div>
 
             {/* Banner Image */}
             {article.thumbnail && (
               <div className="w-full max-w-[944px] aspect-[944/480] rounded-[24px] overflow-hidden border border-white/5 shadow-2xl">
-                <img
-                  src={article.thumbnail}
-                  alt={article.title}
-                  className="w-full h-full object-cover select-none pointer-events-none"
-                />
+                <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover select-none pointer-events-none" />
               </div>
             )}
 
             {/* Content Headings & Paragraphs sequentially rendered from blocks */}
             <div className="flex flex-col gap-4">
-              {article.html && (
-                <div
-                  className="report-html-block"
-                  dangerouslySetInnerHTML={{ __html: article.html }}
-                />
-              )}
+              {article.html && <div className="report-html-block" dangerouslySetInnerHTML={{ __html: article.html }} />}
               {blocks.map((block, index) => {
-                if (block.type === 'html') {
-                  return (
-                    <div
-                      key={index}
-                      className="report-html-block"
-                      dangerouslySetInnerHTML={{ __html: block.content || block.html || '' }}
-                    />
-                  );
+                if (block.type === "html") {
+                  return <div key={index} className="report-html-block" dangerouslySetInnerHTML={{ __html: block.content || block.html || "" }} />;
                 }
 
                 if (block.html) {
-                  return (
-                    <div
-                      key={index}
-                      className="report-html-block"
-                      dangerouslySetInnerHTML={{ __html: block.html }}
-                    />
-                  );
+                  return <div key={index} className="report-html-block" dangerouslySetInnerHTML={{ __html: block.html }} />;
                 }
 
-                if (block.type === 'heading') {
+                if (block.type === "heading") {
                   const HeadingTag = `h${block.level || 2}` as any;
                   return (
                     <HeadingTag key={index} className="text-xl md:text-[22px] font-semibold text-white leading-snug mt-6">
@@ -296,7 +270,7 @@ export function ReportDetail() {
                   );
                 }
 
-                if (block.type === 'text') {
+                if (block.type === "text") {
                   return (
                     <p key={index} className="text-gray-300 text-[15px] leading-relaxed font-normal">
                       {block.content}
@@ -304,103 +278,91 @@ export function ReportDetail() {
                   );
                 }
 
-                if (block.type === 'image') {
+                if (block.type === "image") {
                   return (
                     <div key={index} className="w-full max-w-[944px] rounded-[24px] overflow-hidden border border-white/5 shadow-2xl my-6">
-                      <img
-                        src={block.url}
-                        alt=""
-                        className="w-full h-auto object-cover select-none pointer-events-none"
-                      />
+                      <img src={block.url} alt="" className="w-full h-auto object-cover select-none pointer-events-none" />
                     </div>
                   );
                 }
 
-                if (block.type === 'pdf') {
-                  const requiredLevel = ROLE_LEVELS[block.activeRole || 'free'] || 0;
+                if (block.type === "pdf") {
+                  const requiredLevel = ROLE_LEVELS[block.activeRole || "free"] || 0;
                   const userLevel = ROLE_LEVELS[userRole] || 0;
                   const hasPdfAccess = userLevel >= requiredLevel;
+                  const roleName = block.activeRole ? block.activeRole.toUpperCase() : "STANDARD";
 
                   return (
-                    <div key={index} className="my-6 flex flex-col items-center">
-                      <div className="w-[340px] max-w-full aspect-[1/1.38] bg-white rounded-[24px] p-6 shadow-2xl flex flex-col justify-between border border-[#e5e7eb] relative select-none group transition-transform hover:scale-[1.01] duration-300">
-                        {/* Header */}
-                        <div className="flex justify-between items-start w-full border-b border-gray-100 pb-3">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-gray-800 tracking-wider">LSEG</span>
-                            <span className="text-[6.5px] font-bold text-gray-500 tracking-tight">DATA & ANALYTICS</span>
+                    <div key={index} className="my-8 flex flex-col items-center">
+                      <div className="w-[320px] sm:w-[350px] max-w-full aspect-[1/1.42] bg-[#1a1a1e] rounded-[24px] overflow-hidden shadow-2xl flex flex-col justify-between border border-white/10 relative select-none group transition-transform hover:scale-[1.01] duration-300">
+                        {/* Real Thumbnail or Clean Document Mockup */}
+                        {block.thumbnail ? (
+                          <div className="absolute inset-0 w-full h-full">
+                            <img src={block.thumbnail} alt={block.name || article.title} className="w-full h-full object-cover" />
+                            {/* Overlay Gradient for readability */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/85" />
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold text-gray-800 tracking-wide">DIFC</span>
-                            <span className="text-[8px] font-semibold text-red-600 border border-red-500/20 px-1 rounded bg-red-50">20</span>
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#242429] to-[#121214] p-6 flex flex-col justify-between">
+                            <div className="flex justify-between items-center text-white/50 text-[11px] font-semibold uppercase tracking-wider">
+                              <span>Official Report</span>
+                              <span className="bg-white/10 px-2 py-0.5 rounded text-white/70">PDF</span>
+                            </div>
+                            <div className="my-auto py-6">
+                              <h3 className="text-[20px] font-semibold text-white leading-snug">{block.name || article.title}</h3>
+                            </div>
                           </div>
+                        )}
+
+                        <div className="relative z-10 flex justify-between items-center p-5">
+                          <span className="bg-black/50 backdrop-blur-md text-white/90 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/10">
+                            PDF DOCUMENT
+                          </span>
+                          {!hasPdfAccess && (
+                            <span className="bg-red-500/20 text-red-300 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-red-500/30 flex items-center gap-1">
+                              <Lock className="w-3 h-3" />
+                              <span>{roleName} ONLY</span>
+                            </span>
+                          )}
                         </div>
 
-                        {/* Cover Title & Geometric Visual Pattern */}
-                        <div className="flex-1 flex flex-col justify-start pt-6">
-                          <h3 className="text-[22px] font-bold text-[#1f2937] leading-tight mb-8">
-                            {(block.name || article.title).length > 20
-                              ? (block.name || article.title).slice(0, 20) + '...'
-                              : (block.name || article.title)}
-                          </h3>
+                        <div className="relative z-10 p-5 flex flex-col gap-3">
+                          <h4 className="text-white text-[15px] font-semibold line-clamp-2 drop-shadow-md">{block.name || article.title}</h4>
 
-                          {/* Concentric hexagonal outline patterns */}
-                          <div className="relative w-44 h-44 mx-auto flex items-center justify-center opacity-90 mt-2">
-                            {[1, 2, 3, 4, 5].map((idx) => {
-                              const scale = 1 - (idx - 1) * 0.15;
-                              const rotation = (idx - 1) * 15;
-                              return (
-                                <div
-                                  key={idx}
-                                  className="absolute border border-emerald-600/30 transition-transform duration-300 group-hover:rotate-[45deg]"
-                                  style={{
-                                    width: `${176 * scale}px`,
-                                    height: `${176 * scale}px`,
-                                    transform: `rotate(${rotation}deg)`,
-                                    clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
-                                  }}
-                                />
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Gradient + Blur overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-black/25 to-black/80 backdrop-blur-[1.5px] rounded-[24px] pointer-events-none" />
-
-                        {/* View Full Report Pill Button */}
-                        <div className="flex justify-center my-6 relative z-10">
                           {hasPdfAccess ? (
                             <button
-                              onClick={() => window.open(`/reports/${article.slug}/pdf`, '_blank')}
-                              className="bg-white border border-gray-200 hover:bg-gray-50 text-black text-[13px] font-semibold px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md"
+                              type="button"
+                              onClick={() => window.open(`/reports/${article.slug}/pdf`, "_blank")}
+                              className="w-full bg-white hover:bg-gray-100 text-black text-[13px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-98"
                             >
                               <span>View full report</span>
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
                                 <line x1="7" y1="17" x2="17" y2="7" />
                                 <polyline points="7 7 17 7 17 17" />
                               </svg>
                             </button>
                           ) : (
                             <button
-                              onClick={() => navigate('/subscriptions')}
-                              className="bg-white border border-gray-200 hover:border-red-500 hover:bg-red-50 text-black hover:text-red-500 text-[13px] font-semibold px-6 py-2.5 rounded-full flex items-center gap-2 transition-all cursor-pointer shadow-md group/btn"
+                              type="button"
+                              onClick={() => navigate("/subscriptions")}
+                              className="w-full bg-white/15 hover:bg-white/25 border border-white/20 text-white text-[12px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg backdrop-blur-md group/btn"
                             >
-                              <Lock className="w-3.5 h-3.5 text-black/60 group-hover/btn:text-red-500 transition-colors" />
-                              <span>Only basic subscription or above is allowed</span>
+                              <Lock className="w-3.5 h-3.5 text-white/80 group-hover/btn:text-red-400 transition-colors" />
+                              <span>Only {roleName} or above is allowed</span>
                             </button>
                           )}
                         </div>
-
-                        {/* Footer text */}
-                        <div className="flex justify-between items-center w-full border-t border-gray-100 pt-3 text-[9px] text-gray-400 font-semibold tracking-tight">
-                          <span>The future is here</span>
-                          <span>difc.ae</span>
-                        </div>
                       </div>
-                      <p className="text-center text-gray-400 text-[13px] mt-3 font-semibold">
-                        {(block.name || `${article.title}.pdf`)}
-                      </p>
+                      <p className="text-center text-gray-400 text-[13px] mt-3 font-semibold">{block.name || `${article.title}.pdf`}</p>
                     </div>
                   );
                 }
@@ -431,13 +393,10 @@ export function ReportDetail() {
                     className="w-full"
                   />
                 ))}
-                {relatedArticles.length === 0 && (
-                  <p className="text-gray-400 text-sm">No related articles found.</p>
-                )}
+                {relatedArticles.length === 0 && <p className="text-gray-400 text-sm">No related articles found.</p>}
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

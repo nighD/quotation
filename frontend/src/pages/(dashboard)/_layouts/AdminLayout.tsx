@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { MenuSidebar } from "./MenuSidebar";
 import { HeaderLayout } from "./HeaderLayout";
+import { usePageMetadata, ADMIN_DEFAULT_METADATA } from "../../../hooks/usePageMetadata";
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+  usePageMetadata(ADMIN_DEFAULT_METADATA);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (

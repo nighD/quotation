@@ -11,6 +11,7 @@ import { AdminDashboard } from "./pages/(dashboard)/admin/AdminDashboard";
 import { NotificationsPage } from "./pages/(dashboard)/admin/NotificationsPage";
 import ReportPage from "./pages/(dashboard)/report/page";
 import ReportDetailPage from "./pages/(dashboard)/report/[slug]/page";
+import DashboardReportPdf from "./pages/(dashboard)/report/[slug]/pdf";
 import BookingPage from "./pages/(dashboard)/booking/page";
 import { AdminLayout } from "./pages/(dashboard)/_layouts";
 
@@ -79,8 +80,10 @@ function AppContent() {
           <Route path="/home" element={<AdminDashboard />} />
           <Route path="/report" element={<ReportPage />} />
           <Route path="/report/:slug" element={<ReportDetailPage />} />
+          <Route path="/report/:slug/pdf" element={<DashboardReportPdf />} />
           <Route path="/admin/report" element={<ReportPage />} />
           <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
+          <Route path="/admin/report/:slug/pdf" element={<DashboardReportPdf />} />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/admin/booking" element={<BookingPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
@@ -125,8 +128,10 @@ function AppContent() {
         <Route path="/home" element={<AdminDashboard />} />
         <Route path="/report" element={<ReportPage />} />
         <Route path="/report/:slug" element={<ReportDetailPage />} />
+        <Route path="/report/:slug/pdf" element={<DashboardReportPdf />} />
         <Route path="/admin/report" element={<ReportPage />} />
         <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
+        <Route path="/admin/report/:slug/pdf" element={<DashboardReportPdf />} />
         <Route path="/booking" element={<BookingPage />} />
         <Route path="/admin/booking" element={<BookingPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
