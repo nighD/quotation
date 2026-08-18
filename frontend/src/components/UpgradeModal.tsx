@@ -30,7 +30,17 @@ export interface UpgradeModalProps {
   onSuccess?: () => void;
 }
 
-export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onRequestUpdated, onSuccess }) => {
+// Cờ tạm thời ẩn Upgrade Modal theo yêu cầu
+const ENABLE_UPGRADE_MODAL = false;
+
+export const UpgradeModal: React.FC<UpgradeModalProps> = (props) => {
+  if (!ENABLE_UPGRADE_MODAL) {
+    return null;
+  }
+  return <UpgradeModalContent {...props} />;
+};
+
+const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onRequestUpdated, onSuccess }) => {
   const { user, setUser } = useAuth();
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeSubmitting, setUpgradeSubmitting] = useState(false);
