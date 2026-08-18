@@ -1,10 +1,16 @@
-import { motion } from 'framer-motion';
-import { Maximize2 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { apiClient } from '../../../../api/client';
+import { motion } from "framer-motion";
+import { Maximize2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiClient } from "../../../../api/client";
 
-const FilledLock = ({ size = 15, className = '' }: { size?: number; className?: string }) => (
+const FilledLock = ({
+  size = 15,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) => (
   <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
     <path
       d="M6.5 10V7a5.5 5.5 0 0 1 11 0v3"
@@ -33,34 +39,37 @@ interface ReportItem {
 }
 
 const getArticleRequiredRole = (article: any): string => {
-  if (!article) return 'free';
+  if (!article) return "free";
   if (article.required_role) return article.required_role;
-  if (!article.blocks) return 'free';
+  if (!article.blocks) return "free";
 
   try {
-    const blocks = typeof article.blocks === 'string' ? JSON.parse(article.blocks) : article.blocks;
+    const blocks =
+      typeof article.blocks === "string"
+        ? JSON.parse(article.blocks)
+        : article.blocks;
     if (Array.isArray(blocks)) {
-      const pdfBlock = blocks.find((block: any) => block.type === 'pdf');
+      const pdfBlock = blocks.find((block: any) => block.type === "pdf");
       if (pdfBlock?.activeRole) {
         return pdfBlock.activeRole;
       }
     }
   } catch (error) {
-    console.error('Failed to parse article blocks', error);
+    console.error("Failed to parse article blocks", error);
   }
 
-  return 'free';
+  return "free";
 };
 
 const formatArticleDate = (dateStr: string): string => {
-  if (!dateStr) return '';
+  if (!dateStr) return "";
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: false,
     });
   } catch {
@@ -77,31 +86,35 @@ export const ReportSection: React.FC = () => {
   const [isDraggingCards, setIsDraggingCards] = useState(false);
   const [reportItems, setReportItems] = useState<ReportItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const startYRef = useRef(0);
   const startScrollTopRef = useRef(0);
 
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
-      setError('');
+      setError("");
       try {
-        const { data } = await apiClient.get('/cms/articles?page=1&page_size=6');
+        const { data } = await apiClient.get(
+          "/cms/articles?page=1&page_size=6",
+        );
         if (data.success) {
-          const items = (data.data || []).slice(0, 4).map((article: any, index: number) => ({
-            id: article.id,
-            slug: article.slug,
-            title: article.title,
-            date: formatArticleDate(article.created_at),
-            description: article.description || article.title,
-            isDark: index % 2 === 1,
-            isLocked: getArticleRequiredRole(article) !== 'free',
-          }));
+          const items = (data.data || [])
+            .slice(0, 4)
+            .map((article: any, index: number) => ({
+              id: article.id,
+              slug: article.slug,
+              title: article.title,
+              date: formatArticleDate(article.created_at),
+              description: article.description || article.title,
+              isDark: index % 2 === 1,
+              isLocked: getArticleRequiredRole(article) !== "free",
+            }));
           setReportItems(items);
         }
       } catch (fetchError) {
-        console.error('Failed to fetch reports', fetchError);
-        setError('Failed to load reports.');
+        console.error("Failed to fetch reports", fetchError);
+        setError("Failed to load reports.");
         setReportItems([]);
       } finally {
         setLoading(false);
@@ -164,45 +177,46 @@ export const ReportSection: React.FC = () => {
     };
 
     if (isDraggingTrack || isDraggingCards) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     }
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDraggingTrack, isDraggingCards]);
 
   useEffect(() => {
     handleScroll();
-    window.addEventListener('resize', handleScroll);
-    return () => window.removeEventListener('resize', handleScroll);
+    window.addEventListener("resize", handleScroll);
+    return () => window.removeEventListener("resize", handleScroll);
   }, []);
 
   return (
-    <div className="bg-white rounded-[28px] p-6 shadow-sm flex flex-col h-full">
-      <div className="flex items-center justify-between mb-5 select-none">
-        <h2 className="text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
+    <div className="w-full bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-sm flex flex-col h-full border border-[#EAE0D6]">
+      <div className="flex items-center justify-between mb-4 sm:mb-5 select-none">
+        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
           Report
         </h2>
         <button
           type="button"
-          onClick={() => navigate('/reports')}
-          className="relative group font-['Inter']! text-[10px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block"
+          onClick={() => navigate("/reports")}
+          className="relative group font-['Inter']! text-[11px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block cursor-pointer"
         >
           <span>XEM TẤT CẢ</span>
           <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-[#664E48] transition-all duration-300 ease-out group-hover:w-full" />
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 flex gap-3 relative">
+      <div className="flex-1 min-h-0 flex gap-2.5 sm:gap-3 relative">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
           onMouseDown={handleCardsMouseDown}
-          className={`flex-1 flex flex-col gap-4 overflow-y-auto pr-1 max-h-140 scrollbar-none min-h-0 select-none ${isDraggingCards ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className={`flex-1 flex flex-col gap-3 sm:gap-4 overflow-y-auto pr-1 max-h-[500px] xl:max-h-[560px] 2xl:max-h-[600px] scrollbar-none min-h-0 select-none ${
+            isDraggingCards ? "cursor-grabbing" : "cursor-grab"
+          }`}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {loading && (
             <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">
@@ -216,59 +230,71 @@ export const ReportSection: React.FC = () => {
             </div>
           )}
 
-          {!loading && !error && reportItems.map((item, index) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, delay: index * 0.05 }}
-              whileHover={{ scale: 1.01, y: -2 }}
-              onClick={() => navigate(`/reports/detail/${item.slug}`)}
-              className={`rounded-2xl p-5 flex flex-col justify-between relative transition-shadow shadow-xs ${item.isDark ? 'bg-[#B58F6F] text-white' : 'bg-[#E8D7C9]'
+          {!loading &&
+            !error &&
+            reportItems.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: index * 0.05 }}
+                whileHover={{ scale: 1.01, y: -2 }}
+                onClick={() => navigate(`/reports/detail/${item.slug}`)}
+                className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative transition-shadow shadow-xs ${
+                  item.isDark ? "bg-[#B58F6F] text-white" : "bg-[#E8D7C9]"
                 } cursor-pointer`}
-            >
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  navigate(`/reports/detail/${item.slug}`);
-                }}
-                className={`absolute top-4 right-4 w-9 h-9 rounded-xl flex items-center justify-center hover:opacity-90 transition cursor-pointer ${item.isDark
-                  ? 'bg-[#E8D7C9] text-[#3D281F]'
-                  : 'bg-[#664E48] text-white'
-                  }`}
               >
-                {item.isLocked ? <FilledLock size={15} /> : <Maximize2 size={15} />}
-              </button>
-
-              <div>
-                <h3
-                  className={`font-['Cormorant_Garamond']! text-[22px] font-semibold! leading-tight ${item.isDark ? 'text-[#F2E8E0]' : 'text-[#664E48]'
-                    }`}
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    navigate(`/reports/detail/${item.slug}`);
+                  }}
+                  className={`absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center hover:opacity-90 transition cursor-pointer ${
+                    item.isDark
+                      ? "bg-[#E8D7C9] text-[#3D281F]"
+                      : "bg-[#664E48] text-white"
+                  }`}
                 >
-                  {item.title}
-                </h3>
-                <p
-                  className={`text-[10px] font-normal! font-['Inter']! uppercase tracking-wider mt-1 ${item.isDark ? 'text-[#F2E8E0]/70' : 'text-[#B58F6F]'
-                    }`}
-                >
-                  {item.date}
-                </p>
+                  {item.isLocked ? (
+                    <FilledLock size={15} />
+                  ) : (
+                    <Maximize2 size={15} />
+                  )}
+                </button>
 
-                <div
-                  className={`h-px w-full my-3 ${item.isDark ? 'bg-[#F2E8E0]/30' : 'bg-[#664E48]/25'
+                <div className="pr-10">
+                  <h3
+                    className={`font-['Cormorant_Garamond']! text-[19px] sm:text-[21px] md:text-[22px] font-semibold! leading-snug ${
+                      item.isDark ? "text-[#F2E8E0]" : "text-[#664E48]"
                     }`}
-                />
+                  >
+                    {item.title}
+                  </h3>
+                  <p
+                    className={`text-[10px] font-normal! font-['Inter']! uppercase tracking-wider mt-1 ${
+                      item.isDark ? "text-[#F2E8E0]/70" : "text-[#B58F6F]"
+                    }`}
+                  >
+                    {item.date}
+                  </p>
 
-                <p
-                  className={`text-[12px] font-normal! font-['Inter']! leading-relaxed line-clamp-3 ${item.isDark ? 'text-[#F2E8E0]/90' : 'text-[#523C37]'
+                  <div
+                    className={`h-px w-full my-2.5 sm:my-3 ${
+                      item.isDark ? "bg-[#F2E8E0]/30" : "bg-[#664E48]/25"
                     }`}
-                >
-                  {item.description}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+                  />
+
+                  <p
+                    className={`text-[12px] font-normal! font-['Inter']! leading-relaxed line-clamp-3 ${
+                      item.isDark ? "text-[#F2E8E0]/90" : "text-[#523C37]"
+                    }`}
+                  >
+                    {item.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
 
           {!loading && !error && reportItems.length === 0 && (
             <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">
@@ -286,10 +312,13 @@ export const ReportSection: React.FC = () => {
             className="w-2 h-full bg-[#F2E8E0] rounded-full relative overflow-hidden cursor-pointer select-none"
           >
             <div
-              className={`w-full bg-[#B58F6F] rounded-full absolute left-0 ${isDraggingTrack || isDraggingCards ? 'transition-none' : 'transition-all duration-150'
-                }`}
+              className={`w-full bg-[#B58F6F] rounded-full absolute left-0 ${
+                isDraggingTrack || isDraggingCards
+                  ? "transition-none"
+                  : "transition-all duration-150"
+              }`}
               style={{
-                height: '35%',
+                height: "35%",
                 top: `${scrollProgress * 65}%`,
               }}
             />

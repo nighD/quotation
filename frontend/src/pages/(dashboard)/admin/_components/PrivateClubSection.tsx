@@ -11,13 +11,13 @@ interface ClubCardItem {
 const clubCards: ClubCardItem[] = [
   {
     id: 1,
-    title: 'Conviction',
+    title: 'Chương trình thí điểm...',
     location: 'HCMC, Viet Nam',
     image: '/admin/card-event-01.png',
   },
   {
     id: 2,
-    title: 'Korea Blockchain Week',
+    title: 'CEO Summit',
     location: 'Seoul, korean',
     image: '/admin/card-event-02.png',
   },
@@ -114,14 +114,14 @@ export const PrivateClubSection: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-white rounded-[28px] p-6 shadow-xs border border-[#eae0d5] overflow-hidden w-full min-w-0">
-      <div className="flex items-center justify-between mb-5 select-none">
-        <h2 className="text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
+    <div className="bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-xs border border-[#eae0d5] overflow-hidden w-full min-w-0">
+      <div className="flex items-center justify-between mb-4 sm:mb-5 select-none">
+        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
           Private Club
         </h2>
         <a
           href="#all"
-          className="relative group font-['Inter']! text-[10px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block"
+          className="relative group font-['Inter']! text-[11px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block"
         >
           <span>XEM TẤT CẢ</span>
           <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-[#664E48] transition-all duration-300 ease-out group-hover:w-full" />
@@ -132,7 +132,7 @@ export const PrivateClubSection: React.FC = () => {
         ref={scrollRef}
         onScroll={handleScroll}
         onMouseDown={handleCardsMouseDown}
-        className={`flex gap-4 overflow-x-auto pb-2 pt-1 w-full max-w-full scrollbar-none min-w-0 touch-pan-x select-none ${isDraggingCards ? 'cursor-grabbing' : 'cursor-grab'
+        className={`flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 w-full max-w-full scrollbar-none min-w-0 touch-pan-x select-none ${isDraggingCards ? 'cursor-grabbing' : 'cursor-grab'
           }`}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
@@ -143,7 +143,7 @@ export const PrivateClubSection: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.25, delay: index * 0.06 }}
             whileHover={{ y: -3 }}
-            className="w-85 h-70 shrink-0 relative rounded-[22px] overflow-hidden group cursor-pointer shadow-xs border border-stone-200/50"
+            className="w-[260px] xs:w-[280px] sm:w-[320px] md:w-[340px] h-[230px] sm:h-[260px] md:h-[270px] shrink-0 relative rounded-[20px] sm:rounded-[22px] overflow-hidden group cursor-pointer shadow-xs border border-stone-200/50"
           >
             <img
               src={card.image}
@@ -154,30 +154,30 @@ export const PrivateClubSection: React.FC = () => {
                   'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80';
               }}
             />
-            <div className="absolute top-3.5 right-3.5 z-10">
-              <span className="bg-[#E09A30] hover:bg-[#d9941b] text-white text-[11px] font-['Inter']! font-medium! px-3.5 py-1.5 rounded-md uppercase tracking-wider shadow-sm transition-colors block">
+            <div className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 z-10">
+              <span className="bg-[#E09A30] hover:bg-[#d9941b] text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium! px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-md uppercase tracking-wider shadow-sm transition-colors block">
                 Đăng Ký
               </span>
             </div>
 
             <div
-              className="absolute bottom-3.5 left-3.5 w-[80%] p-4 rounded-[18px] border border-white/10 flex flex-col gap-1 shadow-lg bg-[#523C37]/40 backdrop-blur-[12px]"
+              className="absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 w-[85%] sm:w-[80%] p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] border border-white/10 flex flex-col gap-0.5 sm:gap-1 shadow-lg bg-[#523C37]/45 backdrop-blur-[12px]"
             >
               <h3
-                className="text-[24px] font-semibold! text-[#F2E8E0] leading-tight tracking-wide font-['Cormorant_Garamond']!"
+                className="text-[20px] sm:text-[22px] md:text-[24px] font-semibold! text-[#F2E8E0] leading-tight tracking-wide font-['Cormorant_Garamond']!"
               >
                 {card.title}
               </h3>
-              <p className="text-[10px]! text-[#B58F6F] font-medium! flex items-center gap-1.5 uppercase tracking-wider font-['Inter']!">
+              <p className="text-[10px] sm:text-[11px]! text-[#B58F6F] font-medium! flex items-center gap-1.5 uppercase tracking-wider font-['Inter']!">
                 <img src="/admin/private/icon-location.png" alt="Location Icon" className="w-3 h-3" />
-                <span>{card.location}</span>
+                <span className="truncate">{card.location}</span>
               </p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      <div className="mt-4 flex items-center">
+      <div className="mt-3 sm:mt-4 flex items-center">
         <div
           ref={trackRef}
           onMouseDown={handleTrackMouseDown}
