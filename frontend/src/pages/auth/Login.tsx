@@ -77,7 +77,6 @@ export function Login() {
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 w-full pb-20">
         <div className="bg-white rounded-[32px] p-8 sm:p-10 md:px-11 md:py-14 w-full max-w-[460px] min-h-[560px] flex flex-col justify-between shadow-xl shadow-[#523C37]/5 border border-[#EBE1D5]">
-          {/* Top Header */}
           <div className="w-full">
             <h2 className="text-[32px] md:text-[38px] font-semibold! text-[#1B1A16] font-['Cormorant_Garamond']! text-center tracking-tight">
               Sign In
@@ -90,13 +89,11 @@ export function Login() {
             )}
           </div>
 
-          {/* Form with Middle Inputs and Bottom Button */}
           <form
             onSubmit={handleEmailSubmit}
             noValidate
             className="flex flex-col justify-between flex-1 mt-6"
           >
-            {/* Middle: Inputs */}
             <div className="flex flex-col gap-5 my-auto">
               <div>
                 <label className="block mb-2.5 text-[14px] font-['Inter'] font-medium text-[#523C37]">
@@ -115,10 +112,11 @@ export function Login() {
                       if (emailError) setEmailError("");
                     }}
                     placeholder="your.email@example.com"
-                    className={`w-full bg-[#F8F1EA] text-[#1B1A16] placeholder:text-[#8B837C]/70 text-[15px] font-['Inter'] rounded-2xl py-4 pl-13 pr-4 outline-none border transition-all ${emailError
+                    className={`w-full bg-[#F8F1EA] text-[#1B1A16] placeholder:text-[#8B837C]/70 text-[15px] font-['Inter'] rounded-2xl py-4 pl-13 pr-4 outline-none border transition-all ${
+                      emailError
                         ? "border-[#9A4D3A] focus:border-[#9A4D3A]"
                         : "border-[#E4D6CA] focus:border-[#B58F6F] focus:bg-white"
-                      }`}
+                    }`}
                   />
                 </div>
                 {emailError && (
@@ -145,10 +143,11 @@ export function Login() {
                       if (passwordError) setPasswordError("");
                     }}
                     placeholder="********"
-                    className={`w-full bg-[#F8F1EA] text-[#1B1A16] placeholder:text-[#8B837C]/70 text-[15px] font-['Inter'] rounded-2xl py-4 pl-13 pr-4 outline-none border transition-all ${passwordError
+                    className={`w-full bg-[#F8F1EA] text-[#1B1A16] placeholder:text-[#8B837C]/70 text-[15px] font-['Inter'] rounded-2xl py-4 pl-13 pr-4 outline-none border transition-all ${
+                      passwordError
                         ? "border-[#9A4D3A] focus:border-[#9A4D3A]"
                         : "border-[#E4D6CA] focus:border-[#B58F6F] focus:bg-white"
-                      }`}
+                    }`}
                   />
                 </div>
                 {passwordError && (
@@ -159,7 +158,6 @@ export function Login() {
               </div>
             </div>
 
-            {/* Bottom: Sign In Button */}
             <div className="flex justify-center pt-6">
               <button
                 type="submit"

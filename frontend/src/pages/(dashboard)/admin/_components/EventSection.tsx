@@ -1,7 +1,9 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
-const CalendarFilledIcon: React.FC<{ className?: string }> = ({ className = "w-3.5 h-3.5 text-[#B58F6F]" }) => (
+const CalendarFilledIcon: React.FC<{ className?: string }> = ({
+  className = "w-3.5 h-3.5 text-[#B58F6F]",
+}) => (
   <svg className={className} viewBox="0 0 16 16" fill="currentColor">
     <path
       fillRule="evenodd"
@@ -11,7 +13,9 @@ const CalendarFilledIcon: React.FC<{ className?: string }> = ({ className = "w-3
   </svg>
 );
 
-const MapPinFilledIcon: React.FC<{ className?: string }> = ({ className = "w-3.5 h-3.5 text-[#B58F6F]" }) => (
+const MapPinFilledIcon: React.FC<{ className?: string }> = ({
+  className = "w-3.5 h-3.5 text-[#B58F6F]",
+}) => (
   <svg className={className} viewBox="0 0 16 16" fill="currentColor">
     <path
       fillRule="evenodd"
@@ -40,21 +44,21 @@ export interface EventSectionProps {
 
 const DEFAULT_EVENTS: EventItemData[] = [
   {
-    id: '1',
-    title: 'Global Summit 2027',
-    date: 'SUN 17 MAY 15:29',
-    location: 'LOCATION ADDRESS HERE',
+    id: "1",
+    title: "Global Summit 2027",
+    date: "SUN 17 MAY 15:29",
+    location: "LOCATION ADDRESS HERE",
   },
   {
-    id: '2',
-    title: 'Global Summit 2027',
-    date: 'SUN 17 MAY 15:29',
-    location: 'LOCATION ADDRESS HERE',
+    id: "2",
+    title: "Global Summit 2027",
+    date: "SUN 17 MAY 15:29",
+    location: "LOCATION ADDRESS HERE",
   },
 ];
 
 export const EventSection: React.FC<EventSectionProps> = ({
-  title = 'New Letter',
+  title = "New Letter",
   events = DEFAULT_EVENTS,
   onDeleteAll,
   onRemind,
@@ -63,18 +67,18 @@ export const EventSection: React.FC<EventSectionProps> = ({
   joinedEventIds = [],
 }) => {
   return (
-    <div className="bg-white rounded-[28px] p-6 md:p-8 shadow-sm border border-[#EBE1D5] relative">
+    <div className="bg-white rounded-3xl sm:rounded-[28px] p-4 sm:p-6 md:p-7 shadow-sm border border-[#EBE1D5] relative">
       {onDeleteAll && (
         <button
           type="button"
           onClick={onDeleteAll}
-          className="absolute top-6 right-6 font-['Inter']! text-[11px] font-medium text-[#6C5345] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 cursor-pointer"
+          className="absolute top-5 right-5 sm:top-6 sm:right-6 font-['Inter']! text-[11px] font-medium text-[#6C5345] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 cursor-pointer"
         >
           XOÁ
         </button>
       )}
 
-      <h2 className="text-center font-['Cormorant_Garamond']! text-[28px] md:text-[32px] font-semibold! text-[#1B1A16] mb-6 tracking-tight">
+      <h2 className="text-center font-['Cormorant_Garamond']! text-[24px] sm:text-[28px] md:text-[30px] font-semibold! text-[#1B1A16] mb-4 sm:mb-5 tracking-tight">
         {title}
       </h2>
 
@@ -89,29 +93,29 @@ export const EventSection: React.FC<EventSectionProps> = ({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: index * 0.05 }}
-              className="py-5 flex items-center justify-between gap-4 border-b border-[#EAE0D6] flex-wrap"
+              className="py-3.5 sm:py-4.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b border-[#EAE0D6]"
             >
-              <div className="flex flex-col gap-3 min-w-0">
-                <h3 className="font-['Inter']! text-[14px] font-normal! text-[#523C37]">
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <h3 className="font-['Inter']! text-[13px] sm:text-[14px] font-medium text-[#523C37]">
                   {event.title}
                 </h3>
-                <div className="flex items-center gap-4 text-[11px] text-[#B58F6F] font-['Inter']! font-medium! uppercase flex-wrap">
-                  <span className="flex items-center gap-1.5">
+                <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] text-[#B58F6F] font-['Inter']! font-medium! uppercase flex-wrap">
+                  <span className="flex items-center gap-1">
                     <CalendarFilledIcon className="w-3.5 h-3.5 text-[#B58F6F]" />
                     {event.date}
                   </span>
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1">
                     <MapPinFilledIcon className="w-3.5 h-3.5 text-[#B58F6F]" />
                     {event.location}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 self-start sm:self-center">
                 <button
                   type="button"
                   onClick={() => onRemind?.(event)}
-                  className="bg-[#E8D9CC] text-[#6C5345] text-[11px] font-['Inter']! font-medium px-5 py-2.5 rounded-[12px] hover:bg-[#dfcebf] transition uppercase tracking-wider cursor-pointer active:scale-95"
+                  className="bg-[#E8D9CC] text-[#6C5345] text-[10px] sm:text-[11px] font-['Inter']! font-medium px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-[12px] hover:bg-[#dfcebf] transition uppercase tracking-wider cursor-pointer active:scale-95"
                 >
                   NHẮC TÔI
                 </button>
@@ -119,14 +123,19 @@ export const EventSection: React.FC<EventSectionProps> = ({
                   type="button"
                   onClick={() => onJoin?.(event)}
                   disabled={isJoining || isJoined}
-                  className={`text-white text-[11px] font-['Inter']! font-medium px-5 py-2.5 rounded-[12px] transition uppercase tracking-wider cursor-pointer active:scale-95 ${isJoined
-                    ? 'bg-[#5C4538] cursor-default'
-                    : isJoining
-                      ? 'bg-[#9E7C62] cursor-wait'
-                      : 'bg-[#B08461] hover:bg-[#9e7553]'
-                    }`}
+                  className={`text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-[12px] transition uppercase tracking-wider cursor-pointer active:scale-95 ${
+                    isJoined
+                      ? "bg-[#5C4538] cursor-default"
+                      : isJoining
+                        ? "bg-[#9E7C62] cursor-wait"
+                        : "bg-[#B08461] hover:bg-[#9e7553]"
+                  }`}
                 >
-                  {isJoined ? 'ĐÃ ĐĂNG KÝ' : isJoining ? 'ĐANG XỬ LÝ...' : 'ĐĂNG KÝ NHẬN'}
+                  {isJoined
+                    ? "ĐÃ ĐĂNG KÝ"
+                    : isJoining
+                      ? "ĐANG XỬ LÝ..."
+                      : "ĐĂNG KÝ NHẬN"}
                 </button>
               </div>
             </motion.div>
@@ -136,5 +145,3 @@ export const EventSection: React.FC<EventSectionProps> = ({
     </div>
   );
 };
-
-
