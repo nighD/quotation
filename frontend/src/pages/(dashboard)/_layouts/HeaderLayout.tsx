@@ -1,5 +1,5 @@
-import React from "react";
-import { LogOut, Menu } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Menu, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -12,10 +12,33 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
 }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
+    setDropdownOpen(false);
     logout();
-    navigate("/login");
+    const isProd = import.meta.env.PROD;
+    const isVercel = window.location.hostname.includes("vercel.app");
+    const isCustomDomain = window.location.hostname.includes("goealliance.org");
+    if (isProd && !isVercel && !isCustomDomain) {
+      window.location.href = "https://dashboard.vifcpass.com/login";
+    } else {
+      navigate("/login");
+    }
   };
 
   return (
@@ -42,7 +65,7 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
         </Link>
       </div>
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 relative" ref={dropdownRef}>
         <div className="text-right hidden xs:block">
           <span className="block text-[10px] uppercase font-['Inter'] font-semibold tracking-wider text-[#B58F6F]">
             {user?.roles?.includes("admin") ? "ADMIN" : "VIP MEMBER"}
@@ -52,7 +75,11 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
           </span>
         </div>
 
-        <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-xs shrink-0">
+        <button
+          type="button"
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-xs shrink-0 cursor-pointer focus:outline-none"
+        >
           <img
             src={
               user?.avatar_url ||
@@ -61,17 +88,23 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
             alt={user?.full_name || "User Avatar"}
             className="w-full h-full object-cover"
           />
-        </div>
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          aria-label="Đăng xuất"
-          title="Đăng xuất"
-          className="w-9 h-9 rounded-xl bg-white/90 border border-stone-200/80 flex items-center justify-center text-[#664E48] hover:text-[#9A4D3A] hover:bg-[#F9ECE8] hover:border-[#E8D7C9] shadow-xs cursor-pointer transition-all active:scale-95 ml-0.5"
-        >
-          <LogOut size={16} strokeWidth={2.2} />
         </button>
+
+        {/* Dropdown Popup */}
+        {dropdownOpen && (
+          <div className="absolute right-0 top-[120%] mt-2 w-48 bg-white rounded-xl shadow-lg p-2 z-50 text-left border border-stone-100 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-[#9A4D3A] hover:bg-[#F8E4DD] rounded-lg p-2 transition-colors font-medium text-[14px] cursor-pointer w-full text-left"
+              >
+                <LogOut size={16} />
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

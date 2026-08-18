@@ -1,5 +1,5 @@
-import { ChevronRight, LogOut, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronRight, X, LogOut } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../../context/AuthContext";
@@ -41,6 +41,33 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
   const location = useLocation();
   const navigate = useNavigate();
   const { user, setUser, logout } = useAuth();
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    setProfileDropdownOpen(false);
+    logout();
+    const isProd = import.meta.env.PROD;
+    const isVercel = window.location.hostname.includes("vercel.app");
+    const isCustomDomain = window.location.hostname.includes("goealliance.org");
+    if (isProd && !isVercel && !isCustomDomain) {
+      window.location.href = "https://dashboard.vifcpass.com/login";
+    } else {
+      navigate("/login");
+    }
+  };
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeSubmitting, setUpgradeSubmitting] = useState(false);
@@ -337,18 +364,19 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
           </AnimatePresence>
 
           {/* User Profile */}
-          <div
-            className={`pt-3 border-t border-stone-100 flex items-center justify-between transition-all ${collapsedState ? "flex-col gap-2.5 justify-center py-1" : "px-2"}`}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative shrink-0" title={user?.full_name || "User Avatar"}>
+          <div className="relative" ref={profileDropdownRef}>
+            <button 
+              type="button" 
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              className={`w-full pt-3 border-t border-stone-100 flex items-center cursor-pointer hover:bg-stone-50 rounded-lg transition-all ${collapsedState ? "justify-center pb-2" : "px-2 pb-2 justify-start gap-3"}`}
+            >
+              <div className="relative shrink-0">
                 <img
                   src={user?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"}
                   alt={user?.full_name || "User Avatar"}
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-stone-200 shadow-xs"
                 />
               </div>
-
               <AnimatePresence mode="wait">
                 {!collapsedState && (
                   <motion.div
@@ -356,7 +384,7 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -8 }}
                     transition={{ duration: 0.18 }}
-                    className="flex flex-col min-w-0 overflow-hidden"
+                    className="flex flex-col min-w-0 overflow-hidden text-left"
                   >
                     <span className="text-stone-400 text-[11px] sm:text-[12px] font-normal leading-tight truncate">Welcome back 👋</span>
                     <span className="text-stone-900 font-bold text-[13px] sm:text-[14px] leading-snug truncate font-poppins">
@@ -365,20 +393,23 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                logout();
-                navigate("/login");
-              }}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-stone-400 hover:text-[#9A4D3A] hover:bg-[#F9ECE8] transition-colors cursor-pointer shrink-0"
-              title="Đăng xuất"
-              aria-label="Đăng xuất"
-            >
-              <LogOut size={16} strokeWidth={2.2} />
             </button>
+
+            {/* Dropdown Popup */}
+            {profileDropdownOpen && (
+              <div className="absolute left-0 bottom-[110%] mb-1 w-full min-w-[200px] bg-white rounded-xl shadow-lg p-2 z-50 text-left border border-stone-100 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 text-[#9A4D3A] hover:bg-[#F8E4DD] rounded-lg p-2 transition-colors font-medium text-[14px] cursor-pointer w-full text-left"
+                  >
+                    <LogOut size={16} />
+                    <span>Log out</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
