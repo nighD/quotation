@@ -134,7 +134,7 @@ export function AdminDashboard() {
             Xin chào,
           </span>{" "}
           <span className="text-[24px] sm:text-[28px] md:text-[30px] font-semibold! bg-linear-to-r from-[#3C2A25] to-[#2E211D] bg-clip-text text-transparent">
-            {user?.full_name || "Hoàng Vương (Admin)"}
+            {user?.full_name ? `${user.full_name} (${user.roles?.includes("admin") ? "Admin" : "User"})` : "Hoàng Vương (Admin)"}
           </span>
         </h1>
       </header>

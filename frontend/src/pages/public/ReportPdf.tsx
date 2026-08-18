@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { apiClient } from '../../api/client';
-import { Loader2, Lock, ArrowLeft, Shield } from 'lucide-react';
+import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { apiClient } from "../../api/client";
+import { Loader2, Lock, ArrowLeft, Shield } from "lucide-react";
 
 const ROLE_LEVELS: Record<string, number> = {
   free: 0,
@@ -13,10 +13,10 @@ const ROLE_LEVELS: Record<string, number> = {
 };
 
 const ROLE_PLAN_NAMES: Record<string, string> = {
-  free: 'Free',
-  base: 'Monthly Basic',
-  standard: 'Quarterly Pro',
-  premium: 'Annual Premium',
+  free: "Free",
+  base: "Monthly Basic",
+  standard: "Quarterly Pro",
+  premium: "Annual Premium",
 };
 
 // Dynamically load PDF.js script from cdnjs and configure worker
@@ -27,19 +27,19 @@ const loadPdfJS = (): Promise<any> => {
       return;
     }
 
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js";
     script.async = true;
     script.onload = () => {
       const pdfjsLib = (window as any).pdfjsLib;
       if (pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
         resolve(pdfjsLib);
       } else {
-        reject(new Error('PDF.js global library (pdfjsLib) was not found on the window object.'));
+        reject(new Error("PDF.js global library (pdfjsLib) was not found on the window object."));
       }
     };
-    script.onerror = () => reject(new Error('Failed to download PDF.js library from CDN.'));
+    script.onerror = () => reject(new Error("Failed to download PDF.js library from CDN."));
     document.head.appendChild(script);
   });
 };
@@ -66,7 +66,7 @@ function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
         // Base width of 1000px ensures sharp text even when scaled up
@@ -79,7 +79,7 @@ function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
         const dpr = window.devicePixelRatio || 1;
         canvas.width = viewport.width * dpr;
         canvas.height = viewport.height * dpr;
-        
+
         // Scale back the context drawing commands to look crisp
         ctx.scale(dpr, dpr);
 
@@ -100,36 +100,36 @@ function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
 
         // Draw dynamic watermarking overlays on the canvas
         ctx.save();
-        ctx.font = 'bold 13px Poppins, sans-serif';
-        ctx.fillStyle = 'rgba(128, 128, 128, 0.15)';
-        ctx.textAlign = 'center';
-        
-        const dateString = new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
+        ctx.font = "bold 13px Poppins, sans-serif";
+        ctx.fillStyle = "rgba(128, 128, 128, 0.15)";
+        ctx.textAlign = "center";
+
+        const dateString = new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
         });
-        const watermarkText = `VIFC PASS • SECURE PREVIEW • ${userEmail || 'authorized-user'} • ${dateString}`;
-        
+        const watermarkText = `VIFC PASS • SECURE PREVIEW • ${userEmail || "authorized-user"} • ${dateString}`;
+
         // Center the coordinate space and rotate
         ctx.translate(viewport.width / 2, viewport.height / 2);
-        ctx.rotate(-35 * Math.PI / 180);
-        
+        ctx.rotate((-35 * Math.PI) / 180);
+
         // Grid distribution for watermark lines
         const stepY = 140;
         const startY = -viewport.height;
         const endY = viewport.height;
-        
+
         for (let y = startY; y < endY; y += stepY) {
           ctx.fillText(watermarkText, -viewport.width / 3, y);
           ctx.fillText(watermarkText, 0, y + 70);
           ctx.fillText(watermarkText, viewport.width / 3, y);
         }
-        
+
         ctx.restore();
         setLoading(false);
       } catch (err: any) {
-        if (err.name !== 'RenderingCancelledException') {
+        if (err.name !== "RenderingCancelledException") {
           console.error(`Page ${pageNumber} render failed:`, err);
         }
       }
@@ -153,16 +153,12 @@ function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
           <span className="text-[12px] text-gray-500 font-medium">Decrypting and rendering page {pageNumber}...</span>
         </div>
       )}
-      <canvas
-        ref={canvasRef}
-        style={{ width: '100%', height: 'auto' }}
-        className="block select-none pointer-events-none"
-      />
+      <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} className="block select-none pointer-events-none" />
       {/* Invisible overlay shield catching all clicks, context menus, dragging */}
       <div
         className="absolute inset-0 z-10 bg-transparent select-none cursor-default"
         onContextMenu={(e) => e.preventDefault()}
-        style={{ userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }}
+        style={{ userSelect: "none", WebkitUserSelect: "none", pointerEvents: "auto" }}
       />
     </div>
   );
@@ -172,12 +168,12 @@ export function ReportPdf() {
   const { id } = useParams<{ id: string }>(); // id is the slug
   const navigate = useNavigate();
   const { user, setUser, loading: authLoading } = useAuth();
-  
+
   const checkStarted = useRef(false);
   const [unauthorized, setUnauthorized] = useState(false);
-  const [requiredPlanName, setRequiredPlanName] = useState('Annual Premium');
+  const [requiredPlanName, setRequiredPlanName] = useState("Annual Premium");
   const [checkingAccess, setCheckingAccess] = useState(true);
-  const [articleTitle, setArticleTitle] = useState<string>('Secure Document View');
+  const [articleTitle, setArticleTitle] = useState<string>("Secure Document View");
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [pdfLoadError, setPdfLoadError] = useState(false);
@@ -186,11 +182,11 @@ export function ReportPdf() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Intercept Save (Ctrl/Cmd + S)
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
       }
       // Intercept Print (Ctrl/Cmd + P)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
         e.preventDefault();
       }
     };
@@ -199,11 +195,11 @@ export function ReportPdf() {
       e.preventDefault();
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("contextmenu", handleContextMenu);
 
     // Dynamic print blocking stylesheet
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.innerHTML = `
       @media print {
         body { display: none !important; }
@@ -213,8 +209,8 @@ export function ReportPdf() {
     document.head.appendChild(style);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("contextmenu", handleContextMenu);
       document.head.removeChild(style);
     };
   }, []);
@@ -227,16 +223,16 @@ export function ReportPdf() {
 
       // 1. Check if user is logged in
       if (!user) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
 
       // 2. Validate token and refresh profile
       let activeUser = user;
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem("access_token");
       if (token) {
         try {
-          const { data } = await apiClient.get('/auth/profile');
+          const { data } = await apiClient.get("/auth/profile");
           if (data && data.data) {
             activeUser = data.data;
             setUser(data.data);
@@ -247,28 +243,26 @@ export function ReportPdf() {
       }
 
       // 3. Fetch article to get required PDF role
-      let requiredRole = 'premium'; // default fallback
+      let requiredRole = "premium"; // default fallback
       try {
         const { data } = await apiClient.get(`/cms/articles/${id}`);
         if (data.success && data.data) {
           if (data.data.title) {
             setArticleTitle(data.data.title);
           }
-          const blocks = typeof data.data.blocks === 'string' 
-            ? JSON.parse(data.data.blocks) 
-            : data.data.blocks;
+          const blocks = typeof data.data.blocks === "string" ? JSON.parse(data.data.blocks) : data.data.blocks;
           if (Array.isArray(blocks)) {
-            const pdfBlock = blocks.find((b: any) => b.type === 'pdf');
+            const pdfBlock = blocks.find((b: any) => b.type === "pdf");
             if (pdfBlock && pdfBlock.activeRole) {
               requiredRole = pdfBlock.activeRole;
             }
           }
         }
       } catch (err) {
-        console.error('Failed to fetch article for PDF role check', err);
+        console.error("Failed to fetch article for PDF role check", err);
       }
 
-      const planToShow = ROLE_PLAN_NAMES[requiredRole] || 'Annual Premium';
+      const planToShow = ROLE_PLAN_NAMES[requiredRole] || "Annual Premium";
       setRequiredPlanName(planToShow);
 
       // 4. Verify access
@@ -292,16 +286,16 @@ export function ReportPdf() {
       try {
         const pdfjs = await loadPdfJS();
         const response = await apiClient.get(`/cms/reports/${id}/pdf`, {
-          responseType: 'arraybuffer'
+          responseType: "arraybuffer",
         });
-        
+
         const pdfData = new Uint8Array(response.data);
         const doc = await pdfjs.getDocument({ data: pdfData }).promise;
-        
+
         setPdfDoc(doc);
         setNumPages(doc.numPages);
       } catch (err) {
-        console.error('Failed to load secure PDF:', err);
+        console.error("Failed to load secure PDF:", err);
         setPdfLoadError(true);
       } finally {
         setCheckingAccess(false);
@@ -317,9 +311,7 @@ export function ReportPdf() {
       <div className="min-h-screen bg-[#0f0f10] flex flex-col items-center justify-center text-white font-poppins">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-10 h-10 animate-spin text-white/50" />
-          <p className="text-sm font-medium tracking-wide text-gray-400">
-            Verifying credentials & decrypting document...
-          </p>
+          <p className="text-sm font-medium tracking-wide text-gray-400">Verifying credentials & decrypting document...</p>
         </div>
       </div>
     );
@@ -328,7 +320,7 @@ export function ReportPdf() {
   // Access Denied state
   if (unauthorized) {
     return (
-      <div 
+      <div
         className="min-h-screen bg-[#0f0f10] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center p-6 text-white font-poppins relative"
         style={{ backgroundImage: "url('/bg.png')" }}
       >
@@ -336,32 +328,29 @@ export function ReportPdf() {
         <div className="absolute w-[350px] h-[350px] rounded-full bg-red-500/5 blur-[80px] -top-10 -left-10 pointer-events-none"></div>
         <div className="absolute w-[400px] h-[400px] rounded-full bg-emerald-500/5 blur-[100px] -bottom-20 -right-20 pointer-events-none"></div>
 
-        <div className="relative z-10 max-w-[420px] w-full bg-[#161618]/85 border border-white/10 p-8 md:p-10 rounded-[32px] text-center shadow-2xl backdrop-blur-xl flex flex-col items-center gap-6">
+        <div className="relative z-10 max-w-[420px] w-full bg-[#161618]/85 border border-white/10 p-8 md:p-10 rounded-4xl text-center shadow-2xl backdrop-blur-xl flex flex-col items-center gap-6">
           <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500/90 shadow-[0_0_30px_rgba(239,68,68,0.15)] animate-pulse">
             <Lock className="w-7 h-7" />
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] uppercase tracking-[0.25em] font-bold text-red-500/90">
-              Error 403 • Access Denied
-            </span>
-            <h1 className="text-[26px] font-semibold tracking-tight text-white leading-tight">
-              Access Restricted
-            </h1>
+            <span className="text-[11px] uppercase tracking-[0.25em] font-bold text-red-500/90">Error 403 • Access Denied</span>
+            <h1 className="text-[26px] font-semibold tracking-tight text-white leading-tight">Access Restricted</h1>
             <p className="text-gray-400 text-[14px] leading-relaxed font-medium mt-1 px-2">
-              The PDF report you are trying to view is either unavailable or requires an active <strong className="text-white">{requiredPlanName}</strong> subscription.
+              The PDF report you are trying to view is either unavailable or requires an active <strong className="text-white">{requiredPlanName}</strong>{" "}
+              subscription.
             </p>
           </div>
 
           <div className="flex flex-col gap-3 w-full mt-2">
             <button
-              onClick={() => navigate('/subscriptions')}
+              onClick={() => navigate("/subscriptions")}
               className="w-full py-3.5 bg-white text-black hover:bg-gray-100 rounded-full font-semibold transition-all shadow-md active:scale-[0.99] cursor-pointer"
             >
               Upgrade Membership
             </button>
             <button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate("/home")}
               className="w-full py-3.5 bg-[#252528] text-white hover:bg-[#323236] border border-white/5 rounded-full font-semibold transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -377,14 +366,10 @@ export function ReportPdf() {
   if (pdfLoadError) {
     return (
       <div className="min-h-screen bg-[#0f0f10] flex flex-col items-center justify-center p-6 text-white font-poppins">
-        <div className="max-w-[420px] w-full bg-[#161618] border border-white/10 p-8 rounded-[32px] text-center shadow-xl flex flex-col items-center gap-5">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
-            !
-          </div>
+        <div className="max-w-[420px] w-full bg-[#161618] border border-white/10 p-8 rounded-4xl text-center shadow-xl flex flex-col items-center gap-5">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">!</div>
           <h2 className="text-xl font-semibold">Failed to Load Document</h2>
-          <p className="text-gray-400 text-sm">
-            An error occurred while loading this document. Please try again or contact support if the issue persists.
-          </p>
+          <p className="text-gray-400 text-sm">An error occurred while loading this document. Please try again or contact support if the issue persists.</p>
           <button
             onClick={() => navigate(`/reports/detail/${id}`)}
             className="w-full py-3 bg-[#252528] hover:bg-[#323236] rounded-full font-semibold transition-all active:scale-[0.99] cursor-pointer"
@@ -410,16 +395,12 @@ export function ReportPdf() {
         </button>
 
         <div className="flex-1 text-center px-4 max-w-[50%] md:max-w-[60%]">
-          <h2 className="text-white text-sm md:text-base font-semibold truncate">
-            {articleTitle}
-          </h2>
+          <h2 className="text-white text-sm md:text-base font-semibold truncate">{articleTitle}</h2>
         </div>
 
         <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full shadow-sm text-emerald-400">
           <Shield className="w-3.5 h-3.5" />
-          <span className="text-[11px] font-bold uppercase tracking-wider select-none">
-            Secure Preview
-          </span>
+          <span className="text-[11px] font-bold uppercase tracking-wider select-none">Secure Preview</span>
         </div>
       </header>
 
@@ -427,12 +408,7 @@ export function ReportPdf() {
       <main className="flex-1 overflow-y-auto px-4 md:px-8 py-10 bg-[#0c0c0d]">
         <div className="max-w-[840px] mx-auto w-full flex flex-col items-center">
           {Array.from({ length: numPages }).map((_, index) => (
-            <PageRenderer
-              key={index}
-              pageNumber={index + 1}
-              pdfDoc={pdfDoc}
-              userEmail={user?.email}
-            />
+            <PageRenderer key={index} pageNumber={index + 1} pdfDoc={pdfDoc} userEmail={user?.email} />
           ))}
         </div>
       </main>

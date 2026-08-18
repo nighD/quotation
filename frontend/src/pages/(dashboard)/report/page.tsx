@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Filter, Maximize2, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiClient } from "../../../api/client";
 
-interface Article {
-  id: number;
+interface ArticleItem {
+  id: string;
+  slug: string;
   title: string;
   date: string;
   description: string;
@@ -18,76 +20,96 @@ const FilledLock = ({ size = 16, className = "" }: { size?: number; className?: 
     <path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M4 9.5C3.17157 9.5 2.5 10.1716 2.5 11V19.5C2.5 20.8807 3.61929 22 5 22H19C20.3807 22 21.5 20.8807 21.5 19.5V11C21.5 10.1716 20.8284 9.5 20 9.5H4ZM12 13C11.1716 13 10.5 13.6716 10.5 14.5C10.5 15.15 10.91 15.7 11.48 15.91L11.1 18.2C11.04 18.57 11.33 18.9 11.7 18.9H12.3C12.67 18.9 12.96 18.57 12.9 18.2L12.52 15.91C13.09 15.7 13.5 15.15 13.5 14.5C13.5 13.6716 12.8284 13 12 13Z"
+      d="M4 9.5C3.17157 9.5 2.5 10.1716 2.5 11V19.5C2.5 20.8807 3.61929 22 5 22H19C20.3807 22 21.5 20.8807 21.5 19.5V11C21.5 10.1716 20.8284 9.5 20 9.5H4ZM12 13C11.1716 13 10.5 13.6716 10.5 14.5C10.5 15.15 10.91 15.7 11.48 15.91L11.1 18.2C11.04 18.57 11.33 18.9 11.7 18.9H12.3C12.67 18.9 12.96 18.57 12.52 15.91C13.09 15.7 13.5 15.15 13.5 14.5C13.5 13.6716 12.8284 13 12 13Z"
       fill="currentColor"
     />
   </svg>
 );
 
-const INITIAL_ARTICLES: Article[] = [
-  {
-    id: 1,
-    title: "Article Name 01",
-    date: "SUN 17 MAY 15:29",
-    description:
-      "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including...",
-    isDark: false,
-    isLocked: false,
-  },
-  {
-    id: 2,
-    title: "Article Name 01",
-    date: "SUN 17 MAY 15:29",
-    description:
-      "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including...",
-    isDark: true,
-    isLocked: true,
-  },
-  {
-    id: 3,
-    title: "Article Name 01",
-    date: "SUN 17 MAY 15:29",
-    description:
-      "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including...",
-    isDark: false,
-    isLocked: false,
-  },
-  {
-    id: 4,
-    title: "Article Name 01",
-    date: "SUN 17 MAY 15:29",
-    description:
-      "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including...",
-    isDark: true,
-    isLocked: true,
-  },
-  {
-    id: 5,
-    title: "Article Name 01",
-    date: "SUN 17 MAY 15:29",
-    description:
-      "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including...",
-    isDark: false,
-    isLocked: false,
-  },
-  {
-    id: 6,
-    title: "Article Name 01",
-    date: "SUN 17 MAY 15:29",
-    description:
-      "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including.Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including...",
-    isDark: false,
-    isLocked: false,
-  },
-];
+const getArticleRequiredRole = (article: any): string => {
+  if (!article) return "free";
+  if (article.required_role) return article.required_role;
+  if (!article.blocks) return "free";
+
+  try {
+    const blocks = typeof article.blocks === "string" ? JSON.parse(article.blocks) : article.blocks;
+    if (Array.isArray(blocks)) {
+      const pdfBlock = blocks.find((block: any) => block.type === "pdf");
+      if (pdfBlock?.activeRole) {
+        return pdfBlock.activeRole;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return "free";
+};
+
+const formatArticleDate = (dateStr: string): string => {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  } catch {
+    return dateStr;
+  }
+};
 
 export default function ReportPage() {
   const navigate = useNavigate();
+  const [articles, setArticles] = useState<ArticleItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null);
 
-  const filteredArticles = INITIAL_ARTICLES.filter(
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const { data } = await apiClient.get(`/cms/articles?page=${currentPage}&page_size=6`);
+        if (data.success && Array.isArray(data.data)) {
+          const mapped: ArticleItem[] = data.data.map((item: any, index: number) => ({
+            id: item.id,
+            slug: item.slug || item.id,
+            title: item.title,
+            date: formatArticleDate(item.created_at),
+            description:
+              item.description && item.description.trim().length > 0
+                ? item.description
+                : "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits, including detailed market analysis and forecasts.",
+            isDark: index % 2 === 1,
+            isLocked: item.required_role ? item.required_role !== "free" : getArticleRequiredRole(item) !== "free",
+          }));
+          setArticles(mapped);
+
+          if (data.meta) {
+            const pages = data.meta.total_pages || Math.ceil((data.meta.total_items || data.meta.total || mapped.length) / 6) || 1;
+            setTotalPages(Math.max(1, pages));
+          }
+        }
+      } catch (err: any) {
+        console.error("Failed to fetch articles:", err);
+        setError("Không thể tải danh sách bài viết.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, [currentPage]);
+
+  const filteredArticles = articles.filter(
     (art) => art.title.toLowerCase().includes(searchQuery.toLowerCase()) || art.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
@@ -128,10 +150,37 @@ export default function ReportPage() {
         </div>
       </div>
 
+      {/* Loading Skeleton */}
+      {loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <div
+              key={n}
+              className="rounded-2xl sm:rounded-3xl p-5 sm:p-6 bg-[#E8D7C9]/50 animate-pulse min-h-56 flex flex-col justify-between border border-[#dfd3c7]/60"
+            >
+              <div>
+                <div className="h-6 bg-[#D2C2B3]/60 rounded-md w-3/4 mb-3" />
+                <div className="h-3 bg-[#D2C2B3]/40 rounded-md w-1/3 mb-4" />
+                <div className="h-px w-full bg-[#D2C2B3]/40 my-3" />
+                <div className="space-y-2">
+                  <div className="h-3 bg-[#D2C2B3]/40 rounded-md w-full" />
+                  <div className="h-3 bg-[#D2C2B3]/40 rounded-md w-5/6" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Error state */}
+      {!loading && error && <div className="rounded-2xl bg-[#F9ECE8] p-6 text-[13px] font-['Inter']! text-[#9A4D3A] text-center">{error}</div>}
+
       {/* Articles Grid */}
-      {filteredArticles.length === 0 ? (
+      {!loading && !error && filteredArticles.length === 0 && (
         <div className="text-center py-12 text-[#664E48] font-['Inter'] text-sm">No articles found matching your search.</div>
-      ) : (
+      )}
+
+      {!loading && !error && filteredArticles.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredArticles.map((article, index) => (
             <motion.div
@@ -140,7 +189,7 @@ export default function ReportPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: index * 0.05 }}
               whileHover={{ y: -3 }}
-              onClick={() => navigate(`/report/${article.id}`)}
+              onClick={() => navigate(`/report/${article.slug || article.id}`)}
               className={`rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col justify-between min-h-[220px] sm:min-h-57.5 shadow-xs border transition-all cursor-pointer ${
                 article.isDark ? "bg-[#B58F6F] text-[#F2E8E0] border-[#a67e63]" : "bg-[#E8D7C9] text-[#523C37] border-[#dfd3c7]"
               }`}
@@ -168,7 +217,7 @@ export default function ReportPage() {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/report/${article.id}`);
+                      navigate(`/report/${article.slug || article.id}`);
                     }}
                     className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg transition-all duration-200 cursor-pointer shrink-0 active:scale-95 flex items-center justify-center ${
                       article.isLocked
@@ -186,9 +235,7 @@ export default function ReportPage() {
                 <div className={`h-px w-full my-3 ${article.isDark ? "bg-[#F2E8E0]/30" : "bg-[#664E48]/25"}`} />
 
                 <p
-                  className={`font-['Inter']! font-normal! text-xs sm:text-sm! leading-relaxed line-clamp-4 ${
-                    article.isDark ? "text-[#1B1A16]" : "text-[#523C37]"
-                  }`}
+                  className={`font-['Inter']! font-normal! text-xs sm:text-sm! leading-relaxed line-clamp-4 ${article.isDark ? "text-[#1B1A16]" : "text-[#523C37]"}`}
                 >
                   {article.description}
                 </p>
@@ -199,20 +246,22 @@ export default function ReportPage() {
       )}
 
       {/* Pagination */}
-      <div className="flex items-center justify-center gap-2 pt-2 select-none">
-        {[1, 2, 3].map((page) => (
-          <button
-            key={page}
-            type="button"
-            onClick={() => setCurrentPage(page)}
-            className={`w-8 h-8 rounded-full font-['Inter'] text-[13px] font-medium transition cursor-pointer flex items-center justify-center ${
-              currentPage === page ? "bg-[#E8D7C9] text-[#1B1A16] shadow-xs" : "text-[#664E48] hover:bg-[#E8D7C9]/40"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2 select-none">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              type="button"
+              onClick={() => setCurrentPage(page)}
+              className={`w-8 h-8 rounded-full font-['Inter'] text-[13px] font-medium transition cursor-pointer flex items-center justify-center ${
+                currentPage === page ? "bg-[#E8D7C9] text-[#1B1A16] shadow-xs" : "text-[#664E48] hover:bg-[#E8D7C9]/40"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Modal Popup */}
       <AnimatePresence>

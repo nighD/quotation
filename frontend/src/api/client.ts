@@ -1,15 +1,8 @@
 import axios from 'axios';
 
-const isLocal =
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname.startsWith('192.168.') ||
-  window.location.hostname.startsWith('10.') ||
-  window.location.hostname.endsWith('.local');
+const DEFAULT_API_URL = 'https://quotation-m7c4.onrender.com';
 
-const API_URL = import.meta.env.VITE_API_URL || (isLocal
-  ? `${window.location.protocol}//${window.location.hostname}:8080`
-  : window.location.origin);
+const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -18,9 +11,16 @@ export const apiClient = axios.create({
   },
 });
 
+const isLocal =
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname.startsWith('192.168.') ||
+  window.location.hostname.startsWith('10.') ||
+  window.location.hostname.endsWith('.local');
+
 let devLoginPromise: Promise<string | null> | null = null;
 
-const getLocalDevRole = () => window.location.pathname.startsWith('/admin') ? 'admin' : 'user';
+const getLocalDevRole = () => (window.location.pathname.startsWith('/admin') ? 'admin' : 'user');
 
 const exchangeLegacyDevToken = async (): Promise<string | null> => {
   if (!isLocal) {
@@ -28,23 +28,27 @@ const exchangeLegacyDevToken = async (): Promise<string | null> => {
   }
 
   if (!devLoginPromise) {
-    devLoginPromise = axios.post(`${API_URL}/auth/dev-login`, {
-      role: getLocalDevRole(),
-    }).then(({ data }) => {
-      const accessToken = data.data.access_token as string;
-      const refreshToken = data.data.refresh_token as string;
-      localStorage.removeItem('dev_mock_user');
-      localStorage.setItem('access_token', accessToken);
-      localStorage.setItem('refresh_token', refreshToken);
-      return accessToken;
-    }).catch((error) => {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('dev_mock_user');
-      throw error;
-    }).finally(() => {
-      devLoginPromise = null;
-    });
+    devLoginPromise = axios
+      .post(`${API_URL}/auth/dev-login`, {
+        role: getLocalDevRole(),
+      })
+      .then(({ data }) => {
+        const accessToken = data.data.access_token as string;
+        const refreshToken = data.data.refresh_token as string;
+        localStorage.removeItem('dev_mock_user');
+        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('refresh_token', refreshToken);
+        return accessToken;
+      })
+      .catch((error) => {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('dev_mock_user');
+        throw error;
+      })
+      .finally(() => {
+        devLoginPromise = null;
+      });
   }
 
   return devLoginPromise;
@@ -96,7 +100,6 @@ apiClient.interceptors.response.use(
       } catch (err) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
         return Promise.reject(err);
       }
     }

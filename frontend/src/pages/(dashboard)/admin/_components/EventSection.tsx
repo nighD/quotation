@@ -1,9 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const CalendarFilledIcon: React.FC<{ className?: string }> = ({
-  className = "w-3.5 h-3.5 text-[#B58F6F]",
-}) => (
+const CalendarFilledIcon: React.FC<{ className?: string }> = ({ className = "w-3.5 h-3.5 text-[#B58F6F]" }) => (
   <svg className={className} viewBox="0 0 16 16" fill="currentColor">
     <path
       fillRule="evenodd"
@@ -13,9 +11,7 @@ const CalendarFilledIcon: React.FC<{ className?: string }> = ({
   </svg>
 );
 
-const MapPinFilledIcon: React.FC<{ className?: string }> = ({
-  className = "w-3.5 h-3.5 text-[#B58F6F]",
-}) => (
+const MapPinFilledIcon: React.FC<{ className?: string }> = ({ className = "w-3.5 h-3.5 text-[#B58F6F]" }) => (
   <svg className={className} viewBox="0 0 16 16" fill="currentColor">
     <path
       fillRule="evenodd"
@@ -45,13 +41,7 @@ export interface EventSectionProps {
 const DEFAULT_EVENTS: EventItemData[] = [
   {
     id: "1",
-    title: "Global Summit 2027",
-    date: "SUN 17 MAY 15:29",
-    location: "LOCATION ADDRESS HERE",
-  },
-  {
-    id: "2",
-    title: "Global Summit 2027",
+    title: "Recap các hoạt động tại SURF Đà nẵng",
     date: "SUN 17 MAY 15:29",
     location: "LOCATION ADDRESS HERE",
   },
@@ -95,11 +85,9 @@ export const EventSection: React.FC<EventSectionProps> = ({
               transition={{ duration: 0.25, delay: index * 0.05 }}
               className="py-3.5 sm:py-4.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b border-[#EAE0D6]"
             >
-              <div className="flex flex-col gap-1.5 min-w-0">
-                <h3 className="font-['Inter']! text-[13px] sm:text-[14px] font-medium text-[#523C37]">
-                  {event.title}
-                </h3>
-                <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] text-[#B58F6F] font-['Inter']! font-medium! uppercase flex-wrap">
+              <div className="flex flex-col gap-2 min-w-0">
+                <h3 className="font-['Inter']! text-[13px] sm:text-[14px] font-normal! text-[#523C37]">{event.title}</h3>
+                <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] text-[#B58F6F] font-['Inter']! font-normal! uppercase flex-wrap">
                   <span className="flex items-center gap-1">
                     <CalendarFilledIcon className="w-3.5 h-3.5 text-[#B58F6F]" />
                     {event.date}
@@ -124,18 +112,10 @@ export const EventSection: React.FC<EventSectionProps> = ({
                   onClick={() => onJoin?.(event)}
                   disabled={isJoining || isJoined}
                   className={`text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-[12px] transition uppercase tracking-wider cursor-pointer active:scale-95 ${
-                    isJoined
-                      ? "bg-[#5C4538] cursor-default"
-                      : isJoining
-                        ? "bg-[#9E7C62] cursor-wait"
-                        : "bg-[#B08461] hover:bg-[#9e7553]"
+                    isJoined ? "bg-[#5C4538] cursor-default" : isJoining ? "bg-[#9E7C62] cursor-wait" : "bg-[#B08461] hover:bg-[#9e7553]"
                   }`}
                 >
-                  {isJoined
-                    ? "ĐÃ ĐĂNG KÝ"
-                    : isJoining
-                      ? "ĐANG XỬ LÝ..."
-                      : "ĐĂNG KÝ NHẬN"}
+                  {isJoined ? "ĐÃ ĐĂNG KÝ" : isJoining ? "ĐANG XỬ LÝ..." : "ĐĂNG KÝ NHẬN"}
                 </button>
               </div>
             </motion.div>

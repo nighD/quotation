@@ -1,41 +1,41 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Navbar } from '../../components/Navbar';
-import { ArticleCard } from '../../components/ArticleCard';
-import { useAuth } from '../../context/AuthContext';
-import { MapPin } from 'lucide-react';
-import { apiClient } from '../../api/client';
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Navbar } from "../../components/Navbar";
+import { ArticleCard } from "../../components/ArticleCard";
+import { useAuth } from "../../context/AuthContext";
+import { MapPin } from "lucide-react";
+import { apiClient } from "../../api/client";
 
 const getArticleRequiredRole = (art: any): string => {
-  if (!art) return 'free';
+  if (!art) return "free";
   if (art.required_role) return art.required_role;
   const blocksStr = art.blocks;
-  if (!blocksStr) return 'free';
+  if (!blocksStr) return "free";
   try {
-    const blocks = typeof blocksStr === 'string' ? JSON.parse(blocksStr) : blocksStr;
+    const blocks = typeof blocksStr === "string" ? JSON.parse(blocksStr) : blocksStr;
     if (Array.isArray(blocks)) {
-      const pdfBlock = blocks.find((b: any) => b.type === 'pdf');
+      const pdfBlock = blocks.find((b: any) => b.type === "pdf");
       if (pdfBlock && pdfBlock.activeRole) {
         return pdfBlock.activeRole;
       }
     }
   } catch (e) {
-    console.error('Error parsing article blocks', e);
+    console.error("Error parsing article blocks", e);
   }
-  return 'free';
+  return "free";
 };
 
 const formatArticleDate = (dateStr: string): string => {
-  if (!dateStr) return '';
+  if (!dateStr) return "";
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
   } catch (e) {
     return dateStr;
@@ -44,9 +44,9 @@ const formatArticleDate = (dateStr: string): string => {
 
 export function Home() {
   const { user } = useAuth();
-  const [userRole, setUserRole] = useState<'free' | 'base' | 'standard' | 'premium' | 'admin'>('free');
+  const [userRole, setUserRole] = useState<"free" | "base" | "standard" | "premium" | "admin">("free");
   const [openStates, setOpenStates] = useState<boolean[]>([false, false, false]);
-  const [toastMessage, setToastMessage] = useState<{title: string, type: 'success' | 'error'} | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ title: string; type: "success" | "error" } | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -54,7 +54,7 @@ export function Home() {
   const [articlesLoading, setArticlesLoading] = useState(true);
 
   const toggleCollapse = (index: number) => {
-    setOpenStates(prev => {
+    setOpenStates((prev) => {
       const next = [...prev];
       next[index] = !next[index];
       return next;
@@ -64,12 +64,12 @@ export function Home() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const { data } = await apiClient.get('/cms/articles?page=1&page_size=20');
+        const { data } = await apiClient.get("/cms/articles?page=1&page_size=20");
         if (data.success && data.data) {
           setArticles(data.data);
         }
       } catch (err) {
-        console.error('Failed to fetch articles', err);
+        console.error("Failed to fetch articles", err);
       } finally {
         setArticlesLoading(false);
       }
@@ -78,22 +78,22 @@ export function Home() {
   }, []);
 
   useEffect(() => {
-    const paymentStatus = searchParams.get('payment');
-    if (paymentStatus === 'success') {
-      setToastMessage({ title: 'Payment successful! Your membership is active.', type: 'success' });
-      searchParams.delete('payment');
+    const paymentStatus = searchParams.get("payment");
+    if (paymentStatus === "success") {
+      setToastMessage({ title: "Payment successful! Your membership is active.", type: "success" });
+      searchParams.delete("payment");
       setSearchParams(searchParams, { replace: true });
-    } else if (paymentStatus === 'failed') {
-      setToastMessage({ title: 'Payment failed or was cancelled.', type: 'error' });
-      searchParams.delete('payment');
+    } else if (paymentStatus === "failed") {
+      setToastMessage({ title: "Payment failed or was cancelled.", type: "error" });
+      searchParams.delete("payment");
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (user && user.roles) {
-      const roleOrder = ['free', 'base', 'standard', 'premium', 'admin'];
-      let maxRole = 'free';
+      const roleOrder = ["free", "base", "standard", "premium", "admin"];
+      let maxRole = "free";
       for (const r of user.roles) {
         if (roleOrder.indexOf(r) > roleOrder.indexOf(maxRole)) {
           maxRole = r;
@@ -101,7 +101,7 @@ export function Home() {
       }
       setUserRole(maxRole as any);
     } else {
-      setUserRole('free');
+      setUserRole("free");
     }
   }, [user]);
 
@@ -112,15 +112,19 @@ export function Home() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className={`fixed top-8 right-8 z-50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 animate-in fade-in slide-in-from-top-4
-          ${toastMessage.type === 'success' ? 'bg-[#18181b] border border-white/20' : 'bg-[#18181b] border border-red-500/50'}`}>
-          {toastMessage.type === 'success' ? (
+        <div
+          className={`fixed top-8 right-8 z-50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 animate-in fade-in slide-in-from-top-4
+          ${toastMessage.type === "success" ? "bg-[#18181b] border border-white/20" : "bg-[#18181b] border border-red-500/50"}`}
+        >
+          {toastMessage.type === "success" ? (
             <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold">✓</div>
           ) : (
             <div className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold">!</div>
           )}
           <span className="text-white text-[15px] font-medium">{toastMessage.title}</span>
-          <button onClick={() => setToastMessage(null)} className="ml-4 text-[#a1a1aa] hover:text-white transition text-xl cursor-pointer">&times;</button>
+          <button onClick={() => setToastMessage(null)} className="ml-4 text-[#a1a1aa] hover:text-white transition text-xl cursor-pointer">
+            &times;
+          </button>
         </div>
       )}
 
@@ -129,15 +133,14 @@ export function Home() {
         <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-16 items-start w-full mt-4 lg:mt-6 relative lg:h-[450px]">
           {/* Left Column: Title + Subtitle */}
           <div className="flex flex-col w-full text-left">
-            <h1 className="text-4xl md:text-7xl font-semibold mb-3 text-white tracking-tight leading-[1.1]">
-              VIFC Privilege Pass
-            </h1>
+            <h1 className="text-4xl md:text-7xl font-semibold mb-3 text-white tracking-tight leading-[1.1]">VIFC Privilege Pass</h1>
             <p className="text-gray-300 text-sm md:text-lg leading-relaxed max-w-xl mb-6">
-              A investor platform that curates and structures official information, enabling investors to access strategic opportunities across VIFC and Vietnam.
+              A investor platform that curates and structures official information, enabling investors to access strategic opportunities across VIFC and
+              Vietnam.
             </p>
 
             {/* Overlapping Cards Container (Tilted Card + Benefit Card) on Mobile */}
-            <div className="relative w-full h-[240px] sm:h-[300px] lg:hidden mb-6">
+            <div className="relative w-full h-[240px] sm:h-75 lg:hidden mb-6">
               {/* Tilted Card Image */}
               <div className="absolute left-[-20px] top-6 w-[70%] z-10">
                 <img
@@ -193,52 +196,43 @@ export function Home() {
 
           {/* Desktop-only Right Column: VIFC Pass Benefit Card */}
           <div className="hidden lg:flex justify-end lg:-ml-32 relative z-20">
-            <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-[32px] p-8 md:p-10 text-white w-full max-w-[440px] shadow-2xl flex flex-col gap-6 text-left">
+            <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-4xl p-8 md:p-10 text-white w-full max-w-[440px] shadow-2xl flex flex-col gap-6 text-left">
               <div>
                 <h2 className="text-[26px] font-semibold mb-2">VIFC Privilege Pass Benefit</h2>
                 {/* <p className="text-gray-200 text-[15px] leading-relaxed"> */}
-                  {/* Unlock exclusive privileges, policy advantages, and strategic opportunities designed for premium investors: */}
+                {/* Unlock exclusive privileges, policy advantages, and strategic opportunities designed for premium investors: */}
                 {/* </p> */}
               </div>
 
               <ul className="flex flex-col gap-4 text-[15px] text-gray-100 font-medium">
-                <li
-                  className="cursor-pointer group flex flex-col gap-1.5 select-none"
-                  onClick={() => toggleCollapse(0)}
-                >
+                <li className="cursor-pointer group flex flex-col gap-1.5 select-none" onClick={() => toggleCollapse(0)}>
                   <div className="flex items-center gap-3">
-                    <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[0] ? 'rotate-90' : ''}`}>▶</span>
+                    <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[0] ? "rotate-90" : ""}`}>▶</span>
                     <span className="group-hover:text-white transition-colors">Privileged Information Access</span>
                   </div>
-                  <div className={`overflow-hidden transition-all duration-300 ${openStates[0] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ${openStates[0] ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
                       Exclusive reports, investor briefings, and priority access to VIFC events.
                     </p>
                   </div>
                 </li>
-                <li
-                  className="cursor-pointer group flex flex-col gap-1.5 select-none"
-                  onClick={() => toggleCollapse(1)}
-                >
+                <li className="cursor-pointer group flex flex-col gap-1.5 select-none" onClick={() => toggleCollapse(1)}>
                   <div className="flex items-center gap-3">
-                    <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[1] ? 'rotate-90' : ''}`}>▶</span>
+                    <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[1] ? "rotate-90" : ""}`}>▶</span>
                     <span className="group-hover:text-white transition-colors">Policy Access</span>
                   </div>
-                  <div className={`overflow-hidden transition-all duration-300 ${openStates[1] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ${openStates[1] ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
                       Policy-enabled benefits, official updates, and practical advantages within the VIFC ecosystem.
                     </p>
                   </div>
                 </li>
-                <li
-                  className="cursor-pointer group flex flex-col gap-1.5 select-none"
-                  onClick={() => toggleCollapse(2)}
-                >
+                <li className="cursor-pointer group flex flex-col gap-1.5 select-none" onClick={() => toggleCollapse(2)}>
                   <div className="flex items-center gap-3">
-                    <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[2] ? 'rotate-90' : ''}`}>▶</span>
+                    <span className={`text-[10px] text-white transition-transform duration-200 ${openStates[2] ? "rotate-90" : ""}`}>▶</span>
                     <span className="group-hover:text-white transition-colors">Strategic Connections</span>
                   </div>
-                  <div className={`overflow-hidden transition-all duration-300 ${openStates[2] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ${openStates[2] ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
                       Curated investment opportunities and strategic partnerships across the VIFC and GOE ecosystems.
                     </p>
@@ -291,12 +285,21 @@ export function Home() {
               )}
               <div className="flex flex-col gap-[5px] items-end w-full h-fit">
                 <button
-                  onClick={() => navigate('/reports')}
+                  onClick={() => navigate("/reports")}
                   type="button"
                   className="bg-[#6b6b6b]/60 hover:bg-[#808080]/60 transition-all text-white rounded-full px-6 py-2.5 flex items-center gap-1.5 text-[14px] font-medium cursor-pointer border border-white/5 shadow-md mb-2"
                 >
                   <span>Read more</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <line x1="7" y1="17" x2="17" y2="7" />
                     <polyline points="7 7 17 7 17 17" />
                   </svg>
@@ -324,12 +327,12 @@ export function Home() {
 
 export function Reports() {
   const { user } = useAuth();
-  const [userRole, setUserRole] = useState<'free' | 'base' | 'standard' | 'premium' | 'admin'>('free');
-  const [activeTag, setActiveTag] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [userRole, setUserRole] = useState<"free" | "base" | "standard" | "premium" | "admin">("free");
+  const [activeTag, setActiveTag] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [allTags, setAllTags] = useState<string[]>(['All']);
+  const [allTags, setAllTags] = useState<string[]>(["All"]);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -340,16 +343,14 @@ export function Reports() {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const { data } = await apiClient.get('/cms/articles?page=1&page_size=100');
+        const { data } = await apiClient.get("/cms/articles?page=1&page_size=100");
         if (data.success && data.data) {
-          const tags = Array.from(new Set(
-            data.data.flatMap((a: any) => a.seo_keywords ? a.seo_keywords.split(',').map((k: string) => k.trim()) : [])
-          ));
-          const validTags = (tags.filter(Boolean) as string[]).filter((tag: string) => !tag.toLowerCase().includes('monkey'));
-          setAllTags(['All', ...validTags]);
+          const tags = Array.from(new Set(data.data.flatMap((a: any) => (a.seo_keywords ? a.seo_keywords.split(",").map((k: string) => k.trim()) : []))));
+          const validTags = (tags.filter(Boolean) as string[]).filter((tag: string) => !tag.toLowerCase().includes("monkey"));
+          setAllTags(["All", ...validTags]);
         }
       } catch (err) {
-        console.error('Failed to fetch tags', err);
+        console.error("Failed to fetch tags", err);
       }
     };
     fetchTags();
@@ -362,9 +363,7 @@ export function Reports() {
       setHasMore(true);
       setLoading(true);
       try {
-        const url = activeTag === 'All'
-          ? '/cms/articles?page=1&page_size=12'
-          : `/cms/articles?page=1&page_size=12&tag=${encodeURIComponent(activeTag)}`;
+        const url = activeTag === "All" ? "/cms/articles?page=1&page_size=12" : `/cms/articles?page=1&page_size=12&tag=${encodeURIComponent(activeTag)}`;
         const { data } = await apiClient.get(url);
         if (data.success) {
           const newArticles = data.data || [];
@@ -376,7 +375,7 @@ export function Reports() {
           }
         }
       } catch (err) {
-        console.error('Failed to fetch articles', err);
+        console.error("Failed to fetch articles", err);
         setArticles([]);
       } finally {
         setLoading(false);
@@ -392,13 +391,14 @@ export function Reports() {
     const nextPage = page + 1;
     setLoadingMore(true);
     try {
-      const url = activeTag === 'All'
-        ? `/cms/articles?page=${nextPage}&page_size=12`
-        : `/cms/articles?page=${nextPage}&page_size=12&tag=${encodeURIComponent(activeTag)}`;
+      const url =
+        activeTag === "All"
+          ? `/cms/articles?page=${nextPage}&page_size=12`
+          : `/cms/articles?page=${nextPage}&page_size=12&tag=${encodeURIComponent(activeTag)}`;
       const { data } = await apiClient.get(url);
       if (data.success) {
         const newArticles = data.data || [];
-        setArticles(prev => [...prev, ...newArticles]);
+        setArticles((prev) => [...prev, ...newArticles]);
         setPage(nextPage);
         if (data.meta) {
           setHasMore(data.meta.page < data.meta.total_pages);
@@ -407,7 +407,7 @@ export function Reports() {
         }
       }
     } catch (err) {
-      console.error('Failed to load more articles', err);
+      console.error("Failed to load more articles", err);
     } finally {
       setLoadingMore(false);
     }
@@ -416,12 +416,12 @@ export function Reports() {
   // Intersection Observer for infinite scrolling
   useEffect(() => {
     const observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
           fetchNextPage();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     const currentTarget = observerTarget.current;
@@ -438,8 +438,8 @@ export function Reports() {
 
   useEffect(() => {
     if (user && user.roles) {
-      const roleOrder = ['free', 'base', 'standard', 'premium', 'admin'];
-      let maxRole = 'free';
+      const roleOrder = ["free", "base", "standard", "premium", "admin"];
+      let maxRole = "free";
       for (const r of user.roles) {
         if (roleOrder.indexOf(r) > roleOrder.indexOf(maxRole)) {
           maxRole = r;
@@ -447,7 +447,7 @@ export function Reports() {
       }
       setUserRole(maxRole as any);
     } else {
-      setUserRole('free');
+      setUserRole("free");
     }
   }, [user]);
 
@@ -456,8 +456,9 @@ export function Reports() {
   };
 
   // Filter articles by search query
-  const filteredArticles = articles.filter(a => {
-    const matchesSearch = !searchQuery ||
+  const filteredArticles = articles.filter((a) => {
+    const matchesSearch =
+      !searchQuery ||
       a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.description && a.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesSearch;
@@ -507,14 +508,14 @@ export function Reports() {
 
         {/* Filter Tags */}
         <div className="flex flex-wrap gap-3 mb-8 w-full">
-          {allTags.map(tag => (
+          {allTags.map((tag) => (
             <button
               key={tag}
               onClick={() => setActiveTag(tag)}
               className={`px-5 py-2 rounded-full text-[14px] font-medium transition-all cursor-pointer ${
                 activeTag === tag
-                  ? 'bg-white text-black font-semibold'
-                  : 'bg-[#2d2a2a]/40 border border-white/5 text-gray-300 hover:text-white hover:bg-[#3d3a3a]/40'
+                  ? "bg-white text-black font-semibold"
+                  : "bg-[#2d2a2a]/40 border border-white/5 text-gray-300 hover:text-white hover:bg-[#3d3a3a]/40"
               }`}
             >
               {tag}
@@ -531,7 +532,7 @@ export function Reports() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full items-start">
             {/* Column 1 */}
             <div className="flex flex-col gap-6 w-full">
-              {col1.map(art => (
+              {col1.map((art) => (
                 <ArticleCard
                   key={art.id}
                   title={art.title}
@@ -549,7 +550,7 @@ export function Reports() {
 
             {/* Column 2 */}
             <div className="flex flex-col gap-6 w-full">
-              {col2.map(art => (
+              {col2.map((art) => (
                 <ArticleCard
                   key={art.id}
                   title={art.title}
@@ -567,7 +568,7 @@ export function Reports() {
 
             {/* Column 3 */}
             <div className="flex flex-col gap-6 w-full">
-              {col3.map(art => (
+              {col3.map((art) => (
                 <ArticleCard
                   key={art.id}
                   title={art.title}
@@ -591,7 +592,11 @@ export function Reports() {
             <div className="text-gray-400 text-[14px] flex items-center gap-2">
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               <span>Loading more...</span>
             </div>
@@ -609,9 +614,7 @@ export function Deals() {
       <Navbar />
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center p-8 max-w-4xl mx-auto w-full">
         <h1 className="text-6xl font-semibold mb-6 text-white tracking-tight">Deals</h1>
-        <p className="text-gray-300 text-2xl font-medium tracking-wide">
-          Coming Soon
-        </p>
+        <p className="text-gray-300 text-2xl font-medium tracking-wide">Coming Soon</p>
       </div>
     </div>
   );
@@ -624,9 +627,7 @@ export function Benefits() {
       <Navbar />
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center p-8 max-w-4xl mx-auto w-full">
         <h1 className="text-6xl font-semibold mb-6 text-white tracking-tight">Privileges & Benefits</h1>
-        <p className="text-gray-300 text-lg leading-relaxed max-w-xl">
-          Unlock premium concierge status, worldwide upgrades, and curated lifestyle rewards.
-        </p>
+        <p className="text-gray-300 text-lg leading-relaxed max-w-xl">Unlock premium concierge status, worldwide upgrades, and curated lifestyle rewards.</p>
       </div>
     </div>
   );
@@ -636,13 +637,14 @@ export function Events() {
   const mockEvents = [
     {
       id: 1,
-      title: 'Unchained Summit 2026',
-      date: 'May 28, 2026 ~ May 29, 2026',
-      status: 'active',
-      statusLabel: 'Upcoming',
-      imageUrl: '/unchained_summit.png',
-      description: 'Unchained Summit is a premier Web3, Crypto and Blockchain event in Vietnam, bringing together global industry leaders, institutional/VC investors, innovators, and policymakers to shape the future of decentralized technology.',
-      location: 'Furama Resort Danang, 105 Võ Nguyên Giáp, Đà Nẵng, 550000, Vietnam',
+      title: "Unchained Summit 2026",
+      date: "May 28, 2026 ~ May 29, 2026",
+      status: "active",
+      statusLabel: "Upcoming",
+      imageUrl: "/unchained_summit.png",
+      description:
+        "Unchained Summit is a premier Web3, Crypto and Blockchain event in Vietnam, bringing together global industry leaders, institutional/VC investors, innovators, and policymakers to shape the future of decentralized technology.",
+      location: "Furama Resort Danang, 105 Võ Nguyên Giáp, Đà Nẵng, 550000, Vietnam",
     },
   ];
 
@@ -660,59 +662,45 @@ export function Events() {
         {/* Events Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full items-start">
           {mockEvents.map((event) => {
-            const isActive = event.status === 'active';
+            const isActive = event.status === "active";
             return (
               <div
                 key={event.id}
                 className={`rounded-[28px] p-6 shadow-xl flex flex-col gap-4 border transition-all duration-300 hover:scale-[1.02] ${
-                  isActive
-                    ? 'bg-white border-gray-200 text-black'
-                    : 'bg-[#2a2a2d]/80 border-white/5 text-white'
+                  isActive ? "bg-white border-gray-200 text-black" : "bg-[#2a2a2d]/80 border-white/5 text-white"
                 }`}
               >
                 {/* Header info */}
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex flex-col">
-                    <h3 className={`text-[17px] font-semibold leading-tight ${isActive ? 'text-black' : 'text-white'}`}>
-                      {event.title}
-                    </h3>
-                    <span className={`text-xs mt-1 ${isActive ? 'text-gray-500' : 'text-gray-400'}`}>
-                      {event.date}
-                    </span>
+                    <h3 className={`text-[17px] font-semibold leading-tight ${isActive ? "text-black" : "text-white"}`}>{event.title}</h3>
+                    <span className={`text-xs mt-1 ${isActive ? "text-gray-500" : "text-gray-400"}`}>{event.date}</span>
                   </div>
 
                   {/* Status Badge */}
-                  <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 border border-blue-100'
-                      : 'bg-white/10 text-gray-400 border border-white/5'
-                  }`}>
+                  <span
+                    className={`text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                      isActive ? "bg-blue-50 text-blue-600 border border-blue-100" : "bg-white/10 text-gray-400 border border-white/5"
+                    }`}
+                  >
                     {event.statusLabel}
                   </span>
                 </div>
 
-                <div className={`border-b ${isActive ? 'border-gray-200' : 'border-white/10'} my-1`} />
+                <div className={`border-b ${isActive ? "border-gray-200" : "border-white/10"} my-1`} />
 
                 {/* Event Image */}
                 <div className="rounded-2xl overflow-hidden aspect-[16/10] bg-black/10 relative">
-                  <img
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="w-full h-full object-cover select-none pointer-events-none"
-                  />
+                  <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover select-none pointer-events-none" />
                 </div>
 
                 {/* Description */}
-                <p className={`text-xs leading-relaxed line-clamp-3 ${isActive ? 'text-gray-600' : 'text-gray-300'}`}>
-                  {event.description}
-                </p>
+                <p className={`text-xs leading-relaxed line-clamp-3 ${isActive ? "text-gray-600" : "text-gray-300"}`}>{event.description}</p>
 
                 {/* Location */}
                 <div className="flex items-center gap-1.5 mt-1">
-                  <MapPin className={`w-3.5 h-3.5 ${isActive ? 'text-[#4e4df9]' : 'text-gray-400'}`} />
-                  <span className={`text-xs font-medium ${isActive ? 'text-[#4e4df9]' : 'text-gray-400'}`}>
-                    {event.location}
-                  </span>
+                  <MapPin className={`w-3.5 h-3.5 ${isActive ? "text-[#4e4df9]" : "text-gray-400"}`} />
+                  <span className={`text-xs font-medium ${isActive ? "text-[#4e4df9]" : "text-gray-400"}`}>{event.location}</span>
                 </div>
 
                 {/* Register button */}
@@ -722,12 +710,14 @@ export function Events() {
                       Register ↗
                     </button>
                   ) : (
-                    <button disabled className="w-full bg-[#555]/30 text-gray-400 rounded-full py-2.5 text-xs font-semibold tracking-wide cursor-not-allowed inline-flex items-center justify-center gap-1">
+                    <button
+                      disabled
+                      className="w-full bg-[#555]/30 text-gray-400 rounded-full py-2.5 text-xs font-semibold tracking-wide cursor-not-allowed inline-flex items-center justify-center gap-1"
+                    >
                       Register ↗
                     </button>
                   )}
                 </div>
-
               </div>
             );
           })}

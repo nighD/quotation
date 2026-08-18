@@ -1,6 +1,6 @@
 import React from "react";
-import { Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { LogOut, Menu } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 
 interface HeaderLayoutProps {
@@ -10,7 +10,13 @@ interface HeaderLayoutProps {
 export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
   onOpenMobileMenu,
 }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#E8D7C9]/95 backdrop-blur-md border-b border-[#dfd3c7] sticky top-0 z-30 shadow-xs">
@@ -56,6 +62,16 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
             className="w-full h-full object-cover"
           />
         </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          aria-label="Đăng xuất"
+          title="Đăng xuất"
+          className="w-9 h-9 rounded-xl bg-white/90 border border-stone-200/80 flex items-center justify-center text-[#664E48] hover:text-[#9A4D3A] hover:bg-[#F9ECE8] hover:border-[#E8D7C9] shadow-xs cursor-pointer transition-all active:scale-95 ml-0.5"
+        >
+          <LogOut size={16} strokeWidth={2.2} />
+        </button>
       </div>
     </header>
   );

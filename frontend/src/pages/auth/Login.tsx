@@ -71,7 +71,7 @@ export function Login() {
       <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 w-full pb-20">
-        <div className="bg-white rounded-[32px] p-8 sm:p-10 md:px-11 md:py-14 w-full max-w-[460px] min-h-[560px] flex flex-col justify-between shadow-xl shadow-[#523C37]/5 border border-[#EBE1D5]">
+        <div className="bg-white rounded-4xl p-8 sm:p-10 md:px-11 md:py-14 w-full max-w-[460px] min-h-[560px] flex flex-col justify-between shadow-xl shadow-[#523C37]/5 border border-[#EBE1D5]">
           <div className="w-full">
             <h2 className="text-[32px] md:text-[38px] font-semibold! text-[#1B1A16] font-['Cormorant_Garamond']! text-center tracking-tight">Sign In</h2>
 

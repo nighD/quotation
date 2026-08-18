@@ -1,4 +1,4 @@
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight, LogOut, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,7 +40,7 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeSubmitting, setUpgradeSubmitting] = useState(false);
@@ -337,31 +337,48 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
           </AnimatePresence>
 
           {/* User Profile */}
-          <div className={`pt-3 border-t border-stone-100 flex items-center transition-all ${collapsedState ? "justify-center" : "px-2 justify-start gap-3"}`}>
-            <div className="relative shrink-0">
-              <img
-                src={user?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"}
-                alt={user?.full_name || "User Avatar"}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-stone-200 shadow-xs"
-              />
+          <div className={`pt-3 border-t border-stone-100 flex items-center justify-between transition-all ${collapsedState ? "justify-center" : "px-2"}`}>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative shrink-0">
+                <img
+                  src={user?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"}
+                  alt={user?.full_name || "User Avatar"}
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-stone-200 shadow-xs"
+                />
+              </div>
+
+              <AnimatePresence mode="wait">
+                {!collapsedState && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex flex-col min-w-0 overflow-hidden"
+                  >
+                    <span className="text-stone-400 text-[11px] sm:text-[12px] font-normal leading-tight truncate">Welcome back 👋</span>
+                    <span className="text-stone-900 font-bold text-[13px] sm:text-[14px] leading-snug truncate font-poppins">
+                      {user?.full_name || "Hoàng Vương (Admin)"}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            <AnimatePresence mode="wait">
-              {!collapsedState && (
-                <motion.div
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.18 }}
-                  className="flex flex-col min-w-0 overflow-hidden"
-                >
-                  <span className="text-stone-400 text-[11px] sm:text-[12px] font-normal leading-tight truncate">Welcome back 👋</span>
-                  <span className="text-stone-900 font-bold text-[13px] sm:text-[14px] leading-snug truncate font-poppins">
-                    {user?.full_name || "Hoàng Vương (Admin)"}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {!collapsedState && (
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  navigate("/login");
+                }}
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-stone-400 hover:text-[#9A4D3A] hover:bg-[#F9ECE8] transition-colors cursor-pointer shrink-0 ml-1"
+                title="Đăng xuất"
+                aria-label="Đăng xuất"
+              >
+                <LogOut size={16} strokeWidth={2.2} />
+              </button>
+            )}
           </div>
         </div>
       </div>

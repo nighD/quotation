@@ -80,16 +80,19 @@ export const ReportSection: React.FC = () => {
       setLoading(true);
       setError("");
       try {
-        const { data } = await apiClient.get("/cms/articles?page=1&page_size=6");
-        if (data.success) {
-          const items = (data.data || []).slice(0, 4).map((article: any, index: number) => ({
+        const { data } = await apiClient.get("/cms/articles?page=1&page_size=10");
+        if (data.success && Array.isArray(data.data)) {
+          const items = data.data.map((article: any, index: number) => ({
             id: article.id,
-            slug: article.slug,
+            slug: article.slug || article.id,
             title: article.title,
             date: formatArticleDate(article.created_at),
-            description: article.description || article.title,
+            description:
+              article.description && article.description.trim().length > 0
+                ? article.description
+                : "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits.",
             isDark: index % 2 === 1,
-            isLocked: getArticleRequiredRole(article) !== "free",
+            isLocked: article.required_role ? article.required_role !== "free" : getArticleRequiredRole(article) !== "free",
           }));
           setReportItems(items);
         }
@@ -105,8 +108,10 @@ export const ReportSection: React.FC = () => {
     fetchReports();
   }, []);
 
+  const showScrollbar = reportItems.length > 4;
+
   const handleScroll = () => {
-    if (scrollRef.current) {
+    if (scrollRef.current && showScrollbar) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
       const maxScroll = scrollHeight - clientHeight;
       if (maxScroll > 0) {
@@ -118,7 +123,7 @@ export const ReportSection: React.FC = () => {
   };
 
   const handleTrackClickOrDrag = (clientY: number) => {
-    if (!trackRef.current || !scrollRef.current) return;
+    if (!trackRef.current || !scrollRef.current || !showScrollbar) return;
     const rect = trackRef.current.getBoundingClientRect();
     const clickY = Math.max(0, Math.min(clientY - rect.top, rect.height));
     const ratio = clickY / rect.height;
@@ -136,7 +141,7 @@ export const ReportSection: React.FC = () => {
   };
 
   const handleCardsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || !showScrollbar) return;
     setIsDraggingCards(true);
     startYRef.current = e.clientY;
     startScrollTopRef.current = scrollRef.current.scrollTop;
@@ -146,7 +151,7 @@ export const ReportSection: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingTrack) {
         handleTrackClickOrDrag(e.clientY);
-      } else if (isDraggingCards && scrollRef.current) {
+      } else if (isDraggingCards && scrollRef.current && showScrollbar) {
         const dy = e.clientY - startYRef.current;
         scrollRef.current.scrollTop = startScrollTopRef.current - dy;
       }
@@ -165,13 +170,13 @@ export const ReportSection: React.FC = () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDraggingTrack, isDraggingCards]);
+  }, [isDraggingTrack, isDraggingCards, showScrollbar]);
 
   useEffect(() => {
     handleScroll();
     window.addEventListener("resize", handleScroll);
     return () => window.removeEventListener("resize", handleScroll);
-  }, []);
+  }, [reportItems]);
 
   return (
     <div className="w-full bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-sm flex flex-col h-full border border-[#EAE0D6]">
@@ -191,13 +196,27 @@ export const ReportSection: React.FC = () => {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          onMouseDown={handleCardsMouseDown}
-          className={`flex-1 flex flex-col gap-3 sm:gap-4 overflow-y-auto pr-1 max-h-[500px] xl:max-h-[560px] 2xl:max-h-[600px] scrollbar-none min-h-0 select-none ${
-            isDraggingCards ? "cursor-grabbing" : "cursor-grab"
+          onMouseDown={showScrollbar ? handleCardsMouseDown : undefined}
+          className={`flex-1 flex flex-col gap-3 sm:gap-4 ${
+            showScrollbar
+              ? `overflow-y-auto pr-1 max-h-[500px] xl:max-h-[560px] 2xl:max-h-[600px] scrollbar-none min-h-0 select-none ${
+                  isDraggingCards ? "cursor-grabbing" : "cursor-grab"
+                }`
+              : "overflow-visible select-none"
           }`}
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {loading && <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">Loading reports...</div>}
+          {loading && (
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="rounded-2xl bg-[#F5ECE5]/60 animate-pulse p-5 min-h-28 flex flex-col justify-between">
+                  <div className="h-5 bg-[#E2D2C4]/60 rounded-md w-2/3 mb-2" />
+                  <div className="h-3 bg-[#E2D2C4]/40 rounded-md w-1/3 mb-3" />
+                  <div className="h-3 bg-[#E2D2C4]/40 rounded-md w-full" />
+                </div>
+              ))}
+            </div>
+          )}
 
           {!loading && error && <div className="rounded-2xl bg-[#F9ECE8] p-5 text-[12px] font-['Inter']! text-[#9A4D3A]">{error}</div>}
 
@@ -258,25 +277,27 @@ export const ReportSection: React.FC = () => {
           )}
         </div>
 
-        <div className="flex items-center justify-center h-full py-1">
-          <div
-            ref={trackRef}
-            onMouseDown={handleTrackMouseDown}
-            onTouchStart={(e) => handleTrackClickOrDrag(e.touches[0].clientY)}
-            onTouchMove={(e) => handleTrackClickOrDrag(e.touches[0].clientY)}
-            className="w-2 h-full bg-[#F2E8E0] rounded-full relative overflow-hidden cursor-pointer select-none"
-          >
+        {showScrollbar && (
+          <div className="flex items-center justify-center h-full py-1">
             <div
-              className={`w-full bg-[#B58F6F] rounded-full absolute left-0 ${
-                isDraggingTrack || isDraggingCards ? "transition-none" : "transition-all duration-150"
-              }`}
-              style={{
-                height: "35%",
-                top: `${scrollProgress * 65}%`,
-              }}
-            />
+              ref={trackRef}
+              onMouseDown={handleTrackMouseDown}
+              onTouchStart={(e) => handleTrackClickOrDrag(e.touches[0].clientY)}
+              onTouchMove={(e) => handleTrackClickOrDrag(e.touches[0].clientY)}
+              className="w-2 h-full bg-[#F2E8E0] rounded-full relative overflow-hidden cursor-pointer select-none"
+            >
+              <div
+                className={`w-full bg-[#B58F6F] rounded-full absolute left-0 ${
+                  isDraggingTrack || isDraggingCards ? "transition-none" : "transition-all duration-150"
+                }`}
+                style={{
+                  height: "35%",
+                  top: `${scrollProgress * 65}%`,
+                }}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
