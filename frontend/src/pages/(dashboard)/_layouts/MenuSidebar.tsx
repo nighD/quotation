@@ -337,9 +337,11 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
           </AnimatePresence>
 
           {/* User Profile */}
-          <div className={`pt-3 border-t border-stone-100 flex items-center justify-between transition-all ${collapsedState ? "justify-center" : "px-2"}`}>
+          <div
+            className={`pt-3 border-t border-stone-100 flex items-center justify-between transition-all ${collapsedState ? "flex-col gap-2.5 justify-center py-1" : "px-2"}`}
+          >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="relative shrink-0">
+              <div className="relative shrink-0" title={user?.full_name || "User Avatar"}>
                 <img
                   src={user?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"}
                   alt={user?.full_name || "User Avatar"}
@@ -365,20 +367,18 @@ export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollaps
               </AnimatePresence>
             </div>
 
-            {!collapsedState && (
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  navigate("/login");
-                }}
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-stone-400 hover:text-[#9A4D3A] hover:bg-[#F9ECE8] transition-colors cursor-pointer shrink-0 ml-1"
-                title="Đăng xuất"
-                aria-label="Đăng xuất"
-              >
-                <LogOut size={16} strokeWidth={2.2} />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-stone-400 hover:text-[#9A4D3A] hover:bg-[#F9ECE8] transition-colors cursor-pointer shrink-0"
+              title="Đăng xuất"
+              aria-label="Đăng xuất"
+            >
+              <LogOut size={16} strokeWidth={2.2} />
+            </button>
           </div>
         </div>
       </div>

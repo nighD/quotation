@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useAuth } from "../../../../context/AuthContext";
@@ -16,11 +16,14 @@ const formatCardNumber = (num?: string): string => {
 
 export const MembershipBenefitCard: React.FC<MembershipBenefitCardProps> = ({ onAddCard }) => {
   const { user } = useAuth();
-  const realHasCard = Boolean(user?.card_number);
-  const [hasCard, setHasCard] = useState(realHasCard);
+  const [hasCard, setHasCard] = useState<boolean>(() => Boolean(user?.card_number));
 
-  const holderName = user?.full_name;
-  const rawCardNumber = user?.card_number;
+  useEffect(() => {
+    setHasCard(Boolean(user?.card_number));
+  }, [user?.card_number]);
+
+  const holderName = user?.full_name || "MEMBER NAME";
+  const rawCardNumber = user?.card_number || "0123456789";
   const formattedCardNumber = formatCardNumber(rawCardNumber);
 
   const handleAddCard = () => {
@@ -47,7 +50,7 @@ export const MembershipBenefitCard: React.FC<MembershipBenefitCardProps> = ({ on
           {hasCard ? (
             <div className="absolute left-[5.5%] bottom-[7%] sm:bottom-[8%] flex flex-col gap-0.5 select-none z-10">
               <span className="text-white font-['Inter']! font-bold text-[11px] xs:text-[13px] sm:text-[14px] md:text-[15px] xl:text-[16px] uppercase tracking-wider leading-tight drop-shadow-md">
-                {holderName.toUpperCase()}
+                {(holderName || "").toUpperCase()}
               </span>
 
               <div className="flex flex-col mt-0.5 sm:mt-1">
@@ -55,7 +58,7 @@ export const MembershipBenefitCard: React.FC<MembershipBenefitCardProps> = ({ on
                   CARD NO.
                 </span>
                 <span className="text-white font-mono font-bold text-[10px] xs:text-[12px] sm:text-[13px] md:text-[14px] xl:text-[15px] tracking-[0.14em] sm:tracking-[0.18em] leading-snug drop-shadow-md">
-                  {formattedCardNumber.toUpperCase()}
+                  {(formattedCardNumber || "").toUpperCase()}
                 </span>
               </div>
             </div>
