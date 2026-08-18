@@ -1,23 +1,23 @@
-import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import { Login } from './pages/auth/Login';
-import { Profile } from './pages/auth/Profile';
-import { SubscriptionPlans } from './pages/subscriptions/SubscriptionPlans';
-import { Reports, Deals, Benefits, Events } from './pages/public/Placeholders';
-import { ReportDetail } from './pages/public/ReportDetail';
-import { ReportPdf } from './pages/public/ReportPdf';
-import { Landing } from './pages/public/Landing/page';
-import { AdminDashboard } from './pages/(dashboard)/admin/AdminDashboard';
-// import { NotificationsPage } from './pages/(dashboard)/admin/NotificationsPage';
-// import ReportPage from './pages/(dashboard)/report/page';
-// import ReportDetailPage from './pages/(dashboard)/report/[slug]/page';
-// import BookingPage from './pages/(dashboard)/booking/page';
-import { AdminLayout } from './pages/(dashboard)/_layouts';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+import { Login } from "./pages/auth/Login";
+import { Profile } from "./pages/auth/Profile";
+import { SubscriptionPlans } from "./pages/subscriptions/SubscriptionPlans";
+import { Reports, Deals, Benefits, Events } from "./pages/public/Placeholders";
+import { ReportDetail } from "./pages/public/ReportDetail";
+import { ReportPdf } from "./pages/public/ReportPdf";
+import { Landing } from "./pages/public/Landing/page";
+import { AdminDashboard } from "./pages/(dashboard)/admin/AdminDashboard";
+import { NotificationsPage } from "./pages/(dashboard)/admin/NotificationsPage";
+import ReportPage from "./pages/(dashboard)/report/page";
+import ReportDetailPage from "./pages/(dashboard)/report/[slug]/page";
+import BookingPage from "./pages/(dashboard)/booking/page";
+import { AdminLayout } from "./pages/(dashboard)/_layouts";
 
 function PlansRedirect() {
   const [searchParams] = useSearchParams();
-  const payment = searchParams.get('payment');
-  return <Navigate to={`/home${payment ? `?payment=${payment}` : ''}`} replace />;
+  const payment = searchParams.get("payment");
+  return <Navigate to={`/home${payment ? `?payment=${payment}` : ""}`} replace />;
 }
 
 function AppContent() {
@@ -30,16 +30,15 @@ function AppContent() {
   const hostname = window.location.hostname;
   const isProd = import.meta.env.PROD;
 
-
   if (isProd) {
-    const isVercel = hostname.includes('vercel.app');
-    const isDashboard = hostname.startsWith('dashboard.') || isVercel;
-    const dashboardDomainUrl = 'https://dashboard.vifcpass.com';
+    const isVercel = hostname.includes("vercel.app");
+    const isDashboard = hostname.startsWith("dashboard.") || isVercel;
+    const dashboardDomainUrl = "https://dashboard.vifcpass.com";
 
     if (!isDashboard) {
       // Redirect all paths other than / to dashboard.vifcpass.com
       const currentPath = window.location.pathname;
-      if (currentPath !== '/') {
+      if (currentPath !== "/") {
         window.location.href = `${dashboardDomainUrl}${currentPath}${window.location.search}`;
         return <div className="min-h-screen bg-[#111] flex items-center justify-center text-white">Redirecting to Dashboard...</div>;
       }
@@ -78,10 +77,18 @@ function AppContent() {
         {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
         <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
           <Route path="/home" element={<AdminDashboard />} />
-          {/* Direct all unbuilt sub-routes back to /home */}
+          <Route path="/report" element={<ReportPage />} />
+          <Route path="/report/:slug" element={<ReportDetailPage />} />
+          <Route path="/admin/report" element={<ReportPage />} />
+          <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
+          <Route path="/booking" element={<BookingPage />} />
+          <Route path="/admin/booking" element={<BookingPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/admin/notifications" element={<NotificationsPage />} />
+          {/* Direct other unbuilt sub-routes back to /home */}
           <Route path="/admin/*" element={<Navigate to="/home" replace />} />
-          <Route path="/booking/*" element={<Navigate to="/home" replace />} />
-          <Route path="/report/*" element={<Navigate to="/home" replace />} />
+          <Route path="/booking/*" element={<Navigate to="/booking" replace />} />
+          <Route path="/report/*" element={<Navigate to="/report" replace />} />
         </Route>
 
         {/* Catch-all */}
@@ -116,10 +123,18 @@ function AppContent() {
       {/* Admin Section (Shared Layout prevents Sidebar reload/flicker) */}
       <Route element={!user ? <Navigate to="/login" replace /> : <AdminLayout />}>
         <Route path="/home" element={<AdminDashboard />} />
-        {/* Direct all unbuilt sub-routes back to /home */}
+        <Route path="/report" element={<ReportPage />} />
+        <Route path="/report/:slug" element={<ReportDetailPage />} />
+        <Route path="/admin/report" element={<ReportPage />} />
+        <Route path="/admin/report/:slug" element={<ReportDetailPage />} />
+        <Route path="/booking" element={<BookingPage />} />
+        <Route path="/admin/booking" element={<BookingPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin/notifications" element={<NotificationsPage />} />
+        {/* Direct other unbuilt sub-routes back to /home */}
         <Route path="/admin/*" element={<Navigate to="/home" replace />} />
-        <Route path="/booking/*" element={<Navigate to="/home" replace />} />
-        <Route path="/report/*" element={<Navigate to="/home" replace />} />
+        <Route path="/booking/*" element={<Navigate to="/booking" replace />} />
+        <Route path="/report/*" element={<Navigate to="/report" replace />} />
       </Route>
 
       {/* Catch-all */}
@@ -135,4 +150,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-

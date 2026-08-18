@@ -179,7 +179,7 @@ export default function ReportPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.25, delay: index * 0.05 }}
                         whileHover={{ y: -3 }}
-                        onClick={() => navigate(`/admin/report/${article.id}`)}
+                        onClick={() => navigate(`/report/${article.id}`)}
                         className={`rounded-3xl p-6 flex flex-col justify-between min-h-57.5 shadow-xs border transition-shadow cursor-pointer ${article.isDark
                             ? 'bg-[#B58F6F] text-[#F2E8E0] border-[#a67e63]'
                             : 'bg-[#E8D7C9] text-[#523C37] border-[#dfd3c7]'
@@ -206,7 +206,7 @@ export default function ReportPage() {
                                     type="button"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        navigate(`/admin/report/${article.id}`);
+                                        navigate(`/report/${article.id}`);
                                     }}
                                     className={`w-10 h-10 rounded-lg transition-all duration-200 cursor-pointer shrink-0 active:scale-95 flex items-center justify-center ${article.isLocked
                                         ? 'bg-[#E8D7C9] hover:bg-[#ded0c2] text-[#523C37] shadow-2xs'

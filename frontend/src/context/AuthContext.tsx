@@ -1,5 +1,11 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { apiClient } from '../api/client';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
+import { apiClient } from "../api/client";
 
 export interface User {
   id: string;
@@ -19,34 +25,54 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (access_token: string, refresh_token: string) => void;
-  devLogin: (role?: 'admin' | 'user') => Promise<void>;
+  devLogin: (role?: "admin" | "user") => Promise<void>;
   logout: () => void;
   setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const isLocalEnvironment = () => {
-  const hostname = window.location.hostname;
-  return hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname.startsWith('192.168.') ||
-    hostname.startsWith('10.') ||
-    hostname.endsWith('.local');
-};
-
-const isProtectedRoute = (path: string) => {
-  if (path === '/' || path === '/login' || path === '/register') {
-    return false;
-  }
-  return true;
+// Mock user để bypass authentication và vào thẳng dashboard
+const MOCK_BYPASS_USER: User = {
+  id: "bypass-admin-id",
+  email: "admin@example.com",
+  full_name: "Admin Dev",
+  roles: ["admin", "user"],
+  company: "Quotation App",
+  title: "Administrator",
+  country: "Vietnam",
+  is_joined_waitlist: true,
+  card_number: "8888 8888 8888 8888",
+  card_type: "VIP",
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // BYPASS AUTH: Set mock user và tắt loading để vào thẳng dashboard
+  const [user, setUser] = useState<User | null>(MOCK_BYPASS_USER);
+  const [loading, _setLoading] = useState(false);
 
   useEffect(() => {
+    // ==========================================
+    // BYPASS MODE: Tạm comment logic fetch profile & check token
+    // (Mở comment lại khi cần khôi phục flow auth thật)
+    // ==========================================
+    /*
+    const isLocalEnvironment = () => {
+      const hostname = window.location.hostname;
+      return hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.endsWith('.local');
+    };
+
+    const isProtectedRoute = (path: string) => {
+      if (path === '/' || path === '/login' || path === '/register') {
+        return false;
+      }
+      return true;
+    };
+
     const fetchProfile = async () => {
       const searchParams = new URLSearchParams(window.location.search);
       const queryToken = searchParams.get('token');
@@ -92,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem('access_token', data.data.access_token);
           localStorage.setItem('refresh_token', data.data.refresh_token);
           setUser(data.data.user);
-          setLoading(false);
+          _setLoading(false);
           return;
         } catch (error) {
           console.error('Auto dev login failed', error);
@@ -111,36 +137,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
         }
       }
-      setLoading(false);
+      _setLoading(false);
     };
 
     fetchProfile();
+    */
   }, []);
 
   const login = (access_token: string, refresh_token: string) => {
-    localStorage.setItem('access_token', access_token);
-    localStorage.setItem('refresh_token', refresh_token);
+    localStorage.setItem("access_token", access_token);
+    localStorage.setItem("refresh_token", refresh_token);
     // Fetch profile after login
-    apiClient.get('/auth/profile').then(({ data }) => setUser(data.data));
+    apiClient.get("/auth/profile").then(({ data }) => setUser(data.data));
   };
 
-  const devLogin = async (role: 'admin' | 'user' = 'admin') => {
-    const { data } = await apiClient.post('/auth/dev-login', { role });
-    localStorage.removeItem('dev_mock_user');
-    localStorage.setItem('access_token', data.data.access_token);
-    localStorage.setItem('refresh_token', data.data.refresh_token);
+  const devLogin = async (role: "admin" | "user" = "admin") => {
+    const { data } = await apiClient.post("/auth/dev-login", { role });
+    localStorage.removeItem("dev_mock_user");
+    localStorage.setItem("access_token", data.data.access_token);
+    localStorage.setItem("refresh_token", data.data.refresh_token);
     setUser(data.data.user);
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('dev_mock_user');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("dev_mock_user");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, devLogin, logout, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, devLogin, logout, setUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -149,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
