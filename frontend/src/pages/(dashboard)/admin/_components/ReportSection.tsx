@@ -4,21 +4,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/client";
 
-const FilledLock = ({
-  size = 15,
-  className = "",
-}: {
-  size?: number;
-  className?: string;
-}) => (
+const FilledLock = ({ size = 15, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
-    <path
-      d="M6.5 10V7a5.5 5.5 0 0 1 11 0v3"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-    />
+    <path d="M6.5 10V7a5.5 5.5 0 0 1 11 0v3" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -44,10 +32,7 @@ const getArticleRequiredRole = (article: any): string => {
   if (!article.blocks) return "free";
 
   try {
-    const blocks =
-      typeof article.blocks === "string"
-        ? JSON.parse(article.blocks)
-        : article.blocks;
+    const blocks = typeof article.blocks === "string" ? JSON.parse(article.blocks) : article.blocks;
     if (Array.isArray(blocks)) {
       const pdfBlock = blocks.find((block: any) => block.type === "pdf");
       if (pdfBlock?.activeRole) {
@@ -95,21 +80,17 @@ export const ReportSection: React.FC = () => {
       setLoading(true);
       setError("");
       try {
-        const { data } = await apiClient.get(
-          "/cms/articles?page=1&page_size=6",
-        );
+        const { data } = await apiClient.get("/cms/articles?page=1&page_size=6");
         if (data.success) {
-          const items = (data.data || [])
-            .slice(0, 4)
-            .map((article: any, index: number) => ({
-              id: article.id,
-              slug: article.slug,
-              title: article.title,
-              date: formatArticleDate(article.created_at),
-              description: article.description || article.title,
-              isDark: index % 2 === 1,
-              isLocked: getArticleRequiredRole(article) !== "free",
-            }));
+          const items = (data.data || []).slice(0, 4).map((article: any, index: number) => ({
+            id: article.id,
+            slug: article.slug,
+            title: article.title,
+            date: formatArticleDate(article.created_at),
+            description: article.description || article.title,
+            isDark: index % 2 === 1,
+            isLocked: getArticleRequiredRole(article) !== "free",
+          }));
           setReportItems(items);
         }
       } catch (fetchError) {
@@ -195,12 +176,10 @@ export const ReportSection: React.FC = () => {
   return (
     <div className="w-full bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-sm flex flex-col h-full border border-[#EAE0D6]">
       <div className="flex items-center justify-between mb-4 sm:mb-5 select-none">
-        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
-          Report
-        </h2>
+        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">Report</h2>
         <button
           type="button"
-          onClick={() => navigate("/reports")}
+          onClick={() => navigate("/report")}
           className="relative group font-['Inter']! text-[11px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block cursor-pointer"
         >
           <span>XEM TẤT CẢ</span>
@@ -218,17 +197,9 @@ export const ReportSection: React.FC = () => {
           }`}
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {loading && (
-            <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">
-              Loading reports...
-            </div>
-          )}
+          {loading && <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">Loading reports...</div>}
 
-          {!loading && error && (
-            <div className="rounded-2xl bg-[#F9ECE8] p-5 text-[12px] font-['Inter']! text-[#9A4D3A]">
-              {error}
-            </div>
-          )}
+          {!loading && error && <div className="rounded-2xl bg-[#F9ECE8] p-5 text-[12px] font-['Inter']! text-[#9A4D3A]">{error}</div>}
 
           {!loading &&
             !error &&
@@ -239,7 +210,7 @@ export const ReportSection: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: index * 0.05 }}
                 whileHover={{ scale: 1.01, y: -2 }}
-                onClick={() => navigate(`/reports/detail/${item.slug}`)}
+                onClick={() => navigate(`/report/${item.slug}`)}
                 className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative transition-shadow shadow-xs ${
                   item.isDark ? "bg-[#B58F6F] text-white" : "bg-[#E8D7C9]"
                 } cursor-pointer`}
@@ -248,19 +219,13 @@ export const ReportSection: React.FC = () => {
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
-                    navigate(`/reports/detail/${item.slug}`);
+                    navigate(`/report/${item.slug}`);
                   }}
                   className={`absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center hover:opacity-90 transition cursor-pointer ${
-                    item.isDark
-                      ? "bg-[#E8D7C9] text-[#3D281F]"
-                      : "bg-[#664E48] text-white"
+                    item.isDark ? "bg-[#E8D7C9] text-[#3D281F]" : "bg-[#664E48] text-white"
                   }`}
                 >
-                  {item.isLocked ? (
-                    <FilledLock size={15} />
-                  ) : (
-                    <Maximize2 size={15} />
-                  )}
+                  {item.isLocked ? <FilledLock size={15} /> : <Maximize2 size={15} />}
                 </button>
 
                 <div className="pr-10">
@@ -272,23 +237,15 @@ export const ReportSection: React.FC = () => {
                     {item.title}
                   </h3>
                   <p
-                    className={`text-[10px] font-normal! font-['Inter']! uppercase tracking-wider mt-1 ${
-                      item.isDark ? "text-[#F2E8E0]/70" : "text-[#B58F6F]"
-                    }`}
+                    className={`text-[10px] font-normal! font-['Inter']! uppercase tracking-wider mt-1 ${item.isDark ? "text-[#F2E8E0]/70" : "text-[#B58F6F]"}`}
                   >
                     {item.date}
                   </p>
 
-                  <div
-                    className={`h-px w-full my-2.5 sm:my-3 ${
-                      item.isDark ? "bg-[#F2E8E0]/30" : "bg-[#664E48]/25"
-                    }`}
-                  />
+                  <div className={`h-px w-full my-2.5 sm:my-3 ${item.isDark ? "bg-[#F2E8E0]/30" : "bg-[#664E48]/25"}`} />
 
                   <p
-                    className={`text-[12px] font-normal! font-['Inter']! leading-relaxed line-clamp-3 ${
-                      item.isDark ? "text-[#F2E8E0]/90" : "text-[#523C37]"
-                    }`}
+                    className={`text-[12px] font-normal! font-['Inter']! leading-relaxed line-clamp-3 ${item.isDark ? "text-[#F2E8E0]/90" : "text-[#523C37]"}`}
                   >
                     {item.description}
                   </p>
@@ -297,9 +254,7 @@ export const ReportSection: React.FC = () => {
             ))}
 
           {!loading && !error && reportItems.length === 0 && (
-            <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">
-              No reports available.
-            </div>
+            <div className="rounded-2xl bg-[#F5ECE5] p-5 text-[12px] font-['Inter']! text-[#664E48]">No reports available.</div>
           )}
         </div>
 
@@ -313,9 +268,7 @@ export const ReportSection: React.FC = () => {
           >
             <div
               className={`w-full bg-[#B58F6F] rounded-full absolute left-0 ${
-                isDraggingTrack || isDraggingCards
-                  ? "transition-none"
-                  : "transition-all duration-150"
+                isDraggingTrack || isDraggingCards ? "transition-none" : "transition-all duration-150"
               }`}
               style={{
                 height: "35%",

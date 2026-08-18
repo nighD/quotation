@@ -5,11 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../../context/AuthContext";
 import { apiClient } from "../../../api/client";
 import { cn } from "../../../utils/cn";
-import {
-  mainMenuItems,
-  secondaryMenuItems,
-  type MenuItem,
-} from "../admin/_constants/menu";
+import { mainMenuItems, secondaryMenuItems, type MenuItem } from "../admin/_constants/menu";
 
 interface ApiError {
   response?: {
@@ -40,14 +36,7 @@ export interface MenuSidebarProps {
   onCloseMobile?: () => void;
 }
 
-export const MenuSidebar = ({
-  activePath,
-  onNavigate,
-  collapsed,
-  onToggleCollapse,
-  isMobileOpen = false,
-  onCloseMobile,
-}: MenuSidebarProps) => {
+export const MenuSidebar = ({ activePath, onNavigate, collapsed, onToggleCollapse, isMobileOpen = false, onCloseMobile }: MenuSidebarProps) => {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,8 +44,7 @@ export const MenuSidebar = ({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeSubmitting, setUpgradeSubmitting] = useState(false);
-  const [upgradeRequest, setUpgradeRequest] =
-    useState<UpgradeRequestSummary | null>(null);
+  const [upgradeRequest, setUpgradeRequest] = useState<UpgradeRequestSummary | null>(null);
   const [upgradeMessage, setUpgradeMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -123,10 +111,7 @@ export const MenuSidebar = ({
     setUpgradeSubmitting(true);
     setUpgradeMessage(null);
     try {
-      const { data } = await apiClient.post(
-        "/engagement/upgrade-requests",
-        upgradeForm,
-      );
+      const { data } = await apiClient.post("/engagement/upgrade-requests", upgradeForm);
       setUpgradeRequest(data.data);
       setUpgradeMessage({
         type: "success",
@@ -137,15 +122,10 @@ export const MenuSidebar = ({
         const profileRes = await apiClient.get("/auth/profile");
         setUser(profileRes.data.data);
       } catch (profileError) {
-        console.error(
-          "Failed to reload profile after card registration",
-          profileError,
-        );
+        console.error("Failed to reload profile after card registration", profileError);
       }
     } catch (error: unknown) {
-      const message =
-        (error as ApiError).response?.data?.message ||
-        "Failed to submit upgrade request.";
+      const message = (error as ApiError).response?.data?.message || "Failed to submit upgrade request.";
       setUpgradeMessage({ type: "error", text: message });
 
       try {
@@ -162,12 +142,9 @@ export const MenuSidebar = ({
   const getUpgradeButtonLabel = () => {
     if (upgradeLoading) return "LOADING...";
     if (!upgradeRequest) return "Đăng kí card";
-    if (upgradeRequest.status === "pending")
-      return `PENDING #${upgradeRequest.queue_number}`;
+    if (upgradeRequest.status === "pending") return `PENDING #${upgradeRequest.queue_number}`;
     if (upgradeRequest.status === "approved")
-      return upgradeRequest.card_number
-        ? `REGISTERED ${upgradeRequest.card_number}`
-        : `REGISTERED #${upgradeRequest.queue_number}`;
+      return upgradeRequest.card_number ? `REGISTERED ${upgradeRequest.card_number}` : `REGISTERED #${upgradeRequest.queue_number}`;
     return "REAPPLY UPGRADE";
   };
 
@@ -183,8 +160,7 @@ export const MenuSidebar = ({
     const isActive =
       currentPath === item.path ||
       (item.path !== "/home" && currentPath.startsWith(item.path + "/")) ||
-      (item.path === "/home" &&
-        (currentPath === "/home" || currentPath === "/home/home"));
+      (item.path === "/home" && (currentPath === "/home" || currentPath === "/home/home"));
 
     const LucideIconComp = item.lucideIcon;
 
@@ -195,23 +171,14 @@ export const MenuSidebar = ({
         onClick={() => handleItemClick(item.path)}
         title={collapsedState ? item.label : undefined}
         className={`flex items-center transition-all duration-200 cursor-pointer font-semibold group relative ${
-          collapsedState
-            ? "justify-center w-11 h-11 mx-auto rounded-full"
-            : "w-full px-3.5 py-2.5 rounded-full text-left gap-3.5"
-        } ${
-          isActive
-            ? "text-[#D16419]"
-            : "text-[#8B837C] hover:text-stone-900 hover:bg-stone-50"
-        }`}
+          collapsedState ? "justify-center w-11 h-11 mx-auto rounded-full" : "w-full px-3.5 py-2.5 rounded-full text-left gap-3.5"
+        } ${isActive ? "text-[#D16419]" : "text-[#8B837C] hover:text-stone-900 hover:bg-stone-50"}`}
       >
         {/* Active Indicator Background Pill */}
         {isActive && (
           <motion.div
             layoutId={forceExpanded ? "active-pill-mobile" : "active-pill"}
-            className={cn(
-              "absolute inset-0 bg-[#F2E8E0]",
-              collapsedState ? "rounded-full" : "rounded-full",
-            )}
+            className={cn("absolute inset-0 bg-[#F2E8E0]", collapsedState ? "rounded-full" : "rounded-full")}
             initial={false}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
           />
@@ -221,21 +188,14 @@ export const MenuSidebar = ({
           <img
             src={item.iconName}
             alt={item.label}
-            className={`w-5 h-5 object-contain transition-all ${
-              isActive
-                ? "opacity-100 active-menu-icon"
-                : "opacity-70 group-hover:opacity-100"
-            }`}
+            className={`w-5 h-5 object-contain transition-all ${isActive ? "opacity-100 active-menu-icon" : "opacity-70 group-hover:opacity-100"}`}
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none";
               const fallback = (e.target as HTMLElement).nextElementSibling;
               if (fallback) fallback.classList.remove("hidden");
             }}
           />
-          <LucideIconComp
-            size={20}
-            className={`hidden transition-all ${isActive ? "text-[#D16419]" : "text-[#8B837C]"}`}
-          />
+          <LucideIconComp size={20} className={`hidden transition-all ${isActive ? "text-[#D16419]" : "text-[#8B837C]"}`} />
         </div>
 
         <AnimatePresence mode="wait">
@@ -262,16 +222,8 @@ export const MenuSidebar = ({
       <div className="w-full flex-1 min-h-0 flex flex-col justify-between overflow-y-auto overflow-x-hidden custom-scrollbar pr-0.5">
         <div>
           {/* Logo Section */}
-          <div
-            className={`flex items-center mb-6 pt-1 transition-all duration-200 ${
-              collapsedState ? "justify-center px-0" : "px-2 justify-between"
-            }`}
-          >
-            <Link
-              to="/home"
-              onClick={() => isDrawer && onCloseMobile?.()}
-              className="flex items-center gap-1.5 hover:opacity-90 transition"
-            >
+          <div className={`flex items-center mb-6 pt-1 transition-all duration-200 ${collapsedState ? "justify-center px-0" : "px-2 justify-between"}`}>
+            <Link to="/home" onClick={() => isDrawer && onCloseMobile?.()} className="flex items-center gap-1.5 hover:opacity-90 transition">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={collapsedState ? "logo-collapsed" : "logo-expanded"}
@@ -279,9 +231,7 @@ export const MenuSidebar = ({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
-                  src={
-                    collapsedState ? "/admin/logo.png" : "/admin/logo-vifc.png"
-                  }
+                  src={collapsedState ? "/admin/logo.png" : "/admin/logo-vifc.png"}
                   alt="Logo"
                   className="h-7 sm:h-8 object-contain"
                 />
@@ -301,9 +251,7 @@ export const MenuSidebar = ({
           </div>
 
           {/* Main Nav */}
-          <nav className="flex flex-col gap-1">
-            {mainMenuItems.map((item) => renderMenuItem(item, isDrawer))}
-          </nav>
+          <nav className="flex flex-col gap-1">{mainMenuItems.map((item) => renderMenuItem(item, isDrawer))}</nav>
 
           {secondaryMenuItems.length > 0 && (
             <>
@@ -312,11 +260,7 @@ export const MenuSidebar = ({
               </div>
 
               {/* Secondary Nav */}
-              <nav className="flex flex-col gap-1">
-                {secondaryMenuItems.map((item) =>
-                  renderMenuItem(item, isDrawer),
-                )}
-              </nav>
+              <nav className="flex flex-col gap-1">{secondaryMenuItems.map((item) => renderMenuItem(item, isDrawer))}</nav>
             </>
           )}
         </div>
@@ -393,17 +337,10 @@ export const MenuSidebar = ({
           </AnimatePresence>
 
           {/* User Profile */}
-          <div
-            className={`pt-3 border-t border-stone-100 flex items-center transition-all ${
-              collapsedState ? "justify-center" : "px-2 justify-start gap-3"
-            }`}
-          >
+          <div className={`pt-3 border-t border-stone-100 flex items-center transition-all ${collapsedState ? "justify-center" : "px-2 justify-start gap-3"}`}>
             <div className="relative shrink-0">
               <img
-                src={
-                  user?.avatar_url ||
-                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
-                }
+                src={user?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"}
                 alt={user?.full_name || "User Avatar"}
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-stone-200 shadow-xs"
               />
@@ -418,9 +355,7 @@ export const MenuSidebar = ({
                   transition={{ duration: 0.18 }}
                   className="flex flex-col min-w-0 overflow-hidden"
                 >
-                  <span className="text-stone-400 text-[11px] sm:text-[12px] font-normal leading-tight truncate">
-                    Welcome back 👋
-                  </span>
+                  <span className="text-stone-400 text-[11px] sm:text-[12px] font-normal leading-tight truncate">Welcome back 👋</span>
                   <span className="text-stone-900 font-bold text-[13px] sm:text-[14px] leading-snug truncate font-poppins">
                     {user?.full_name || "Hoàng Vương (Admin)"}
                   </span>
@@ -440,7 +375,7 @@ export const MenuSidebar = ({
         animate={{ width: isCollapsed ? 84 : 280 }}
         transition={{ type: "spring", stiffness: 320, damping: 32 }}
         className={cn(
-          "hidden lg:flex h-screen sticky top-0 shrink-0 bg-white border-r border-stone-100 shadow-xl shadow-stone-200/30 select-none z-20 overflow-visible flex-col",
+          "hidden lg:flex h-screen sticky top-0 shrink-0 bg-white border-r border-stone-100 shadow-xl shadow-stone-200/30 select-none z-40 overflow-visible flex-col",
           isCollapsed ? "p-3" : "p-5 rounded-r-4xl",
         )}
       >
@@ -449,13 +384,9 @@ export const MenuSidebar = ({
           type="button"
           onClick={handleToggle}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute -right-3.5 top-7 z-30 w-7 h-7 bg-white border border-stone-200/90 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-900 shadow-md hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95"
+          className="absolute -right-3.5 top-7 z-50 w-7 h-7 bg-white border border-stone-200/90 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-900 shadow-md hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95"
         >
-          <motion.div
-            animate={{ rotate: isCollapsed ? 0 : 180 }}
-            transition={{ duration: 0.25 }}
-            className="flex items-center justify-center"
-          >
+          <motion.div animate={{ rotate: isCollapsed ? 0 : 180 }} transition={{ duration: 0.25 }} className="flex items-center justify-center">
             <ChevronRight size={15} strokeWidth={2.2} />
           </motion.div>
         </button>
@@ -511,12 +442,9 @@ export const MenuSidebar = ({
             >
               <div className="flex items-start justify-between gap-4 mb-4 sm:mb-5">
                 <div>
-                  <h2 className="text-[26px] sm:text-[30px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
-                    Upgrade For Free
-                  </h2>
+                  <h2 className="text-[26px] sm:text-[30px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">Upgrade For Free</h2>
                   <p className="mt-1 text-[11px] sm:text-[12px] font-['Inter']! text-[#664E48] leading-relaxed">
-                    Gửi thông tin cho admin để xét duyệt, cấp số thứ tự và gắn
-                    role cho tài khoản.
+                    Gửi thông tin cho admin để xét duyệt, cấp số thứ tự và gắn role cho tài khoản.
                   </p>
                 </div>
 
@@ -532,9 +460,7 @@ export const MenuSidebar = ({
               {upgradeMessage && (
                 <div
                   className={`mb-4 rounded-2xl px-4 py-3 text-[12px] font-['Inter']! ${
-                    upgradeMessage.type === "success"
-                      ? "bg-[#E8D7C9] text-[#523C37]"
-                      : "bg-[#F8E4DD] text-[#9A4D3A]"
+                    upgradeMessage.type === "success" ? "bg-[#E8D7C9] text-[#523C37]" : "bg-[#F8E4DD] text-[#9A4D3A]"
                   }`}
                 >
                   {upgradeMessage.text}
@@ -546,17 +472,13 @@ export const MenuSidebar = ({
                   <div className="rounded-2xl sm:rounded-3xl bg-white/80 border border-[#E4D6CA] p-4 sm:p-5">
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div>
-                        <p className="text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.2em] text-[#B58F6F]">
-                          Current status
-                        </p>
+                        <p className="text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.2em] text-[#B58F6F]">Current status</p>
                         <h3 className="mt-1 text-[22px] sm:text-[26px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16] capitalize">
                           {upgradeRequest.status}
                         </h3>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.2em] text-[#B58F6F]">
-                          Queue
-                        </p>
+                        <p className="text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.2em] text-[#B58F6F]">Queue</p>
                         <p className="mt-1 text-[20px] sm:text-[22px] font-['Cormorant_Garamond']! font-semibold! text-[#523C37]">
                           #{upgradeRequest.queue_number}
                         </p>
@@ -565,20 +487,12 @@ export const MenuSidebar = ({
 
                     <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-[12px] font-['Inter']! text-[#523C37]">
                       <div className="rounded-2xl bg-[#F7EEE7] p-3">
-                        <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">
-                          Role
-                        </span>
-                        <span className="block mt-1 font-medium uppercase">
-                          Premium
-                        </span>
+                        <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">Role</span>
+                        <span className="block mt-1 font-medium uppercase">Premium</span>
                       </div>
                       <div className="rounded-2xl bg-[#F7EEE7] p-3">
-                        <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">
-                          Card
-                        </span>
-                        <span className="block mt-1 font-medium uppercase truncate">
-                          {upgradeRequest.card_number || "Waiting for approval"}
-                        </span>
+                        <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">Card</span>
+                        <span className="block mt-1 font-medium uppercase truncate">{upgradeRequest.card_number || "Waiting for approval"}</span>
                       </div>
                     </div>
 
@@ -603,9 +517,7 @@ export const MenuSidebar = ({
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <label className="block">
-                      <span className="block text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-1.5">
-                        Company
-                      </span>
+                      <span className="block text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-1.5">Company</span>
                       <input
                         type="text"
                         value={upgradeForm.company}
@@ -621,9 +533,7 @@ export const MenuSidebar = ({
                     </label>
 
                     <label className="block">
-                      <span className="block text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-1.5">
-                        Country
-                      </span>
+                      <span className="block text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-1.5">Country</span>
                       <input
                         type="text"
                         value={upgradeForm.country}
@@ -640,18 +550,12 @@ export const MenuSidebar = ({
                   </div>
 
                   <div className="rounded-2xl bg-[#F7EEE7] px-4 py-2.5 sm:py-3 text-[12px] font-['Inter']! text-[#523C37]">
-                    <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">
-                      Assigned role
-                    </span>
-                    <span className="mt-0.5 block font-medium uppercase">
-                      Premium Member
-                    </span>
+                    <span className="block text-[#B58F6F] uppercase tracking-[0.16em] text-[10px]">Assigned role</span>
+                    <span className="mt-0.5 block font-medium uppercase">Premium Member</span>
                   </div>
 
                   <label className="block">
-                    <span className="block text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-1.5">
-                      Note for admin
-                    </span>
+                    <span className="block text-[10px] sm:text-[11px] font-['Inter']! uppercase tracking-[0.18em] text-[#B58F6F] mb-1.5">Note for admin</span>
                     <textarea
                       rows={3}
                       value={upgradeForm.note}
@@ -676,9 +580,7 @@ export const MenuSidebar = ({
                     </button>
                     <button
                       type="button"
-                      disabled={
-                        upgradeSubmitting || !upgradeForm.company.trim()
-                      }
+                      disabled={upgradeSubmitting || !upgradeForm.company.trim()}
                       onClick={handleUpgradeSubmit}
                       className="bg-[#523C37] hover:bg-[#382b24] disabled:opacity-60 text-white text-[12px] font-['Inter']! font-medium px-5 py-2.5 rounded-xl uppercase tracking-wider cursor-pointer shadow-sm transition-all"
                     >
