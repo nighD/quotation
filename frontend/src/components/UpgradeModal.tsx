@@ -30,7 +30,6 @@ export interface UpgradeModalProps {
   onSuccess?: () => void;
 }
 
-// Cờ tạm thời ẩn Upgrade Modal theo yêu cầu
 const ENABLE_UPGRADE_MODAL = false;
 
 export const UpgradeModal: React.FC<UpgradeModalProps> = (props) => {

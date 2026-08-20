@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Calendar, Maximize2, Search, X, FileText, Lock, ExternalLink } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../../../api/client";
 import { useAuth } from "../../../../context/AuthContext";
@@ -48,6 +48,15 @@ const ROLE_LEVELS: Record<string, number> = {
   premium: 3,
   admin: 4,
 };
+
+// Global in-memory cache for article details to prevent re-fetching and flickering on navigation
+interface CachedArticleEntry {
+  article: ArticleDetail;
+  relatedArticles: ArticleItem[];
+  timestamp: number;
+}
+const articleDetailCache = new Map<string, CachedArticleEntry>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 const FilledLock = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
@@ -122,6 +131,149 @@ const formatArticleDate = (dateStr: string): string => {
   }
 };
 
+/**
+ * Isolated Banner Image Component with Caching, Hardware Acceleration, and Fallback
+ */
+function BannerImage({ bannerUrl, title, onZoom }: { bannerUrl: string; title: string; onZoom: () => void }) {
+  const [currentSrc, setCurrentSrc] = useState(bannerUrl);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(bannerUrl);
+    setHasError(false);
+  }, [bannerUrl]);
+
+  const handleError = () => {
+    if (!hasError && currentSrc !== "/admin/banner-report.png") {
+      setHasError(true);
+      setCurrentSrc("/admin/banner-report.png");
+    }
+  };
+
+  return (
+    <div
+      onClick={onZoom}
+      className="relative w-full h-[240px] xs:h-[280px] sm:h-[340px] md:h-[400px] lg:h-[420px] overflow-hidden mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl shadow-sm border border-[#E4D6CA] group cursor-pointer select-none bg-[#EADFD4] isolate [transform:translateZ(0)] [backface-visibility:hidden]"
+      style={{ willChange: "transform" }}
+    >
+      <img
+        src={currentSrc}
+        alt={title}
+        loading="eager"
+        decoding="async"
+        onError={handleError}
+        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 select-none pointer-events-none [transform:translateZ(0)] [backface-visibility:hidden]"
+      />
+
+      {/* Hover Zoom Icon at Top-Right */}
+      <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-90 z-10 pointer-events-auto">
+        <button
+          type="button"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/65 hover:bg-black/85 text-white backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 transition cursor-pointer active:scale-95"
+          title="Phóng to ảnh"
+        >
+          <Maximize2 size={16} className="text-white" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Isolated PDF Block Card with Cover / Thumbnail Fallback & Caching
+ */
+function PdfBlockCard({
+  block,
+  articleTitle,
+  articleSlug,
+  userLevel,
+  onRequireUpgrade,
+}: {
+  block: Block;
+  articleTitle: string;
+  articleSlug: string;
+  userLevel: number;
+  onRequireUpgrade: () => void;
+}) {
+  const navigate = useNavigate();
+  const [thumbError, setThumbError] = useState(false);
+  const requiredLevel = ROLE_LEVELS[block.activeRole || "free"] || 0;
+  const hasPdfAccess = userLevel >= requiredLevel;
+  const roleName = block.activeRole ? block.activeRole.toUpperCase() : "STANDARD";
+  const displayName = block.name || articleTitle;
+
+  return (
+    <div className="my-8 flex flex-col items-center">
+      <div className="w-[320px] sm:w-[350px] max-w-full aspect-[1/1.42] bg-[#1E1B18] rounded-[24px] overflow-hidden shadow-2xl flex flex-col justify-between border border-[#D9C8BA]/40 relative select-none group transition-transform hover:scale-[1.01] duration-300 isolate [transform:translateZ(0)] [backface-visibility:hidden]">
+        {/* Real Thumbnail from S3 or Clean Modern Stylized Cover */}
+        {block.thumbnail && !thumbError ? (
+          <div className="absolute inset-0 w-full h-full pointer-events-none isolate">
+            <img
+              src={block.thumbnail}
+              alt={displayName}
+              loading="lazy"
+              decoding="async"
+              onError={() => setThumbError(true)}
+              className="w-full h-full object-cover [transform:translateZ(0)] [backface-visibility:hidden]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/35 to-black/85" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-b from-[#3E2D28] to-[#1E1614] p-6 flex flex-col justify-between pointer-events-none">
+            <div className="flex justify-between items-center text-[#E8D7C9]/70 text-[11px] font-semibold uppercase tracking-wider">
+              <span>Official Report</span>
+              <span className="bg-white/10 px-2 py-0.5 rounded text-white/90">PDF</span>
+            </div>
+            <div className="my-auto py-6">
+              <h3 className="text-[20px] font-semibold text-white leading-snug">{displayName}</h3>
+            </div>
+          </div>
+        )}
+
+        {/* Top Badge Header */}
+        <div className="relative z-10 flex justify-between items-center p-5">
+          <span className="bg-black/50 backdrop-blur-md text-white/90 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm">
+            <FileText size={12} className="text-[#B58F6F]" />
+            <span>PDF DOCUMENT</span>
+          </span>
+          {!hasPdfAccess && (
+            <span className="bg-red-500/20 text-red-300 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-red-500/30 flex items-center gap-1 shadow-sm">
+              <Lock className="w-3 h-3" />
+              <span>{roleName} ONLY</span>
+            </span>
+          )}
+        </div>
+
+        {/* Bottom Action Section */}
+        <div className="relative z-10 p-5 flex flex-col gap-3">
+          <h4 className="text-white text-[15px] font-semibold line-clamp-2 drop-shadow-md font-['Inter']">{displayName}</h4>
+
+          {hasPdfAccess ? (
+            <button
+              type="button"
+              onClick={() => navigate(`/report/${articleSlug}/pdf`)}
+              className="w-full bg-[#E8D7C9] hover:bg-[#F2E8E0] text-[#523C37] text-[13px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-98"
+            >
+              <span>Đọc báo cáo PDF</span>
+              <ExternalLink size={14} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onRequireUpgrade}
+              className="w-full bg-white/15 hover:bg-white/25 border border-white/20 text-white text-[12px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg backdrop-blur-md"
+            >
+              <Lock className="w-3.5 h-3.5 text-white/80" />
+              <span>Yêu cầu gói {roleName} trở lên</span>
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="text-center text-[#7C6354] text-[13px] mt-3 font-semibold">{block.name || `${articleTitle}.pdf`}</p>
+    </div>
+  );
+}
+
 export default function ReportDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -160,83 +312,114 @@ export default function ReportDetailPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const parseArticleData = useCallback((d: any): ArticleDetail => {
+    let parsedParagraphs: string[] = [];
+    if (d.content && d.content.trim().length > 0) {
+      parsedParagraphs = d.content.split(/\n\n+/).filter(Boolean);
+    } else if (d.description && d.description.trim().length > 0) {
+      parsedParagraphs = [d.description];
+    }
+
+    let parsedBlocks: Block[] = [];
+    if (d.blocks) {
+      if (typeof d.blocks === "string") {
+        try {
+          parsedBlocks = JSON.parse(d.blocks);
+        } catch {
+          // ignore
+        }
+      } else if (Array.isArray(d.blocks)) {
+        parsedBlocks = d.blocks;
+      }
+    }
+
+    return {
+      id: d.id,
+      slug: d.slug || d.id,
+      title: d.title,
+      subtitle: d.description && d.description.trim().length > 0 ? d.description : undefined,
+      description: d.description || "",
+      content: parsedParagraphs,
+      blocks: parsedBlocks,
+      html: d.html,
+      bannerUrl: d.thumbnail || d.banner_url || "/admin/banner-report.png",
+      date: formatArticleDate(d.created_at),
+      isLocked: d.required_role ? d.required_role !== "free" : getArticleRequiredRole(d) !== "free",
+    };
+  }, []);
+
   useEffect(() => {
     if (!slug) return;
 
-    const fetchDetailAndRelated = async () => {
+    // Check cache first (SWR pattern for instant display without flash)
+    const cached = articleDetailCache.get(slug);
+    const now = Date.now();
+    const hasValidCache = cached && now - cached.timestamp < CACHE_TTL_MS;
+
+    if (hasValidCache) {
+      setArticle(cached.article);
+      setRelatedArticles(cached.relatedArticles);
+      setLoading(false);
+    } else {
       setLoading(true);
-      setError("");
+    }
+    setError("");
+
+    const fetchDetailAndRelated = async () => {
       try {
         // Fetch article detail
         const { data: detailRes } = await apiClient.get(`/cms/articles/${slug}`);
         if (detailRes.success && detailRes.data) {
-          const d = detailRes.data;
+          const parsedArticle = parseArticleData(detailRes.data);
+          setArticle(parsedArticle);
 
-          let parsedParagraphs: string[] = [];
-          if (d.content && d.content.trim().length > 0) {
-            parsedParagraphs = d.content.split(/\n\n+/).filter(Boolean);
-          } else if (d.description && d.description.trim().length > 0) {
-            parsedParagraphs = [d.description];
-          }
-
-          let parsedBlocks: Block[] = [];
-          if (d.blocks) {
-            if (typeof d.blocks === "string") {
-              try {
-                parsedBlocks = JSON.parse(d.blocks);
-              } catch {
-                // ignore
-              }
-            } else if (Array.isArray(d.blocks)) {
-              parsedBlocks = d.blocks;
+          // Fetch related articles
+          let parsedRelated: ArticleItem[] = [];
+          try {
+            const { data: listRes } = await apiClient.get("/cms/articles?page=1&page_size=5");
+            if (listRes.success && Array.isArray(listRes.data)) {
+              parsedRelated = listRes.data
+                .filter((item: any) => item.slug !== slug && item.id !== slug)
+                .slice(0, 4)
+                .map((item: any, index: number) => ({
+                  id: item.id,
+                  slug: item.slug || item.id,
+                  title: item.title,
+                  date: formatArticleDate(item.created_at),
+                  description:
+                    item.description && item.description.trim().length > 0
+                      ? item.description
+                      : "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits.",
+                  isDark: index % 2 === 1,
+                  isLocked: item.required_role ? item.required_role !== "free" : getArticleRequiredRole(item) !== "free",
+                }));
+              setRelatedArticles(parsedRelated);
             }
+          } catch (relErr) {
+            console.warn("Failed to load related articles:", relErr);
           }
 
-          setArticle({
-            id: d.id,
-            slug: d.slug || d.id,
-            title: d.title,
-            subtitle: d.description && d.description.trim().length > 0 ? d.description : undefined,
-            description: d.description || "",
-            content: parsedParagraphs,
-            blocks: parsedBlocks,
-            html: d.html,
-            bannerUrl: d.thumbnail || d.banner_url || "/admin/banner-report.png",
-            date: formatArticleDate(d.created_at),
-            isLocked: d.required_role ? d.required_role !== "free" : getArticleRequiredRole(d) !== "free",
+          // Save to memory cache
+          articleDetailCache.set(slug, {
+            article: parsedArticle,
+            relatedArticles: parsedRelated,
+            timestamp: Date.now(),
           });
-        }
-
-        // Fetch related articles
-        const { data: listRes } = await apiClient.get("/cms/articles?page=1&page_size=5");
-        if (listRes.success && Array.isArray(listRes.data)) {
-          const filtered = listRes.data
-            .filter((item: any) => item.slug !== slug && item.id !== slug)
-            .slice(0, 4)
-            .map((item: any, index: number) => ({
-              id: item.id,
-              slug: item.slug || item.id,
-              title: item.title,
-              date: formatArticleDate(item.created_at),
-              description:
-                item.description && item.description.trim().length > 0
-                  ? item.description
-                  : "Experience frictionless global payments with premium flexibility. Click to explore our full suite of benefits.",
-              isDark: index % 2 === 1,
-              isLocked: item.required_role ? item.required_role !== "free" : getArticleRequiredRole(item) !== "free",
-            }));
-          setRelatedArticles(filtered);
+        } else {
+          setError("Không tìm thấy nội dung bài viết.");
         }
       } catch (err: any) {
         console.error("Failed to load article detail:", err);
-        setError("Không thể tải bài viết hoặc bài viết không tồn tại.");
+        if (!hasValidCache) {
+          setError("Không thể tải bài viết hoặc bài viết không tồn tại.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchDetailAndRelated();
-  }, [slug]);
+  }, [slug, parseArticleData]);
 
   useEffect(() => {
     if (article?.title) {
@@ -246,10 +429,17 @@ export default function ReportDetailPage() {
 
   const userLevel = ROLE_LEVELS[userRole] || 0;
 
+  // Filter related articles if searchQuery is entered
+  const displayedRelated = useMemo(() => {
+    if (!searchQuery.trim()) return relatedArticles;
+    const q = searchQuery.toLowerCase();
+    return relatedArticles.filter((item) => item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q));
+  }, [relatedArticles, searchQuery]);
+
   return (
     <div className="w-full pb-12">
       {/* Sticky Header Bar */}
-      <div className="sticky -top-3 sm:-top-4 md:-top-6 lg:-top-6 xl:-top-8 z-10 -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-6 xl:-mx-8 px-4 sm:px-6 md:px-8 py-3 bg-[#F2E8E0]/95 backdrop-blur-md border-b border-[#DCD0C5] mb-6 sm:mb-8 flex items-center justify-between gap-4">
+      <div className="sticky -top-3 sm:-top-4 md:-top-6 lg:-top-6 xl:-top-8 z-20 -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-6 xl:-mx-8 px-4 sm:px-6 md:px-8 py-3 bg-[#F2E8E0]/95 backdrop-blur-md border-b border-[#DCD0C5] mb-6 sm:mb-8 flex items-center justify-between gap-4 isolate">
         <button
           type="button"
           onClick={() => navigate("/report")}
@@ -267,6 +457,11 @@ export default function ReportDetailPage() {
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchQuery.trim()) {
+                  navigate(`/report?q=${encodeURIComponent(searchQuery.trim())}`);
+                }
+              }}
               className="bg-transparent border-none outline-none font-['Inter'] text-[12px] text-[#1B1A16] placeholder:text-[#664E48]/60 w-full ml-2"
             />
           </div>
@@ -274,7 +469,7 @@ export default function ReportDetailPage() {
       </div>
 
       {/* Loading Skeleton */}
-      {loading && (
+      {loading && !article && (
         <div className="space-y-6 animate-pulse">
           <div className="text-center space-y-3">
             <div className="h-8 bg-[#D2C2B3]/60 rounded-md w-2/3 mx-auto" />
@@ -290,7 +485,7 @@ export default function ReportDetailPage() {
       )}
 
       {/* Error state */}
-      {!loading && error && (
+      {!loading && error && !article && (
         <div className="rounded-2xl bg-[#F9ECE8] p-8 text-center space-y-4">
           <p className="text-[14px] font-['Inter']! text-[#9A4D3A]">{error}</p>
           <button
@@ -304,7 +499,7 @@ export default function ReportDetailPage() {
       )}
 
       {/* Article Content */}
-      {!loading && !error && article && (
+      {article && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           <div className="lg:col-span-8 xl:col-span-9 flex flex-col min-w-0">
             <div className="text-center mb-6 select-none">
@@ -321,31 +516,8 @@ export default function ReportDetailPage() {
               </div>
             </div>
 
-            {/* Banner Image Container with Hover Preview Trigger */}
-            <div
-              onClick={() => setIsPreviewOpen(true)}
-              className="relative w-full h-[240px] xs:h-[280px] sm:h-[340px] md:h-[400px] lg:h-[420px] overflow-hidden mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl shadow-sm border border-[#E4D6CA] group cursor-pointer select-none bg-stone-900/5"
-            >
-              <img
-                src={article.bannerUrl}
-                alt={article.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/admin/banner-report.png";
-                }}
-              />
-
-              {/* Hover Zoom Icon at Top-Right without background overlay */}
-              <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-90">
-                <button
-                  type="button"
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/65 hover:bg-black/85 text-white backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 transition cursor-pointer active:scale-95"
-                  title="Phóng to ảnh"
-                >
-                  <Maximize2 size={16} className="text-white" />
-                </button>
-              </div>
-            </div>
+            {/* Banner Image Container with Hardware Acceleration & Image Fallback */}
+            <BannerImage bannerUrl={article.bannerUrl} title={article.title} onZoom={() => setIsPreviewOpen(true)} />
 
             {/* Article Content Paragraphs & Blocks */}
             <div className="space-y-5 text-[#523C37] font-['Inter']! text-[14px] sm:text-[15px] md:text-[16px] leading-relaxed font-normal! text-justify">
@@ -374,79 +546,34 @@ export default function ReportDetailPage() {
 
                     if (block.type === "image") {
                       return (
-                        <div key={bIdx} className="w-full rounded-2xl overflow-hidden shadow-sm border border-[#E4D6CA] my-4">
-                          <img src={block.url} alt="" className="w-full h-auto object-cover" />
+                        <div
+                          key={bIdx}
+                          className="w-full rounded-2xl overflow-hidden shadow-sm border border-[#E4D6CA] my-4 isolate [transform:translateZ(0)] bg-[#EADFD4]"
+                        >
+                          <img
+                            src={block.url}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-auto object-cover select-none [transform:translateZ(0)]"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/admin/banner-report.png";
+                            }}
+                          />
                         </div>
                       );
                     }
 
                     if (block.type === "pdf") {
-                      const requiredLevel = ROLE_LEVELS[block.activeRole || "free"] || 0;
-                      const hasPdfAccess = userLevel >= requiredLevel;
-                      const roleName = block.activeRole ? block.activeRole.toUpperCase() : "STANDARD";
-
                       return (
-                        <div key={bIdx} className="my-8 flex flex-col items-center">
-                          <div className="w-[320px] sm:w-[350px] max-w-full aspect-[1/1.42] bg-[#1E1B18] rounded-[24px] overflow-hidden shadow-2xl flex flex-col justify-between border border-[#D9C8BA]/40 relative select-none group transition-transform hover:scale-[1.01] duration-300">
-                            {/* Real Thumbnail from S3 or Clean Modern Cover */}
-                            {block.thumbnail ? (
-                              <div className="absolute inset-0 w-full h-full">
-                                <img src={block.thumbnail} alt={block.name || article.title} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/35 to-black/85" />
-                              </div>
-                            ) : (
-                              <div className="absolute inset-0 bg-gradient-to-b from-[#3E2D28] to-[#1E1614] p-6 flex flex-col justify-between">
-                                <div className="flex justify-between items-center text-[#E8D7C9]/70 text-[11px] font-semibold uppercase tracking-wider">
-                                  <span>Official Report</span>
-                                  <span className="bg-white/10 px-2 py-0.5 rounded text-white/90">PDF</span>
-                                </div>
-                                <div className="my-auto py-6">
-                                  <h3 className="text-[20px] font-semibold text-white leading-snug">{block.name || article.title}</h3>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Top Badge Header */}
-                            <div className="relative z-10 flex justify-between items-center p-5">
-                              <span className="bg-black/50 backdrop-blur-md text-white/90 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5">
-                                <FileText size={12} className="text-[#B58F6F]" />
-                                <span>PDF DOCUMENT</span>
-                              </span>
-                              {!hasPdfAccess && (
-                                <span className="bg-red-500/20 text-red-300 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-red-500/30 flex items-center gap-1">
-                                  <Lock className="w-3 h-3" />
-                                  <span>{roleName} ONLY</span>
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Bottom Action Section */}
-                            <div className="relative z-10 p-5 flex flex-col gap-3">
-                              <h4 className="text-white text-[15px] font-semibold line-clamp-2 drop-shadow-md font-['Inter']">{block.name || article.title}</h4>
-
-                              {hasPdfAccess ? (
-                                <button
-                                  type="button"
-                                  onClick={() => navigate(`/report/${article.slug}/pdf`)}
-                                  className="w-full bg-[#E8D7C9] hover:bg-[#F2E8E0] text-[#523C37] text-[13px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-98"
-                                >
-                                  <span>Đọc báo cáo PDF</span>
-                                  <ExternalLink size={14} />
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setShowUpgradeModal(true)}
-                                  className="w-full bg-white/15 hover:bg-white/25 border border-white/20 text-white text-[12px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg backdrop-blur-md"
-                                >
-                                  <Lock className="w-3.5 h-3.5 text-white/80" />
-                                  <span>Yêu cầu gói {roleName} trở lên</span>
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          <p className="text-center text-[#7C6354] text-[13px] mt-3 font-semibold">{block.name || `${article.title}.pdf`}</p>
-                        </div>
+                        <PdfBlockCard
+                          key={bIdx}
+                          block={block}
+                          articleTitle={article.title}
+                          articleSlug={article.slug}
+                          userLevel={userLevel}
+                          onRequireUpgrade={() => setShowUpgradeModal(true)}
+                        />
                       );
                     }
 
@@ -480,12 +607,12 @@ export default function ReportDetailPage() {
 
               <div className="h-px bg-[#DCD0C5] w-full my-1" />
 
-              {relatedArticles.length > 0 && (
+              {displayedRelated.length > 0 && (
                 <div>
                   <h2 className="font-['Cormorant_Garamond']! text-[20px] sm:text-[22px] font-semibold! text-[#1B1A16] mb-4">Related Reports</h2>
 
                   <div className="flex flex-col gap-3.5 sm:gap-4">
-                    {relatedArticles.map((relArt, index) => (
+                    {displayedRelated.map((relArt, index) => (
                       <motion.div
                         key={relArt.id}
                         initial={{ opacity: 0, y: 10 }}
@@ -493,7 +620,7 @@ export default function ReportDetailPage() {
                         transition={{ duration: 0.2, delay: index * 0.05 }}
                         whileHover={{ y: -2 }}
                         onClick={() => navigate(`/report/${relArt.slug || relArt.id}`)}
-                        className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-xs border transition-all cursor-pointer ${
+                        className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-xs border transition-all cursor-pointer isolate [transform:translateZ(0)] ${
                           relArt.isDark ? "bg-[#B58F6F] text-[#F2E8E0] border-[#a67e63]" : "bg-[#E8D7C9] text-[#523C37] border-[#dfd3c7]"
                         }`}
                       >
@@ -580,6 +707,9 @@ export default function ReportDetailPage() {
                 src={article.bannerUrl}
                 alt={article.title}
                 className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/admin/banner-report.png";
+                }}
               />
             </motion.div>
           </div>

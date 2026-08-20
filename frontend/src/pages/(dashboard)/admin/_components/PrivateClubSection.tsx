@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
-import React, { useEffect, useRef, useState } from 'react';
+import { motion } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { CourseRegistrationModal, type CourseDetailInfo } from "../../../../components/CourseRegistrationModal";
 
 interface ClubCardItem {
   id: number;
@@ -11,27 +12,27 @@ interface ClubCardItem {
 const clubCards: ClubCardItem[] = [
   {
     id: 1,
-    title: 'Chương trình thí điểm...',
-    location: 'HCMC, Viet Nam',
-    image: '/admin/card-event-01.png',
+    title: "Chương trình thí điểm...",
+    location: "HCMC, Viet Nam",
+    image: "/admin/card-event-01.png",
   },
   {
     id: 2,
-    title: 'CEO Summit',
-    location: 'Seoul, korean',
-    image: '/admin/card-event-02.png',
+    title: "CEO Summit",
+    location: "Seoul, korean",
+    image: "/admin/card-event-02.png",
   },
   {
     id: 3,
-    title: 'The St.Regis Doha',
-    location: 'LOCATION ADDRESS HERE',
-    image: '/admin/private/private-03.png',
+    title: "The St.Regis Doha",
+    location: "LOCATION ADDRESS HERE",
+    image: "/admin/private/private-03.png",
   },
   {
     id: 4,
-    title: 'The St.Regis Doha',
-    location: 'LOCATION ADDRESS HERE',
-    image: '/admin/private/private-04.png',
+    title: "The St.Regis Doha",
+    location: "LOCATION ADDRESS HERE",
+    image: "/admin/private/private-04.png",
   },
 ];
 
@@ -43,6 +44,10 @@ export const PrivateClubSection: React.FC = () => {
   const [isDraggingCards, setIsDraggingCards] = useState(false);
   const startXRef = useRef(0);
   const startScrollLeftRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+
+  const [selectedClubCourse, setSelectedClubCourse] = useState<CourseDetailInfo | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -78,8 +83,22 @@ export const PrivateClubSection: React.FC = () => {
   const handleCardsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!scrollRef.current) return;
     setIsDraggingCards(true);
+    hasDraggedRef.current = false;
     startXRef.current = e.clientX;
     startScrollLeftRef.current = scrollRef.current.scrollLeft;
+  };
+
+  const handleOpenCourseModal = (card: ClubCardItem) => {
+    if (hasDraggedRef.current) return;
+    setSelectedClubCourse({
+      id: card.id,
+      title: card.title,
+      description: `Chương trình đặc quyền dành cho thành viên Private Club tại ${card.location}. Vui lòng điền thông tin để ban tổ chức chuẩn bị chu đáo nhất.`,
+      schedule: card.location,
+      badge: "Private Club",
+      thumbnail: card.image,
+    });
+    setIsModalOpen(true);
   };
 
   useEffect(() => {
@@ -88,6 +107,9 @@ export const PrivateClubSection: React.FC = () => {
         handleTrackClickOrDrag(e.clientX);
       } else if (isDraggingCards && scrollRef.current) {
         const dx = e.clientX - startXRef.current;
+        if (Math.abs(dx) > 5) {
+          hasDraggedRef.current = true;
+        }
         scrollRef.current.scrollLeft = startScrollLeftRef.current - dx;
       }
     };
@@ -98,27 +120,25 @@ export const PrivateClubSection: React.FC = () => {
     };
 
     if (isDraggingTrack || isDraggingCards) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     }
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDraggingTrack, isDraggingCards]);
 
   useEffect(() => {
     handleScroll();
-    window.addEventListener('resize', handleScroll);
-    return () => window.removeEventListener('resize', handleScroll);
+    window.addEventListener("resize", handleScroll);
+    return () => window.removeEventListener("resize", handleScroll);
   }, []);
 
   return (
     <div className="bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-xs border border-[#eae0d5] overflow-hidden w-full min-w-0">
       <div className="flex items-center justify-between mb-4 sm:mb-5 select-none">
-        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
-          Private Club
-        </h2>
+        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">Private Club</h2>
         <a
           href="#all"
           className="relative group font-['Inter']! text-[11px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block"
@@ -132,9 +152,10 @@ export const PrivateClubSection: React.FC = () => {
         ref={scrollRef}
         onScroll={handleScroll}
         onMouseDown={handleCardsMouseDown}
-        className={`flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 w-full max-w-full scrollbar-none min-w-0 touch-pan-x select-none ${isDraggingCards ? 'cursor-grabbing' : 'cursor-grab'
-          }`}
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className={`flex gap-3 sm:gap-4 overflow-x-auto pb-2 pt-1 w-full max-w-full scrollbar-none min-w-0 touch-pan-x select-none ${
+          isDraggingCards ? "cursor-grabbing" : "cursor-grab"
+        }`}
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {clubCards.map((card, index) => (
           <motion.div
@@ -143,29 +164,32 @@ export const PrivateClubSection: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.25, delay: index * 0.06 }}
             whileHover={{ y: -3 }}
-            className="w-[260px] xs:w-[280px] sm:w-[320px] md:w-[340px] h-[230px] sm:h-[260px] md:h-[270px] shrink-0 relative rounded-[20px] sm:rounded-[22px] overflow-hidden group cursor-pointer shadow-xs border border-stone-200/50"
+            onClick={() => handleOpenCourseModal(card)}
+            className="w-[260px] xs:w-[280px] sm:w-[320px] md:w-85 h-[230px] sm:h-[260px] md:h-[270px] shrink-0 relative rounded-[20px] sm:rounded-[22px] overflow-hidden group cursor-pointer shadow-xs border border-stone-200/50"
           >
             <img
               src={card.image}
               alt={card.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
               onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80';
+                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80";
               }}
             />
             <div className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 z-10">
-              <span className="bg-[#E09A30] hover:bg-[#d9941b] text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium! px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-md uppercase tracking-wider shadow-sm transition-colors block">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenCourseModal(card);
+                }}
+                className="bg-[#E09A30] hover:bg-[#d9941b] active:scale-95 text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium! px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-md uppercase tracking-wider shadow-sm transition-all cursor-pointer block"
+              >
                 Đăng Ký
-              </span>
+              </button>
             </div>
 
-            <div
-              className="absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 w-[85%] sm:w-[80%] p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] border border-white/10 flex flex-col gap-0.5 sm:gap-1 shadow-lg bg-[#523C37]/45 backdrop-blur-[12px]"
-            >
-              <h3
-                className="text-[20px] sm:text-[22px] md:text-[24px] font-semibold! text-[#F2E8E0] leading-tight tracking-wide font-['Cormorant_Garamond']!"
-              >
+            <div className="absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 w-[85%] sm:w-[80%] p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] border border-white/10 flex flex-col gap-0.5 sm:gap-1 shadow-lg bg-[#523C37]/45 backdrop-blur-[12px]">
+              <h3 className="text-[20px] sm:text-[22px] md:text-[24px] font-semibold! text-[#F2E8E0] leading-tight tracking-wide font-['Cormorant_Garamond']!">
                 {card.title}
               </h3>
               <p className="text-[10px] sm:text-[11px]! text-[#B58F6F] font-medium! flex items-center gap-1.5 uppercase tracking-wider font-['Inter']!">
@@ -186,15 +210,23 @@ export const PrivateClubSection: React.FC = () => {
           className="w-full h-2 bg-[#F2E8E0] rounded-full relative overflow-hidden cursor-pointer select-none"
         >
           <div
-            className={`h-full bg-[#B58F6F] rounded-full absolute top-0 ${isDraggingTrack || isDraggingCards ? 'transition-none' : 'transition-all duration-150'
-              }`}
+            className={`h-full bg-[#B58F6F] rounded-full absolute top-0 ${
+              isDraggingTrack || isDraggingCards ? "transition-none" : "transition-all duration-150"
+            }`}
             style={{
-              width: '35%',
+              width: "35%",
               left: `${scrollProgress * 65}%`,
             }}
           />
         </div>
       </div>
+
+      {/* Course Registration Modal */}
+      <CourseRegistrationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        course={selectedClubCourse}
+      />
     </div>
   );
 };

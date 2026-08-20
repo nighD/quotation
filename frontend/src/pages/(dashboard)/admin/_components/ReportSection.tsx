@@ -179,7 +179,7 @@ export const ReportSection: React.FC = () => {
   }, [reportItems]);
 
   return (
-    <div className="w-full bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-sm flex flex-col h-full border border-[#EAE0D6]">
+    <div className="w-full bg-white rounded-3xl sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-sm flex flex-col h-full border border-[#EAE0D6]">
       <div className="flex items-center justify-between mb-4 sm:mb-5 select-none">
         <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">Report</h2>
         <button
@@ -199,7 +199,7 @@ export const ReportSection: React.FC = () => {
           onMouseDown={showScrollbar ? handleCardsMouseDown : undefined}
           className={`flex-1 flex flex-col gap-3 sm:gap-4 ${
             showScrollbar
-              ? `overflow-y-auto pr-1 max-h-[500px] xl:max-h-[560px] 2xl:max-h-[600px] scrollbar-none min-h-0 select-none ${
+              ? `overflow-y-auto pr-1 max-h-125 xl:max-h-140 2xl:max-h-150 scrollbar-none min-h-0 select-none ${
                   isDraggingCards ? "cursor-grabbing" : "cursor-grab"
                 }`
               : "overflow-visible select-none"
