@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Lock, Shield, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Lock, Shield, Sparkles, RefreshCw } from "lucide-react";
 import { apiClient } from "../../../../api/client";
 import { useAuth } from "../../../../context/AuthContext";
 import { UpgradeModal } from "../../../../components/UpgradeModal";
@@ -20,6 +20,9 @@ const ROLE_PLAN_NAMES: Record<string, string> = {
   premium: "Annual Premium",
   admin: "Administrator",
 };
+
+// Global in-memory cache for PDF binary documents to prevent re-downloading
+const pdfDocMemoryCache = new Map<string, any>();
 
 // Dynamically load PDF.js script from CDN
 const loadPdfJS = (): Promise<any> => {
@@ -53,106 +56,174 @@ interface PageRendererProps {
 }
 
 function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [renderError, setRenderError] = useState(false);
   const renderTaskRef = useRef<any>(null);
+  const isRenderedRef = useRef(false);
+
+  // Lazy render when entering viewport (+-600px margin) to save GPU memory and prevent canvas context drop
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "600px 0px",
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const renderPage = useCallback(async () => {
+    if (!isVisible || !pdfDoc || isRenderedRef.current) return;
+
+    try {
+      setLoading(true);
+      setRenderError(false);
+
+      const page = await pdfDoc.getPage(pageNumber);
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d", { willReadFrequently: false });
+      if (!ctx) return;
+
+      // Base width of 1000px ensures sharp text even on high-res displays
+      const originalViewport = page.getViewport({ scale: 1 });
+      const desiredWidth = 1000;
+      const scale = desiredWidth / originalViewport.width;
+      const viewport = page.getViewport({ scale });
+
+      // Cap device pixel ratio at 2 to prevent GPU VRAM exhaustion on 3x/4x mobile screens
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = viewport.width * dpr;
+      canvas.height = viewport.height * dpr;
+
+      ctx.scale(dpr, dpr);
+
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: viewport,
+      };
+
+      if (renderTaskRef.current) {
+        try {
+          renderTaskRef.current.cancel();
+        } catch {
+          // ignore
+        }
+      }
+
+      const renderTask = page.render(renderContext);
+      renderTaskRef.current = renderTask;
+
+      await renderTask.promise;
+      isRenderedRef.current = true;
+
+      // Draw watermarking overlay
+      ctx.save();
+      ctx.font = "bold 13px Inter, sans-serif";
+      ctx.fillStyle = "rgba(82, 60, 55, 0.09)";
+      ctx.textAlign = "center";
+
+      const dateString = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+      const watermarkText = `VIFC PASS • SECURE DASHBOARD • ${userEmail || "authorized-user"} • ${dateString}`;
+
+      ctx.translate(viewport.width / 2, viewport.height / 2);
+      ctx.rotate((-35 * Math.PI) / 180);
+
+      const stepY = 140;
+      const startY = -viewport.height;
+      const endY = viewport.height;
+
+      for (let y = startY; y < endY; y += stepY) {
+        ctx.fillText(watermarkText, -viewport.width / 3, y);
+        ctx.fillText(watermarkText, 0, y + 70);
+        ctx.fillText(watermarkText, viewport.width / 3, y);
+      }
+
+      ctx.restore();
+      setLoading(false);
+    } catch (err: any) {
+      if (err.name !== "RenderingCancelledException") {
+        console.error(`Page ${pageNumber} render failed:`, err);
+        setRenderError(true);
+      }
+      setLoading(false);
+    }
+  }, [isVisible, pdfDoc, pageNumber, userEmail]);
 
   useEffect(() => {
-    let active = true;
-
-    const renderPage = async () => {
-      try {
-        const page = await pdfDoc.getPage(pageNumber);
-        if (!active) return;
-
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        // Base width of 1000px ensures sharp text even on high-res displays
-        const originalViewport = page.getViewport({ scale: 1 });
-        const desiredWidth = 1000;
-        const scale = desiredWidth / originalViewport.width;
-        const viewport = page.getViewport({ scale });
-
-        // Adjust canvas dimensions for retina display
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = viewport.width * dpr;
-        canvas.height = viewport.height * dpr;
-
-        ctx.scale(dpr, dpr);
-
-        const renderContext = {
-          canvasContext: ctx,
-          viewport: viewport,
-        };
-
-        if (renderTaskRef.current) {
-          renderTaskRef.current.cancel();
-        }
-
-        const renderTask = page.render(renderContext);
-        renderTaskRef.current = renderTask;
-
-        await renderTask.promise;
-        if (!active) return;
-
-        // Draw elegant watermarking overlay
-        ctx.save();
-        ctx.font = "bold 13px Inter, sans-serif";
-        ctx.fillStyle = "rgba(82, 60, 55, 0.09)";
-        ctx.textAlign = "center";
-
-        const dateString = new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        });
-        const watermarkText = `VIFC PASS • SECURE DASHBOARD • ${userEmail || "authorized-user"} • ${dateString}`;
-
-        ctx.translate(viewport.width / 2, viewport.height / 2);
-        ctx.rotate((-35 * Math.PI) / 180);
-
-        const stepY = 140;
-        const startY = -viewport.height;
-        const endY = viewport.height;
-
-        for (let y = startY; y < endY; y += stepY) {
-          ctx.fillText(watermarkText, -viewport.width / 3, y);
-          ctx.fillText(watermarkText, 0, y + 70);
-          ctx.fillText(watermarkText, viewport.width / 3, y);
-        }
-
-        ctx.restore();
-        setLoading(false);
-      } catch (err: any) {
-        if (err.name !== "RenderingCancelledException") {
-          console.error(`Page ${pageNumber} render failed:`, err);
-        }
-      }
-    };
-
-    renderPage();
-
+    if (isVisible) {
+      renderPage();
+    }
     return () => {
-      active = false;
       if (renderTaskRef.current) {
-        renderTaskRef.current.cancel();
+        try {
+          renderTaskRef.current.cancel();
+        } catch {
+          // ignore
+        }
       }
     };
-  }, [pageNumber, pdfDoc, userEmail]);
+  }, [isVisible, renderPage]);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-sm border border-[#E4D6CA] bg-[#FAF6F1] mb-6 sm:mb-8 flex flex-col items-center min-h-[480px]">
-      {loading && (
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-sm border border-[#E4D6CA] bg-[#FAF6F1] mb-6 sm:mb-8 flex flex-col items-center min-h-[480px] aspect-[1/1.414] isolate [transform:translateZ(0)] [backface-visibility:hidden]"
+      style={{ willChange: "transform" }}
+    >
+      {(!isVisible || loading) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#FAF6F1] z-20 gap-3">
           <Loader2 className="w-7 h-7 animate-spin text-[#523C37]/60" />
-          <span className="text-[12px] text-[#664E48] font-['Inter'] font-medium">Đang giải mã và tải trang {pageNumber}...</span>
+          <span className="text-[12px] text-[#664E48] font-['Inter'] font-medium">
+            {!isVisible ? `Chuẩn bị trang ${pageNumber}...` : `Đang tải trang ${pageNumber}...`}
+          </span>
         </div>
       )}
-      <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} className="block select-none pointer-events-none" />
+
+      {renderError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#FAF6F1] z-20 gap-3 p-6 text-center">
+          <span className="text-[13px] text-[#9A4D3A] font-['Inter'] font-medium">Không thể hiển thị trang {pageNumber}</span>
+          <button
+            type="button"
+            onClick={() => {
+              isRenderedRef.current = false;
+              renderPage();
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#523C37] text-white rounded-lg text-xs font-medium cursor-pointer"
+          >
+            <RefreshCw size={12} />
+            <span>Thử lại</span>
+          </button>
+        </div>
+      )}
+
+      <canvas
+        ref={canvasRef}
+        style={{ width: "100%", height: "auto" }}
+        className="block select-none pointer-events-none [transform:translateZ(0)]"
+      />
+
       <div
         className="absolute inset-0 z-10 bg-transparent select-none cursor-default"
         onContextMenu={(e) => e.preventDefault()}
@@ -209,12 +280,24 @@ export default function DashboardReportPdf() {
   }, []);
 
   useEffect(() => {
+    if (!slug) return;
+
     const checkAuthAndAccess = async () => {
       if (authLoading) return;
       if (checkStarted.current) return;
       checkStarted.current = true;
 
-      // 1. Refresh profile
+      // 1. Check if cached PDF already exists in memory
+      if (pdfDocMemoryCache.has(slug)) {
+        const cached = pdfDocMemoryCache.get(slug);
+        setPdfDoc(cached.doc);
+        setNumPages(cached.numPages);
+        setArticleTitle(cached.title || "Báo cáo phân tích");
+        setCheckingAccess(false);
+        return;
+      }
+
+      // 2. Refresh profile
       let activeUser = user;
       const token = localStorage.getItem("access_token");
       if (token) {
@@ -229,14 +312,16 @@ export default function DashboardReportPdf() {
         }
       }
 
-      // 2. Fetch article for title & PDF role requirement
+      // 3. Fetch article for title & PDF role requirement
       let requiredRole = "standard";
+      let fetchedTitle = "Báo cáo phân tích";
       try {
         const { data } = await apiClient.get(`/cms/articles/${slug}`);
         if (data.success && data.data) {
           if (data.data.title) {
-            setArticleTitle(data.data.title);
-            document.title = `${data.data.title} (PDF) — On-Chain Card`;
+            fetchedTitle = data.data.title;
+            setArticleTitle(fetchedTitle);
+            document.title = `${fetchedTitle} (PDF) — On-Chain Card`;
           }
           if (data.data.required_role) {
             requiredRole = data.data.required_role;
@@ -256,7 +341,7 @@ export default function DashboardReportPdf() {
       const planTitle = ROLE_PLAN_NAMES[requiredRole] || "Standard Plan";
       setRequiredPlanName(planTitle);
 
-      // 3. Verify role access
+      // 4. Verify role access
       const userRoles = activeUser?.roles || [];
       let userMaxLevel = 0;
       userRoles.forEach((r: string) => {
@@ -273,7 +358,7 @@ export default function DashboardReportPdf() {
         return;
       }
 
-      // 4. Fetch PDF file as arraybuffer and render
+      // 5. Fetch PDF file as arraybuffer and render
       try {
         const pdfjs = await loadPdfJS();
         const response = await apiClient.get(`/cms/reports/${slug}/pdf`, {
@@ -285,6 +370,13 @@ export default function DashboardReportPdf() {
 
         setPdfDoc(doc);
         setNumPages(doc.numPages);
+
+        // Store into memory cache
+        pdfDocMemoryCache.set(slug, {
+          doc,
+          numPages: doc.numPages,
+          title: fetchedTitle,
+        });
       } catch (err) {
         console.error("Failed to load PDF document:", err);
         setPdfLoadError(true);
@@ -294,7 +386,7 @@ export default function DashboardReportPdf() {
     };
 
     checkAuthAndAccess();
-  }, [slug, user, authLoading, setUser]);
+  }, [slug, authLoading]);
 
   // Loading state
   if (authLoading || (checkingAccess && !unauthorized)) {
@@ -392,7 +484,7 @@ export default function DashboardReportPdf() {
   return (
     <div className="w-full pb-12 select-none" onContextMenu={(e) => e.preventDefault()}>
       {/* Sticky Top Header Bar */}
-      <div className="sticky -top-3 sm:-top-4 md:-top-6 lg:-top-6 xl:-top-8 z-10 -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-6 xl:-mx-8 px-4 sm:px-6 md:px-8 py-3 bg-[#F2E8E0]/95 backdrop-blur-md border-b border-[#DCD0C5] mb-6 sm:mb-8 flex items-center justify-between gap-4">
+      <div className="sticky -top-3 sm:-top-4 md:-top-6 lg:-top-6 xl:-top-8 z-10 -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-6 xl:-mx-8 px-4 sm:px-6 md:px-8 py-3 bg-[#F2E8E0]/95 backdrop-blur-md border-b border-[#DCD0C5] mb-6 sm:mb-8 flex items-center justify-between gap-4 isolate">
         <button
           type="button"
           onClick={() => navigate(`/report/${slug}`)}

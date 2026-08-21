@@ -103,7 +103,7 @@ export const EventSection: React.FC<EventSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => onRemind?.(event)}
-                  className="bg-[#E8D9CC] text-[#6C5345] text-[10px] sm:text-[11px] font-['Inter']! font-medium px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-[12px] hover:bg-[#dfcebf] transition uppercase tracking-wider cursor-pointer active:scale-95"
+                  className="bg-[#E8D9CC] text-[#6C5345] text-[10px] sm:text-[11px] font-['Inter']! font-medium px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-[#dfcebf] transition uppercase tracking-wider cursor-pointer active:scale-95"
                 >
                   NHẮC TÔI
                 </button>
@@ -111,7 +111,7 @@ export const EventSection: React.FC<EventSectionProps> = ({
                   type="button"
                   onClick={() => onJoin?.(event)}
                   disabled={isJoining || isJoined}
-                  className={`text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-[12px] transition uppercase tracking-wider cursor-pointer active:scale-95 ${
+                  className={`text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition uppercase tracking-wider cursor-pointer active:scale-95 ${
                     isJoined ? "bg-[#5C4538] cursor-default" : isJoining ? "bg-[#9E7C62] cursor-wait" : "bg-[#B08461] hover:bg-[#9e7553]"
                   }`}
                 >

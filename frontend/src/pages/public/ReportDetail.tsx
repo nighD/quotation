@@ -73,6 +73,91 @@ const getArticleRequiredRole = (blocksStr: string | Block[] | undefined): string
   return "free";
 };
 
+// Global in-memory cache
+const publicArticleCache = new Map<string, { article: Article; related: any[]; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000;
+
+function PublicPdfBlock({ block, articleTitle, articleSlug, userRole }: { block: Block; articleTitle: string; articleSlug: string; userRole: string }) {
+  const navigate = useNavigate();
+  const [thumbError, setThumbError] = useState(false);
+  const requiredLevel = ROLE_LEVELS[block.activeRole || "free"] || 0;
+  const userLevel = ROLE_LEVELS[userRole] || 0;
+  const hasPdfAccess = userLevel >= requiredLevel;
+  const roleName = block.activeRole ? block.activeRole.toUpperCase() : "STANDARD";
+  const displayName = block.name || articleTitle;
+
+  return (
+    <div className="my-8 flex flex-col items-center">
+      <div className="w-[320px] sm:w-87.5 max-w-full aspect-[1/1.42] bg-[#1a1a1e] rounded-[24px] overflow-hidden shadow-2xl flex flex-col justify-between border border-white/10 relative select-none group transition-transform hover:scale-[1.01] duration-300 isolate [transform:translateZ(0)] [backface-visibility:hidden]">
+        {/* Real Thumbnail or Clean Document Mockup */}
+        {block.thumbnail && !thumbError ? (
+          <div className="absolute inset-0 w-full h-full pointer-events-none isolate">
+            <img
+              src={block.thumbnail}
+              alt={displayName}
+              loading="lazy"
+              decoding="async"
+              onError={() => setThumbError(true)}
+              className="w-full h-full object-cover [transform:translateZ(0)] [backface-visibility:hidden]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/85" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-b from-[#242429] to-[#121214] p-6 flex flex-col justify-between pointer-events-none">
+            <div className="flex justify-between items-center text-white/50 text-[11px] font-semibold uppercase tracking-wider">
+              <span>Official Report</span>
+              <span className="bg-white/10 px-2 py-0.5 rounded text-white/70">PDF</span>
+            </div>
+            <div className="my-auto py-6">
+              <h3 className="text-[20px] font-semibold text-white leading-snug">{displayName}</h3>
+            </div>
+          </div>
+        )}
+
+        <div className="relative z-10 flex justify-between items-center p-5">
+          <span className="bg-black/50 backdrop-blur-md text-white/90 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/10">
+            PDF DOCUMENT
+          </span>
+          {!hasPdfAccess && (
+            <span className="bg-red-500/20 text-red-300 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-red-500/30 flex items-center gap-1">
+              <Lock className="w-3 h-3" />
+              <span>{roleName} ONLY</span>
+            </span>
+          )}
+        </div>
+
+        <div className="relative z-10 p-5 flex flex-col gap-3">
+          <h4 className="text-white text-[15px] font-semibold line-clamp-2 drop-shadow-md">{displayName}</h4>
+
+          {hasPdfAccess ? (
+            <button
+              type="button"
+              onClick={() => window.open(`/reports/${articleSlug}/pdf`, "_blank")}
+              className="w-full bg-white hover:bg-gray-100 text-black text-[13px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-98"
+            >
+              <span>View full report</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7" />
+                <polyline points="7 7 17 7 17 17" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate("/subscriptions")}
+              className="w-full bg-white/15 hover:bg-white/25 border border-white/20 text-white text-[12px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg backdrop-blur-md group/btn"
+            >
+              <Lock className="w-3.5 h-3.5 text-white/80 group-hover/btn:text-red-400 transition-colors" />
+              <span>Only {roleName} or above is allowed</span>
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="text-center text-gray-400 text-[13px] mt-3 font-semibold">{block.name || `${articleTitle}.pdf`}</p>
+    </div>
+  );
+}
+
 export function ReportDetail() {
   const { user, setUser } = useAuth();
   const [userRole, setUserRole] = useState<"free" | "base" | "standard" | "premium" | "admin">("free");
@@ -116,13 +201,41 @@ export function ReportDetail() {
   }, [user]);
 
   useEffect(() => {
-    const fetchArticle = async () => {
-      if (!id) return;
+    if (!id) return;
+
+    // Cache check
+    const cached = publicArticleCache.get(id);
+    const now = Date.now();
+    if (cached && now - cached.timestamp < CACHE_TTL) {
+      setArticle(cached.article);
+      setRelatedArticles(cached.related);
+      setLoading(false);
+    } else {
       setLoading(true);
+    }
+
+    const fetchArticle = async () => {
       try {
         const { data } = await apiClient.get(`/cms/articles/${id}`);
         if (data.success && data.data) {
           setArticle(data.data);
+
+          let rel: any[] = [];
+          try {
+            const { data: relRes } = await apiClient.get("/cms/articles?page=1&page_size=10");
+            if (relRes.success && relRes.data) {
+              rel = relRes.data.filter((a: any) => a.slug !== id).slice(0, 4);
+              setRelatedArticles(rel);
+            }
+          } catch (rErr) {
+            console.warn("Related fetch error", rErr);
+          }
+
+          publicArticleCache.set(id, {
+            article: data.data,
+            related: rel,
+            timestamp: Date.now(),
+          });
         }
       } catch (err) {
         console.error("Failed to fetch article details", err);
@@ -175,24 +288,10 @@ export function ReportDetail() {
   }, [article]);
 
   useEffect(() => {
-    const fetchRelated = async () => {
-      try {
-        const { data } = await apiClient.get("/cms/articles?page=1&page_size=10");
-        if (data.success && data.data) {
-          setRelatedArticles(data.data.filter((a: any) => a.slug !== id).slice(0, 4));
-        }
-      } catch (err) {
-        console.error("Failed to fetch related articles", err);
-      }
-    };
-    fetchRelated();
-  }, [id]);
-
-  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id]);
 
-  if (loading) {
+  if (loading && !article) {
     return (
       <div className="min-h-screen bg-[#111] flex items-center justify-center text-white">
         <div className="animate-pulse">Loading report...</div>
@@ -244,8 +343,17 @@ export function ReportDetail() {
 
             {/* Banner Image */}
             {article.thumbnail && (
-              <div className="w-full max-w-[944px] aspect-[944/480] rounded-[24px] overflow-hidden border border-white/5 shadow-2xl">
-                <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover select-none pointer-events-none" />
+              <div className="w-full max-w-[944px] aspect-[944/480] rounded-[24px] overflow-hidden border border-white/5 shadow-2xl isolate [transform:translateZ(0)] bg-[#1a1a1e]">
+                <img
+                  src={article.thumbnail}
+                  alt={article.title}
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/admin/banner-report.png";
+                  }}
+                  className="w-full h-full object-cover select-none pointer-events-none [transform:translateZ(0)]"
+                />
               </div>
             )}
 
@@ -280,91 +388,26 @@ export function ReportDetail() {
 
                 if (block.type === "image") {
                   return (
-                    <div key={index} className="w-full max-w-[944px] rounded-[24px] overflow-hidden border border-white/5 shadow-2xl my-6">
-                      <img src={block.url} alt="" className="w-full h-auto object-cover select-none pointer-events-none" />
+                    <div
+                      key={index}
+                      className="w-full max-w-[944px] rounded-[24px] overflow-hidden border border-white/5 shadow-2xl my-6 isolate [transform:translateZ(0)] bg-[#1a1a1e]"
+                    >
+                      <img
+                        src={block.url}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-auto object-cover select-none pointer-events-none [transform:translateZ(0)]"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/admin/banner-report.png";
+                        }}
+                      />
                     </div>
                   );
                 }
 
                 if (block.type === "pdf") {
-                  const requiredLevel = ROLE_LEVELS[block.activeRole || "free"] || 0;
-                  const userLevel = ROLE_LEVELS[userRole] || 0;
-                  const hasPdfAccess = userLevel >= requiredLevel;
-                  const roleName = block.activeRole ? block.activeRole.toUpperCase() : "STANDARD";
-
-                  return (
-                    <div key={index} className="my-8 flex flex-col items-center">
-                      <div className="w-[320px] sm:w-[350px] max-w-full aspect-[1/1.42] bg-[#1a1a1e] rounded-[24px] overflow-hidden shadow-2xl flex flex-col justify-between border border-white/10 relative select-none group transition-transform hover:scale-[1.01] duration-300">
-                        {/* Real Thumbnail or Clean Document Mockup */}
-                        {block.thumbnail ? (
-                          <div className="absolute inset-0 w-full h-full">
-                            <img src={block.thumbnail} alt={block.name || article.title} className="w-full h-full object-cover" />
-                            {/* Overlay Gradient for readability */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/85" />
-                          </div>
-                        ) : (
-                          <div className="absolute inset-0 bg-gradient-to-b from-[#242429] to-[#121214] p-6 flex flex-col justify-between">
-                            <div className="flex justify-between items-center text-white/50 text-[11px] font-semibold uppercase tracking-wider">
-                              <span>Official Report</span>
-                              <span className="bg-white/10 px-2 py-0.5 rounded text-white/70">PDF</span>
-                            </div>
-                            <div className="my-auto py-6">
-                              <h3 className="text-[20px] font-semibold text-white leading-snug">{block.name || article.title}</h3>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="relative z-10 flex justify-between items-center p-5">
-                          <span className="bg-black/50 backdrop-blur-md text-white/90 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/10">
-                            PDF DOCUMENT
-                          </span>
-                          {!hasPdfAccess && (
-                            <span className="bg-red-500/20 text-red-300 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-red-500/30 flex items-center gap-1">
-                              <Lock className="w-3 h-3" />
-                              <span>{roleName} ONLY</span>
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="relative z-10 p-5 flex flex-col gap-3">
-                          <h4 className="text-white text-[15px] font-semibold line-clamp-2 drop-shadow-md">{block.name || article.title}</h4>
-
-                          {hasPdfAccess ? (
-                            <button
-                              type="button"
-                              onClick={() => window.open(`/reports/${article.slug}/pdf`, "_blank")}
-                              className="w-full bg-white hover:bg-gray-100 text-black text-[13px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-98"
-                            >
-                              <span>View full report</span>
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <line x1="7" y1="17" x2="17" y2="7" />
-                                <polyline points="7 7 17 7 17 17" />
-                              </svg>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => navigate("/subscriptions")}
-                              className="w-full bg-white/15 hover:bg-white/25 border border-white/20 text-white text-[12px] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg backdrop-blur-md group/btn"
-                            >
-                              <Lock className="w-3.5 h-3.5 text-white/80 group-hover/btn:text-red-400 transition-colors" />
-                              <span>Only {roleName} or above is allowed</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-center text-gray-400 text-[13px] mt-3 font-semibold">{block.name || `${article.title}.pdf`}</p>
-                    </div>
-                  );
+                  return <PublicPdfBlock key={index} block={block} articleTitle={article.title} articleSlug={article.slug} userRole={userRole} />;
                 }
 
                 return null;
