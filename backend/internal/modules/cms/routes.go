@@ -29,6 +29,14 @@ func RegisterRoutes(router fiber.Router, handler *Handler, jwtSecret string) {
 	// Secure PDF Streaming
 	cms.Get("/reports/:id/pdf", authMW, handler.StreamReportPDF)
 
+	// Course Registrations
+	courseRegs := cms.Group("/course-registrations")
+	courseRegs.Post("/", optionalAuthMW, handler.CreateCourseRegistration)
+	courseRegs.Get("/", authMW, editorMW, handler.ListCourseRegistrations)
+	courseRegs.Get("/:id", authMW, editorMW, handler.GetCourseRegistration)
+	courseRegs.Put("/:id", authMW, editorMW, handler.UpdateCourseRegistration)
+	courseRegs.Delete("/:id", authMW, middleware.RequireAdmin(), handler.DeleteCourseRegistration)
+
 	// SEO Preview for Bots
 	cms.Get("/reports/seo-preview/:id", handler.GetArticleSEOHTML)
 }

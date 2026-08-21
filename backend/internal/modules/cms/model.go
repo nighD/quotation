@@ -40,6 +40,30 @@ type Article struct {
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// CourseRegistration is the GORM model for the course_registrations table.
+type CourseRegistration struct {
+	ID           uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	UserID       *uuid.UUID     `gorm:"type:uuid;index:idx_course_registrations_user_id" json:"user_id"`
+	Email        string         `gorm:"type:varchar(255);not null;index:idx_course_registrations_email" json:"email"`
+	FullName     string         `gorm:"type:varchar(255);not null" json:"full_name"`
+	Phone        *string        `gorm:"type:varchar(50)" json:"phone"`
+	Company      *string        `gorm:"type:varchar(255)" json:"company"`
+	BookingType  string         `gorm:"type:varchar(50);not null;default:'course';index:idx_course_registrations_booking_type" json:"booking_type"`
+	BookingTitle string         `gorm:"type:varchar(500);not null" json:"booking_title"`
+	TuitionFee   *float64       `gorm:"type:decimal(12,2);default:0" json:"tuition_fee"`
+	Deposit      *float64       `gorm:"type:decimal(12,2);default:0" json:"deposit"`
+	Status       string         `gorm:"type:varchar(50);not null;default:'pending';index:idx_course_registrations_status" json:"status"`
+	Source       string         `gorm:"type:varchar(100);not null;default:'web-dashboard'" json:"source"`
+	Note         *string        `gorm:"type:text" json:"note"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+func (CourseRegistration) TableName() string {
+	return "course_registrations"
+}
+
 // ─── Request DTOs ─────────────────────────────────────────────
 
 type CreateArticleRequest struct {
@@ -166,4 +190,67 @@ func stripPDFURLs(blocksJSON string) string {
 		return blocksJSON
 	}
 	return string(resBytes)
+}
+
+type CreateCourseRegistrationRequest struct {
+	UserID       string   `json:"user_id" validate:"omitempty,uuid4"`
+	Email        string   `json:"email" validate:"required,email,max=255"`
+	FullName     string   `json:"full_name" validate:"required,max=255"`
+	Phone        string   `json:"phone" validate:"omitempty,max=50"`
+	Company      string   `json:"company" validate:"omitempty,max=255"`
+	BookingType  string   `json:"booking_type" validate:"omitempty,max=50"`
+	BookingTitle string   `json:"booking_title" validate:"required,max=500"`
+	TuitionFee   *float64 `json:"tuition_fee"`
+	Deposit      *float64 `json:"deposit"`
+	Status       string   `json:"status" validate:"omitempty,max=50"`
+	Source       string   `json:"source" validate:"omitempty,max=100"`
+	Note         string   `json:"note"`
+}
+
+type UpdateCourseRegistrationRequest struct {
+	Status string `json:"status" validate:"required,max=50"`
+	Note   string `json:"note"`
+}
+
+type CourseRegistrationResponse struct {
+	ID           string    `json:"id"`
+	UserID       *string   `json:"user_id,omitempty"`
+	Email        string    `json:"email"`
+	FullName     string    `json:"full_name"`
+	Phone        *string   `json:"phone,omitempty"`
+	Company      *string   `json:"company,omitempty"`
+	BookingType  string    `json:"booking_type"`
+	BookingTitle string    `json:"booking_title"`
+	TuitionFee   *float64  `json:"tuition_fee,omitempty"`
+	Deposit      *float64  `json:"deposit,omitempty"`
+	Status       string    `json:"status"`
+	Source       string    `json:"source"`
+	Note         *string   `json:"note,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+func toCourseRegistrationResponse(c *CourseRegistration) *CourseRegistrationResponse {
+	var userID *string
+	if c.UserID != nil {
+		idStr := c.UserID.String()
+		userID = &idStr
+	}
+	return &CourseRegistrationResponse{
+		ID:           c.ID.String(),
+		UserID:       userID,
+		Email:        c.Email,
+		FullName:     c.FullName,
+		Phone:        c.Phone,
+		Company:      c.Company,
+		BookingType:  c.BookingType,
+		BookingTitle: c.BookingTitle,
+		TuitionFee:   c.TuitionFee,
+		Deposit:      c.Deposit,
+		Status:       c.Status,
+		Source:       c.Source,
+		Note:         c.Note,
+		CreatedAt:    c.CreatedAt,
+		UpdatedAt:    c.UpdatedAt,
+	}
 }

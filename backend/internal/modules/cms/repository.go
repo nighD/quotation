@@ -101,3 +101,55 @@ func (r *Repository) FindAllCategories() ([]Category, error) {
 	}
 	return categories, nil
 }
+
+// ─── CourseRegistration operations ────────────────────────────
+
+func (r *Repository) CreateCourseRegistration(c *CourseRegistration) error {
+	return r.db.Create(c).Error
+}
+
+func (r *Repository) FindAllCourseRegistrations(offset, limit int, status string) ([]CourseRegistration, int64, error) {
+	var registrations []CourseRegistration
+	var total int64
+
+	query := r.db.Model(&CourseRegistration{})
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	query.Count(&total)
+	if err := query.Offset(offset).Limit(limit).Order("created_at DESC").Find(&registrations).Error; err != nil {
+		return nil, 0, err
+	}
+	return registrations, total, nil
+}
+
+func (r *Repository) FindCourseRegistrationByID(id string) (*CourseRegistration, error) {
+	var registration CourseRegistration
+	if err := r.db.Where("id = ?", id).First(&registration).Error; err != nil {
+		return nil, fmt.Errorf("course registration not found")
+	}
+	return &registration, nil
+}
+
+func (r *Repository) UpdateCourseRegistration(id string, updates map[string]interface{}) (*CourseRegistration, error) {
+	var registration CourseRegistration
+	if err := r.db.Where("id = ?", id).First(&registration).Error; err != nil {
+		return nil, fmt.Errorf("course registration not found")
+	}
+	if err := r.db.Model(&registration).Updates(updates).Error; err != nil {
+		return nil, fmt.Errorf("failed to update course registration: %w", err)
+	}
+	return &registration, nil
+}
+
+func (r *Repository) DeleteCourseRegistration(id string) error {
+	result := r.db.Where("id = ?", id).Delete(&CourseRegistration{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("course registration not found")
+	}
+	return nil
+}

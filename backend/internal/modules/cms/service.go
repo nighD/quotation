@@ -218,3 +218,106 @@ func (s *Service) uniqueSlug(title string) string {
 		}
 	}
 }
+
+// ─── CourseRegistration operations ────────────────────────────
+
+func (s *Service) CreateCourseRegistration(req *CreateCourseRegistrationRequest) (*CourseRegistrationResponse, error) {
+	var userID *uuid.UUID
+	if req.UserID != "" {
+		parsedID, err := uuid.Parse(req.UserID)
+		if err == nil {
+			userID = &parsedID
+		}
+	}
+
+	status := req.Status
+	if status == "" {
+		status = "pending"
+	}
+
+	bookingType := req.BookingType
+	if bookingType == "" {
+		bookingType = "course"
+	}
+
+	source := req.Source
+	if source == "" {
+		source = "web-dashboard"
+	}
+
+	var phone, company, note *string
+	if req.Phone != "" {
+		phone = &req.Phone
+	}
+	if req.Company != "" {
+		company = &req.Company
+	}
+	if req.Note != "" {
+		note = &req.Note
+	}
+
+	reg := &CourseRegistration{
+		UserID:       userID,
+		Email:        req.Email,
+		FullName:     req.FullName,
+		Phone:        phone,
+		Company:      company,
+		BookingType:  bookingType,
+		BookingTitle: req.BookingTitle,
+		TuitionFee:   req.TuitionFee,
+		Deposit:      req.Deposit,
+		Status:       status,
+		Source:       source,
+		Note:         note,
+	}
+
+	if err := s.repo.CreateCourseRegistration(reg); err != nil {
+		return nil, fmt.Errorf("failed to create course registration: %w", err)
+	}
+
+	return toCourseRegistrationResponse(reg), nil
+}
+
+func (s *Service) ListCourseRegistrations(page, pageSize int, status string) ([]*CourseRegistrationResponse, int64, error) {
+	offset := (page - 1) * pageSize
+	regs, total, err := s.repo.FindAllCourseRegistrations(offset, pageSize, status)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var result []*CourseRegistrationResponse
+	for i := range regs {
+		result = append(result, toCourseRegistrationResponse(&regs[i]))
+	}
+
+	return result, total, nil
+}
+
+func (s *Service) GetCourseRegistration(id string) (*CourseRegistrationResponse, error) {
+	reg, err := s.repo.FindCourseRegistrationByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return toCourseRegistrationResponse(reg), nil
+}
+
+func (s *Service) UpdateCourseRegistration(id string, req *UpdateCourseRegistrationRequest) (*CourseRegistrationResponse, error) {
+	updates := map[string]interface{}{}
+	if req.Status != "" {
+		updates["status"] = req.Status
+	}
+	if req.Note != "" {
+		updates["note"] = req.Note
+	}
+
+	reg, err := s.repo.UpdateCourseRegistration(id, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	return toCourseRegistrationResponse(reg), nil
+}
+
+func (s *Service) DeleteCourseRegistration(id string) error {
+	return s.repo.DeleteCourseRegistration(id)
+}

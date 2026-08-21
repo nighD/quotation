@@ -70,7 +70,7 @@ func main() {
 	}
 
 	// ── Database Auto-Migration ───────────────────────────────
-	if err := database.AutoMigrate(db, &users.User{}, &cms.Article{}, &cms.Category{}, &engagement.NewsletterSubscription{}, &engagement.EventRegistration{}, &engagement.BookingRequest{}, &engagement.UpgradeRequest{}, &engagement.UserCard{}); err != nil {
+	if err := database.AutoMigrate(db, &users.User{}, &cms.Article{}, &cms.Category{}, &cms.CourseRegistration{}, &engagement.NewsletterSubscription{}, &engagement.EventRegistration{}, &engagement.BookingRequest{}, &engagement.UpgradeRequest{}, &engagement.UserCard{}); err != nil {
 		logger.Warn("Database auto-migration failed", zap.Error(err))
 	}
 

@@ -392,3 +392,76 @@ func (h *Handler) GetArticleSEOHTML(c *fiber.Ctx) error {
 	c.Type("html")
 	return c.SendString(htmlContent)
 }
+
+// ─── CourseRegistrations ───────────────────────────────────────
+
+func (h *Handler) CreateCourseRegistration(c *fiber.Ctx) error {
+	var req CreateCourseRegistrationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	// Auto-fill user ID if logged in
+	userID := middleware.GetUserID(c)
+	if userID != "" && req.UserID == "" {
+		req.UserID = userID
+	}
+
+	reg, err := h.service.CreateCourseRegistration(&req)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+
+	return response.Created(c, reg, "Course registration created successfully")
+}
+
+func (h *Handler) ListCourseRegistrations(c *fiber.Ctx) error {
+	pg := utils.ParsePagination(c)
+	status := c.Query("status", "")
+
+	regs, total, err := h.service.ListCourseRegistrations(pg.Page, pg.PageSize, status)
+	if err != nil {
+		return response.InternalError(c, "Failed to fetch course registrations")
+	}
+
+	return response.OKWithMeta(c, regs, "", response.NewMeta(pg.Page, pg.PageSize, total))
+}
+
+func (h *Handler) GetCourseRegistration(c *fiber.Ctx) error {
+	id := c.Params("id")
+	reg, err := h.service.GetCourseRegistration(id)
+	if err != nil {
+		return response.NotFound(c, "Course registration not found")
+	}
+	return response.OK(c, reg, "")
+}
+
+func (h *Handler) UpdateCourseRegistration(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req UpdateCourseRegistrationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	reg, err := h.service.UpdateCourseRegistration(id, &req)
+	if err != nil {
+		return response.NotFound(c, err.Error())
+	}
+
+	return response.OK(c, reg, "Course registration updated successfully")
+}
+
+func (h *Handler) DeleteCourseRegistration(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := h.service.DeleteCourseRegistration(id); err != nil {
+		return response.NotFound(c, err.Error())
+	}
+	return response.OK(c, nil, "Course registration deleted successfully")
+}
