@@ -188,7 +188,7 @@ export const PrivateClubSection: React.FC = () => {
               </button>
             </div>
 
-            <div className="absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 w-[85%] sm:w-[80%] p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] border border-white/10 flex flex-col gap-0.5 sm:gap-1 shadow-lg bg-[#523C37]/45 backdrop-blur-[12px]">
+            <div className="absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 w-[85%] sm:w-[80%] p-3 sm:p-4 rounded-2xl sm:rounded-[18px] border border-white/10 flex flex-col gap-0.5 sm:gap-1 shadow-lg bg-[#523C37]/45 backdrop-blur-[12px]">
               <h3 className="text-[20px] sm:text-[22px] md:text-[24px] font-semibold! text-[#F2E8E0] leading-tight tracking-wide font-['Cormorant_Garamond']!">
                 {card.title}
               </h3>
@@ -222,11 +222,7 @@ export const PrivateClubSection: React.FC = () => {
       </div>
 
       {/* Course Registration Modal */}
-      <CourseRegistrationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        course={selectedClubCourse}
-      />
+      <CourseRegistrationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} course={selectedClubCourse} />
     </div>
   );
 };
