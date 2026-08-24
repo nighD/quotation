@@ -174,7 +174,7 @@ export const PrivateClubSection: React.FC = () => {
       <div className="flex items-center justify-between mb-4 sm:mb-5 select-none">
         <div className="flex items-center gap-2">
           <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">
-            Private Club
+            Events
           </h2>
           <span className="hidden xs:inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#F0E4D8] text-[#8C6246] text-[10px] font-['Inter']! font-semibold uppercase tracking-wider">
             Sự kiện
