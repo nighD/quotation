@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Filter, Maximize2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../api/client";
 
@@ -187,24 +188,21 @@ export default function ReportPage() {
               transition={{ duration: 0.25, delay: index * 0.05 }}
               whileHover={{ y: -3 }}
               onClick={() => navigate(`/report/${article.slug || article.id}`)}
-              className={`rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col justify-between min-h-[220px] sm:min-h-57.5 shadow-xs border transition-all cursor-pointer ${
-                article.isDark ? "bg-[#B58F6F] text-[#F2E8E0] border-[#a67e63]" : "bg-[#E8D7C9] text-[#523C37] border-[#dfd3c7]"
-              }`}
+              className={`rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col justify-between min-h-[220px] sm:min-h-57.5 shadow-xs border transition-all cursor-pointer ${article.isDark ? "bg-[#B58F6F] text-[#F2E8E0] border-[#a67e63]" : "bg-[#E8D7C9] text-[#523C37] border-[#dfd3c7]"
+                }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-1">
                   <div className="flex-1 min-w-0">
                     <h3
-                      className={`font-['Cormorant_Garamond']! text-[20px] sm:text-[24px] font-semibold! leading-tight truncate ${
-                        article.isDark ? "text-white" : "text-[#1B1A16]"
-                      }`}
+                      className={`font-['Cormorant_Garamond']! text-[20px] sm:text-[24px] font-semibold! leading-tight truncate ${article.isDark ? "text-white" : "text-[#1B1A16]"
+                        }`}
                     >
                       {article.title}
                     </h3>
                     <p
-                      className={`font-['Inter'] text-[10px] font-medium tracking-wider uppercase mt-1 ${
-                        article.isDark ? "text-[#F2E8E0]!" : "text-[#B58F6F]"
-                      }`}
+                      className={`font-['Inter'] text-[10px] font-medium tracking-wider uppercase mt-1 ${article.isDark ? "text-[#F2E8E0]!" : "text-[#B58F6F]"
+                        }`}
                     >
                       {article.date}
                     </p>
@@ -216,13 +214,12 @@ export default function ReportPage() {
                       e.stopPropagation();
                       navigate(`/report/${article.slug || article.id}`);
                     }}
-                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg transition-all duration-200 cursor-pointer shrink-0 active:scale-95 flex items-center justify-center ${
-                      article.isLocked
-                        ? "bg-[#E8D7C9] hover:bg-[#ded0c2] text-[#523C37] shadow-2xs"
-                        : article.isDark
-                          ? "bg-white/30 hover:bg-white/40 text-white"
-                          : "bg-[#523C37] hover:bg-[#382b24] text-white"
-                    }`}
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg transition-all duration-200 cursor-pointer shrink-0 active:scale-95 flex items-center justify-center ${article.isLocked
+                      ? "bg-[#E8D7C9] hover:bg-[#ded0c2] text-[#523C37] shadow-2xs"
+                      : article.isDark
+                        ? "bg-white/30 hover:bg-white/40 text-white"
+                        : "bg-[#523C37] hover:bg-[#382b24] text-white"
+                      }`}
                     title={article.isLocked ? "Locked Article" : "Expand Article"}
                   >
                     {article.isLocked ? <FilledLock size={16} /> : <Maximize2 size={16} />}
@@ -250,9 +247,8 @@ export default function ReportPage() {
               key={page}
               type="button"
               onClick={() => setCurrentPage(page)}
-              className={`w-8 h-8 rounded-full font-['Inter'] text-[13px] font-medium transition cursor-pointer flex items-center justify-center ${
-                currentPage === page ? "bg-[#E8D7C9] text-[#1B1A16] shadow-xs" : "text-[#664E48] hover:bg-[#E8D7C9]/40"
-              }`}
+              className={`w-8 h-8 rounded-full font-['Inter'] text-[13px] font-medium transition cursor-pointer flex items-center justify-center ${currentPage === page ? "bg-[#E8D7C9] text-[#1B1A16] shadow-xs" : "text-[#664E48] hover:bg-[#E8D7C9]/40"
+                }`}
             >
               {page}
             </button>
@@ -261,32 +257,40 @@ export default function ReportPage() {
       )}
 
       {/* Modal Popup */}
-      <AnimatePresence>
-        {selectedArticle && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-[#FDFBF7] rounded-2xl sm:rounded-[28px] p-5 sm:p-6 max-w-lg w-full border border-[#e0c4a4] shadow-2xl overflow-hidden relative mx-4"
-            >
-              <h3 className="font-['Cormorant_Garamond'] text-[24px] sm:text-[28px] font-semibold text-[#1B1A16] mb-1">{selectedArticle.title}</h3>
-              <p className="font-['Inter'] text-[11px] font-medium uppercase tracking-wider text-[#B58F6F] mb-4">{selectedArticle.date}</p>
-              <div className="h-px bg-stone-200 w-full mb-4" />
-              <p className="font-['Inter'] text-[13px] text-[#523C37] leading-relaxed mb-6">{selectedArticle.description}</p>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setSelectedArticle(null)}
-                  className="bg-[#523C37] hover:bg-[#382b24] text-white font-['Inter'] text-[12px] font-medium uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer transition active:scale-95"
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {selectedArticle && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-3 sm:p-4 md:p-6 overflow-hidden pointer-events-auto"
+                onClick={() => setSelectedArticle(null)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-[#FDFBF7] rounded-2xl sm:rounded-[28px] p-5 sm:p-6 max-w-lg w-full max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar border border-[#e0c4a4] shadow-2xl relative"
                 >
-                  ĐÓNG
-                </button>
+                  <h3 className="font-['Cormorant_Garamond'] text-[24px] sm:text-[28px] font-semibold text-[#1B1A16] mb-1">{selectedArticle.title}</h3>
+                  <p className="font-['Inter'] text-[11px] font-medium uppercase tracking-wider text-[#B58F6F] mb-4">{selectedArticle.date}</p>
+                  <div className="h-px bg-stone-200 w-full mb-4" />
+                  <p className="font-['Inter'] text-[13px] text-[#523C37] leading-relaxed mb-6">{selectedArticle.description}</p>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedArticle(null)}
+                      className="bg-[#523C37] hover:bg-[#382b24] text-white font-['Inter'] text-[12px] font-medium uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer transition active:scale-95"
+                    >
+                      ĐÓNG
+                    </button>
+                  </div>
+                </motion.div>
               </div>
-            </motion.div>
-          </div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </div>
   );
 }

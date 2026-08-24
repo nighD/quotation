@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { apiClient } from "../api/client";
@@ -41,6 +42,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = (props) => {
 
 const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onRequestUpdated, onSuccess }) => {
   const { user, setUser } = useAuth();
+  const [mounted, setMounted] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeSubmitting, setUpgradeSubmitting] = useState(false);
   const [upgradeRequest, setUpgradeRequest] = useState<UpgradeRequestSummary | null>(null);
@@ -54,6 +56,10 @@ const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onR
     country: user?.country || "",
     note: "",
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -80,7 +86,11 @@ const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onR
       }
     };
 
-    fetchUpgradeRequest();
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
   }, [isOpen, user]);
 
   const handleUpgradeSubmit = async () => {
@@ -120,14 +130,16 @@ const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onR
     }
   };
 
-  return (
+  if (!mounted || typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs px-3 sm:px-4 py-6 sm:py-8 flex items-center justify-center overflow-y-auto"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs p-3 sm:p-4 md:p-6 flex items-center justify-center overflow-hidden pointer-events-auto"
           onClick={onClose}
         >
           <motion.div
@@ -136,9 +148,10 @@ const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onR
             exit={{ opacity: 0, y: 18, scale: 0.98 }}
             transition={{ duration: 0.2 }}
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-lg sm:max-w-xl rounded-3xl sm:rounded-[28px] bg-[#F8F1EA] p-5 sm:p-7 shadow-2xl border border-[#E4D6CA] my-auto max-h-[90vh] overflow-y-auto custom-scrollbar"
+            className="relative w-full max-w-lg sm:max-w-xl max-h-[min(90vh,calc(100dvh-2rem))] sm:max-h-[min(90vh,calc(100dvh-3rem))] rounded-3xl sm:rounded-[28px] bg-[#F8F1EA] shadow-2xl border border-[#E4D6CA] overflow-hidden flex flex-col my-auto"
           >
-            <div className="flex items-start justify-between gap-4 mb-4 sm:mb-5">
+            <div className="w-full flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-7 pr-3.5 sm:pr-5">
+              <div className="flex items-start justify-between gap-4 mb-4 sm:mb-5">
               <div>
                 <h2 className="text-[26px] sm:text-[30px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">Upgrade For Free</h2>
                 <p className="mt-1 text-[11px] sm:text-[12px] font-['Inter']! text-[#664E48] leading-relaxed">
@@ -157,9 +170,8 @@ const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onR
 
             {upgradeMessage && (
               <div
-                className={`mb-4 rounded-2xl px-4 py-3 text-[12px] font-['Inter']! ${
-                  upgradeMessage.type === "success" ? "bg-[#E8D7C9] text-[#523C37]" : "bg-[#F8E4DD] text-[#9A4D3A]"
-                }`}
+                className={`mb-4 rounded-2xl px-4 py-3 text-[12px] font-['Inter']! ${upgradeMessage.type === "success" ? "bg-[#E8D7C9] text-[#523C37]" : "bg-[#F8E4DD] text-[#9A4D3A]"
+                  }`}
               >
                 {upgradeMessage.text}
               </div>
@@ -292,9 +304,11 @@ const UpgradeModalContent: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onR
                 </div>
               </div>
             )}
+            </div>
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

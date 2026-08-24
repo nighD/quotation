@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle2, BookOpen, Clock, User, Sparkles, MapPin, Calendar, ExternalLink } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -59,6 +60,7 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
   onSuccess,
 }) => {
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -76,6 +78,10 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
   });
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       setIsSuccess(false);
       setErrorMessage(null);
@@ -85,6 +91,11 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
         email: user?.email || "",
         note: "",
       });
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
     }
   }, [isOpen, user]);
 
@@ -132,37 +143,30 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
     }
   };
 
-  return (
+  if (!mounted || typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs px-3 sm:px-4 py-4 sm:py-6 flex items-center justify-center overflow-y-auto"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs p-3 sm:p-4 md:p-6 flex items-center justify-center overflow-hidden pointer-events-auto"
           onClick={onClose}
         >
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-lg sm:max-w-xl md:max-w-2xl rounded-3xl sm:rounded-[28px] bg-[#F8F1EA] p-4 sm:p-6 md:p-7 shadow-2xl border border-[#E4D6CA] my-auto max-h-[92vh] overflow-y-auto custom-scrollbar relative"
+            className="relative w-full max-w-lg sm:max-w-xl md:max-w-2xl max-h-[min(90vh,calc(100dvh-2.5rem))] rounded-3xl sm:rounded-[28px] bg-[#F8F1EA] shadow-2xl border border-[#E4D6CA] overflow-hidden flex flex-col my-auto"
           >
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md flex items-center justify-center cursor-pointer transition-colors shadow-sm"
-              aria-label="Đóng"
-            >
-              <X size={16} />
-            </button>
-
-            {/* Banner Image Preview */}
-            {thumbnailImage ? (
-              <div className="relative w-full h-48 sm:h-56 md:h-64 rounded-2xl overflow-hidden mb-5 border border-[#E6D7CB] shadow-md bg-stone-900">
+            <div className="w-full flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 md:p-7 pr-3.5 sm:pr-5">
+              {/* Banner Image Preview */}
+              {thumbnailImage ? (
+              <div className="relative w-full h-44 sm:h-50 md:h-56 rounded-2xl overflow-hidden mb-4 sm:mb-5 border border-[#E6D7CB] shadow-md bg-stone-900 shrink-0">
                 <img
                   src={thumbnailImage}
                   alt={activeTitle}
@@ -180,6 +184,16 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
                     {course?.badge || "Private Club"}
                   </span>
                 </div>
+
+                {/* Close Button on Banner */}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="absolute top-3.5 right-3.5 z-20 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center cursor-pointer transition-colors shadow-sm border border-white/20"
+                  aria-label="Đóng"
+                >
+                  <X size={16} />
+                </button>
 
                 {/* Location & Date Tag on Banner Bottom */}
                 {(course?.location || course?.date || course?.schedule) && (
@@ -200,12 +214,20 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
                 )}
               </div>
             ) : (
-              /* Simple Header Badge when no thumbnail */
-              <div className="mb-3">
+              /* Simple Header Badge & Close Button when no thumbnail */
+              <div className="mb-3 flex items-center justify-between">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EADCCF] text-[#8C6246] text-[10px] sm:text-[11px] font-['Inter']! font-semibold uppercase tracking-wider">
                   <Sparkles size={12} className="text-[#B58F6F]" />
                   <span>{course?.badge || "Chi tiết"}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-[#EADCCF] hover:bg-[#dfcfc0] text-[#523C37] flex items-center justify-center cursor-pointer transition-colors shadow-xs"
+                  aria-label="Đóng"
+                >
+                  <X size={16} />
+                </button>
               </div>
             )}
 
@@ -404,9 +426,11 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
                 </form>
               </div>
             )}
+            </div>
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
