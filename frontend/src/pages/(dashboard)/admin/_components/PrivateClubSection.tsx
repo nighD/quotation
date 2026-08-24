@@ -136,9 +136,9 @@ export const PrivateClubSection: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-xs border border-[#eae0d5] overflow-hidden w-full min-w-0">
+    <div className="bg-white rounded-3xl sm:rounded-[28px] p-4 sm:p-5 md:p-6 shadow-xs border border-[#eae0d5] overflow-hidden w-full min-w-0">
       <div className="flex items-center justify-between mb-4 sm:mb-5 select-none">
-        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">Private Club</h2>
+        <h2 className="text-[24px] sm:text-[28px] font-['Cormorant_Garamond']! font-semibold! text-[#1B1A16]">Event</h2>
         <a
           href="#all"
           className="relative group font-['Inter']! text-[11px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block"
