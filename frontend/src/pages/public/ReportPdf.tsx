@@ -143,7 +143,7 @@ function PageRenderer({ pageNumber, pdfDoc, userEmail }: PageRendererProps) {
         month: "short",
         day: "numeric",
       });
-      const watermarkText = `VIFC PASS • SECURE PREVIEW • ${userEmail || "authorized-user"} • ${dateString}`;
+      const watermarkText = `ON-CHAINPASS • SECURE PREVIEW • ${userEmail || "authorized-user"} • ${dateString}`;
 
       ctx.translate(viewport.width / 2, viewport.height / 2);
       ctx.rotate((-35 * Math.PI) / 180);

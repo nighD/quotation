@@ -7,16 +7,16 @@ import { SectionPage } from "./SectionPage";
 
 const faqData = [
     {
-        question: "What is VIFC Privilege Pass?",
-        answer: "VIFC Privilege Pass is a premium investor membership powered by GOE Alliance.",
+        question: "What is On-Chainpass?",
+        answer: "On-Chainpass is a premium investor membership powered by GOE Alliance.",
     },
     {
-        question: "Why is VIFC Privilege Pass important for investors?",
-        answer: "VPP helps investors better understand the VIFC ecosystem through trusted information, strategic connections, and curated opportunities within Vietnam’s emerging financial market.",
+        question: "Why is On-Chainpass important for investors?",
+        answer: "On-Chainpass helps investors better understand the On-Chainpass ecosystem through trusted information, strategic connections, and curated opportunities within Vietnam’s emerging financial market.",
     },
     {
         question: "Who is eligible to join?",
-        answer: "VPP is designed for qualified investors, business leaders, founders, family offices, and global entrepreneurs interested in opportunities within VIFC and Vietnam’s emerging financial ecosystem.",
+        answer: "On-Chainpass is designed for qualified investors, business leaders, founders, family offices, and global entrepreneurs interested in opportunities within On-Chainpass and Vietnam’s emerging financial ecosystem.",
     },
     {
         question: "How do I get started?",
@@ -114,7 +114,7 @@ export const FaqSection = () => {
                 <div className="mt-12 md:mt-20 w-full flex flex-col items-center text-center">
                     <div className="w-full flex flex-col relative z-20 items-center">
                         <div className="w-fit flex flex-col space-y-3 items-center">
-                            <span className="text-white text-[16px] md:text-[18px] font-medium">VPP Privillege Pass Powered by GOE Alliance</span>
+                            <span className="text-white text-[16px] md:text-[18px] font-medium">On-Chainpass Powered by GOE Alliance</span>
                             <div className="flex flex-col space-y-2 mt-2 items-center">
                                 <span className="text-white/80 text-xs font-light leading-relaxed">
                                     CÔNG TY TNHH KINH TẾ ON-CHAIN TOÀN CẦU - MSDN: 0319453163. <br className="hidden md:block" />

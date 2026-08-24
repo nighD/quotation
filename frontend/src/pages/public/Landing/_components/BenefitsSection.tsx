@@ -8,7 +8,7 @@ import { SectionPage } from "./SectionPage";
 const perks = [
     { id: 3, title: "Privileged Information Access", description: "Premium reports, member dashboard access, and exclusive events", image: "/image/benifits3-pia.png" },
     { id: 2, title: "GOE Ecosystem Benefits", description: "Curated investment opportunities and ecosystem partnerships", image: "/image/benifits-goe.png" },
-    { id: 1, title: "VIFC Policy Access", description: "Policy-enabled benefits, official updates, and strategic partnerships.", image: "/image/benifits-vifc.png" },
+    { id: 1, title: "On-Chainpass Policy Access", description: "Policy-enabled benefits, official updates, and strategic partnerships.", image: "/image/benifits-vifc.png" },
 ];
 
 export const BenefitsSection = () => {

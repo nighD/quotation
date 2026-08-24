@@ -66,7 +66,7 @@ export const HeroContent = () => {
                         The Gateway <br />
                         <div className="flex justify-center md:justify-between w-full max-w-[850px] mx-auto mt-[-5px] md:mt-[-40px] gap-4 md:gap-0">
                             <span>to</span>
-                            <span>VIFC</span>
+                            <span>On-Chainpass</span>
                         </div>
                     </motion.h1>
                 </div>
@@ -86,7 +86,7 @@ export const HeroContent = () => {
                         <div className="relative w-full h-full z-0 overflow-hidden rounded-[20px] md:rounded-[30px]">
                             <img
                                 src="/image/card.png"
-                                alt="VIFC Pass Card"
+                                alt="On-Chainpass Card"
                                 className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                             />
                         </div>
@@ -109,7 +109,7 @@ export const HeroContent = () => {
                     transition={{ duration: 0.8, delay: 1.4 }}
                     className="flex items-center justify-center gap-3 w-full"
                 >
-                    <Button onClick={() => handleAuthRedirect('/login')} label="Explore VIFC Pass" variant="white" className=" w-fit! whitespace-nowrap px-4! py-3.5 md:py-4 rounded-[12px] md:rounded-[16px] text-[13px] md:text-base" />
+                    <Button onClick={() => handleAuthRedirect('/login')} label="Explore On-Chainpass" variant="white" className=" w-fit! whitespace-nowrap px-4! py-3.5 md:py-4 rounded-[12px] md:rounded-[16px] text-[13px] md:text-base" />
                 </motion.div>
             </div>
         </div>

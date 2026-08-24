@@ -15,7 +15,7 @@ export const CardFeature = () => {
             >
                 <img
                     src="/image/card-center.png"
-                    alt="VIFC Pass Feature"
+                    alt="On-Chainpass Feature"
                     className="object-contain drop-shadow-[0_30px_100px_rgba(0,0,0,0.9)] w-[500px] h-[500px]"
                 />
             </motion.div>
@@ -34,7 +34,7 @@ export const CardFeature = () => {
                     reports, curated investment <br className="hidden md:block" />
                     opportunities, and strategic <br className="hidden md:block" />
                     relationships within the <br className="hidden md:block" />
-                    VIFC ecosystem.
+                    On-Chainpass ecosystem.
                 </h2>
             </motion.div>
         </SectionPage>

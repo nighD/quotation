@@ -56,7 +56,7 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
         <Link to="/" className="flex items-center gap-2">
           <img
             src="/admin/logo-vifc.png"
-            alt="VIFC Pass"
+            alt="On-Chainpass"
             className="h-6.5 w-auto object-contain"
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none";

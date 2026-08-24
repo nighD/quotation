@@ -30,7 +30,7 @@ const COURSES: CourseCardItem[] = [
       "Dành cho doanh nghiệp xuất khẩu, nhà sản xuất và nhà giao dịch hàng hóa đang muốn thoát khỏi thế bị động — khi tài sản nằm trong kho nhưng dòng vốn vẫn phụ thuộc vào sàn nước ngoài và ngân hàng truyền thống. Hạ tầng on-chain đang mở ra cơ chế mới: lô hàng cà phê, gạo, hồ tiêu có thể được số hóa thành chứng từ có giá trị tài chính — xác thực độc lập, giao dịch được, và tiếp cận thẳng dòng vốn quốc tế mà không qua trung gian bảo lãnh.",
     image: "/admin/booking-01.png",
     fallbackImage: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=90",
-    instructor: "Chuyên Gia VIFC On-Chain",
+    instructor: "Chuyên Gia On-Chainpass",
     duration: "4 tuần (8 buổi)",
     schedule: "Tối Thứ 3 & Thứ 5",
   },

@@ -8,7 +8,7 @@ export const HeroBanner = () => {
             <div className="absolute inset-0 z-0">
                 <img
                     src="/banner/banner-home.png"
-                    alt="VIFC Hero Banner"
+                    alt="On-Chainpass Hero Banner"
                     className="absolute inset-0 w-full h-full object-cover object-top"
                 />
             </div>

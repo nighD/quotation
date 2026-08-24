@@ -36,7 +36,7 @@ export const StepGuide = () => {
                 viewport={{ once: true }}
                 className="font-fraunces text-3xl md:text-5xl text-white text-center leading-tight max-w-[700px] mb-12"
             >
-                Start using VIFC Pass
+                Start using On-Chainpass
             </motion.h2>
 
             <motion.div
@@ -48,7 +48,7 @@ export const StepGuide = () => {
             >
                 <img
                     src="/image/card-center.png"
-                    alt="VIFC Pass Central"
+                    alt="On-Chainpass Central"
                     className="object-contain drop-shadow-[0_40px_100px_rgba(0,0,0,0.9)] w-[400px] h-[500px]"
                 />
             </motion.div>
