@@ -135,7 +135,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
         // Mobile layout when not logged in
         <div className="flex md:hidden items-center justify-between w-full">
           <Link to="/" className="flex items-center hover:opacity-85 transition">
-            <img src="/favicon.svg" alt="VIFC Logo" className="w-8 h-8 object-contain" />
+            <img src="/favicon.svg" alt="On-Chainpass Logo" className="w-8 h-8 object-contain" />
           </Link>
           <Link
             to="/login"
@@ -149,7 +149,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
       {/* Desktop-only Logo */}
       <div className="hidden md:block absolute left-6 md:left-12">
         <Link to="/" className="flex items-center hover:opacity-85 transition">
-          <img src="/favicon.svg" alt="VIFC Logo" className="w-8 h-8 object-contain" />
+          <img src="/favicon.svg" alt="On-Chainpass Logo" className="w-8 h-8 object-contain" />
         </Link>
       </div>
 
@@ -291,7 +291,7 @@ export function Navbar({ hideCenterNav = false }: { hideCenterNav?: boolean }) {
           {/* Header */}
           <div className="flex items-center justify-between w-full mb-12">
             <div className="flex items-center">
-              <img src="/favicon.svg" alt="VIFC Logo" className="w-10 h-10 object-contain" />
+              <img src="/favicon.svg" alt="On-Chainpass Logo" className="w-10 h-10 object-contain" />
             </div>
             <button
               type="button"

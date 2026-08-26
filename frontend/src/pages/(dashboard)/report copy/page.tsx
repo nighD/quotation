@@ -256,12 +256,16 @@ export default function ReportPage() {
 
                 <AnimatePresence>
                     {selectedArticle && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-3 sm:p-4 md:p-6 overflow-hidden pointer-events-auto"
+                            onClick={() => setSelectedArticle(null)}
+                        >
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                className="bg-[#FDFBF7] rounded-[28px] p-6 max-w-135 w-full border border-[#e0c4a4] shadow-2xl overflow-hidden relative"
+                                onClick={(e) => e.stopPropagation()}
+                                className="bg-[#FDFBF7] rounded-2xl sm:rounded-[28px] p-5 sm:p-6 max-w-135 w-full max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar border border-[#e0c4a4] shadow-2xl relative"
                             >
                                 <h3 className="font-['Cormorant_Garamond'] text-[28px] font-semibold text-[#1B1A16] mb-1">
                                     {selectedArticle.title}

@@ -133,9 +133,9 @@ export function Home() {
         <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-16 items-start w-full mt-4 lg:mt-6 relative lg:h-[450px]">
           {/* Left Column: Title + Subtitle */}
           <div className="flex flex-col w-full text-left">
-            <h1 className="text-4xl md:text-7xl font-semibold mb-3 text-white tracking-tight leading-[1.1]">VIFC Privilege Pass</h1>
+            <h1 className="text-4xl md:text-7xl font-semibold mb-3 text-white tracking-tight leading-[1.1]">On-Chainpass</h1>
             <p className="text-gray-300 text-sm md:text-lg leading-relaxed max-w-xl mb-6">
-              A investor platform that curates and structures official information, enabling investors to access strategic opportunities across VIFC and
+              A investor platform that curates and structures official information, enabling investors to access strategic opportunities across On-Chainpass and
               Vietnam.
             </p>
 
@@ -145,15 +145,15 @@ export function Home() {
               <div className="absolute left-[-20px] top-6 w-[70%] z-10">
                 <img
                   src="/vifc_pass_home.png"
-                  alt="VIFC Privilege Pass Card"
+                  alt="On-Chainpass Card"
                   className="w-full h-auto transform -rotate-[11.1deg] filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] select-none pointer-events-none"
                 />
               </div>
 
-              {/* VIFC Pass Benefit Card (Scaled down on mobile) */}
+              {/* On-Chainpass Benefit Card (Scaled down on mobile) */}
               <div className="absolute right-0 top-0 w-[55%] z-20 bg-white/10 backdrop-blur-md border border-white/10 rounded-[20px] p-4 text-white shadow-xl flex flex-col gap-2.5">
                 {/* <div>
-                  <h2 className="text-[12px] font-semibold mb-1">The 3 Core Benefits of VIFC Privilege Pass</h2>
+                  <h2 className="text-[12px] font-semibold mb-1">The 3 Core Benefits of On-Chainpass</h2>
                   <p className="text-gray-200 text-[9px] leading-snug">
                     Unlock exclusive privileges, policy advantages, and strategic opportunities designed for premium investors:
                   </p>
@@ -188,17 +188,17 @@ export function Home() {
             <div className="hidden lg:block relative pl-10 z-10 lg:absolute lg:left-[370px] lg:top-[130px] lg:bottom-auto">
               <img
                 src="/vifc_pass_home.png"
-                alt="VIFC Privilege Pass Card"
+                alt="On-Chainpass Card"
                 className="w-[500px] max-w-full h-auto transform -rotate-[11.1deg] filter drop-shadow-[0_25px_60px_rgba(0,0,0,0.7)] select-none pointer-events-none"
               />
             </div>
           </div>
 
-          {/* Desktop-only Right Column: VIFC Pass Benefit Card */}
+          {/* Desktop-only Right Column: On-Chainpass Benefit Card */}
           <div className="hidden lg:flex justify-end lg:-ml-32 relative z-20">
             <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-4xl p-8 md:p-10 text-white w-full max-w-[440px] shadow-2xl flex flex-col gap-6 text-left">
               <div>
-                <h2 className="text-[26px] font-semibold mb-2">VIFC Privilege Pass Benefit</h2>
+                <h2 className="text-[26px] font-semibold mb-2">On-Chainpass Benefit</h2>
                 {/* <p className="text-gray-200 text-[15px] leading-relaxed"> */}
                 {/* Unlock exclusive privileges, policy advantages, and strategic opportunities designed for premium investors: */}
                 {/* </p> */}
@@ -212,7 +212,7 @@ export function Home() {
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openStates[0] ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
-                      Exclusive reports, investor briefings, and priority access to VIFC events.
+                      Exclusive reports, investor briefings, and priority access to On-Chainpass events.
                     </p>
                   </div>
                 </li>
@@ -223,7 +223,7 @@ export function Home() {
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openStates[1] ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
-                      Policy-enabled benefits, official updates, and practical advantages within the VIFC ecosystem.
+                      Policy-enabled benefits, official updates, and practical advantages within the On-Chainpass ecosystem.
                     </p>
                   </div>
                 </li>
@@ -234,7 +234,7 @@ export function Home() {
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openStates[2] ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
                     <p className="text-gray-300 text-[14px] font-normal pl-[22px] leading-relaxed">
-                      Curated investment opportunities and strategic partnerships across the VIFC and GOE ecosystems.
+                      Curated investment opportunities and strategic partnerships across the On-Chainpass and GOE ecosystems.
                     </p>
                   </div>
                 </li>

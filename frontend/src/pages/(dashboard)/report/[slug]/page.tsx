@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Calendar, Maximize2, Search, X, FileText, Lock, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Maximize2, Search, FileText, Lock, ExternalLink } from "lucide-react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../../../api/client";
 import { useAuth } from "../../../../context/AuthContext";
-import { UpgradeModal } from "../../../../components/UpgradeModal";
+import { UpgradeModal, CloseButtonCustom } from "../../../../components";
 
 interface ArticleItem {
   id: string;
@@ -49,7 +49,6 @@ const ROLE_LEVELS: Record<string, number> = {
   admin: 4,
 };
 
-// Global in-memory cache for article details to prevent re-fetching and flickering on navigation
 interface CachedArticleEntry {
   article: ArticleDetail;
   relatedArticles: ArticleItem[];
@@ -694,14 +693,13 @@ export default function ReportDetailPage() {
               onClick={(e) => e.stopPropagation()}
               className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center justify-center select-none"
             >
-              <button
-                type="button"
+              <CloseButtonCustom
                 onClick={() => setIsPreviewOpen(false)}
-                className="absolute -top-12 right-0 sm:-right-4 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 text-white flex items-center justify-center transition cursor-pointer backdrop-blur-sm shadow-md active:scale-95"
-                title="Đóng (Esc)"
-              >
-                <X size={20} />
-              </button>
+                variant="dark"
+                size="md"
+                className="absolute -top-12 right-0 sm:-right-4"
+                ariaLabel="Đóng (Esc)"
+              />
 
               <img
                 src={article.bannerUrl}

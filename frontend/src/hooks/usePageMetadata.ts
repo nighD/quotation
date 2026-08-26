@@ -16,18 +16,18 @@ export interface PageMetadata {
 }
 
 export const DEFAULT_PAGE_METADATA: PageMetadata = {
-  title: "VIFC Privilege Pass",
+  title: "On-Chain Card — Your Decentralized Membership Card",
   description:
-    "A platform that curates and structures official information, enabling investors to access strategic opportunities across VIFC and Vietnam.",
-  favicon: "/favicon.svg",
-  ogTitle: "VIFC Privilege Pass",
+    "On-Chain Card is a decentralized membership card that verifies your identity and unlocks on-chain perks — transparent, secure, wallet-connected, and owned by you with no middlemen.",
+  favicon: "/admin/icon/favicon.ico",
+  ogTitle: "On-Chain Card — Your Decentralized Membership Card",
   ogDescription:
-    "A platform that curates and structures official information, enabling investors to access strategic opportunities across VIFC and Vietnam.",
-  ogImage: "https://vifcpass.com/og-image.png",
-  twitterTitle: "VIFC Privilege Pass",
+    "On-Chain Card is a decentralized membership card that verifies your identity and unlocks on-chain perks — transparent, secure, wallet-connected, and owned by you with no middlemen.",
+  ogImage: "/admin/card-vifc-pass-default.png",
+  twitterTitle: "On-Chain Card — Your Decentralized Membership Card",
   twitterDescription:
-    "A platform that curates and structures official information, enabling investors to access strategic opportunities across VIFC and Vietnam.",
-  twitterImage: "https://vifcpass.com/og-image.png",
+    "On-Chain Card is a decentralized membership card that verifies your identity and unlocks on-chain perks — transparent, secure, wallet-connected, and owned by you with no middlemen.",
+  twitterImage: "/admin/card-vifc-pass-default.png",
   twitterCard: "summary_large_image",
 };
 

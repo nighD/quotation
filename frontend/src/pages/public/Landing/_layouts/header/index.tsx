@@ -108,7 +108,7 @@ export const Header = () => {
                     >
                         <img
                             src="/image/logo.png"
-                            alt="VIFC"
+                            alt="On-Chainpass"
                             className="object-contain w-full h-auto"
                         />
                     </a>
@@ -154,7 +154,7 @@ export const Header = () => {
                             onClick={(e) => { e.preventDefault(); handleAuthRedirect('/login'); }}
                             className="bg-white text-black text-[14px] font-bold px-6 py-2.5 rounded-full hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] active:scale-95 whitespace-nowrap block hover:-translate-y-0.5"
                         >
-                            Explore VIFC Pass
+                            Explore On-Chainpass
                         </a>
                     </motion.div>
                 </motion.div>
@@ -244,7 +244,7 @@ export const Header = () => {
                                     onClick={(e) => { e.preventDefault(); handleAuthRedirect('/login'); }}
                                     className="w-full block text-center bg-white text-black text-[16px] font-bold py-5 rounded-2xl hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
                                 >
-                                    Explore VIFC Pass
+                                    Explore On-Chainpass
                                 </a>
                             </motion.div>
                         </motion.div>

@@ -1,8 +1,9 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Filter, Maximize2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../api/client";
+import { PortalModal } from "../../../components";
 
 interface ArticleItem {
   id: string;
@@ -260,33 +261,25 @@ export default function ReportPage() {
         </div>
       )}
 
-      {/* Modal Popup */}
-      <AnimatePresence>
-        {selectedArticle && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-[#FDFBF7] rounded-2xl sm:rounded-[28px] p-5 sm:p-6 max-w-lg w-full border border-[#e0c4a4] shadow-2xl overflow-hidden relative mx-4"
-            >
-              <h3 className="font-['Cormorant_Garamond'] text-[24px] sm:text-[28px] font-semibold text-[#1B1A16] mb-1">{selectedArticle.title}</h3>
-              <p className="font-['Inter'] text-[11px] font-medium uppercase tracking-wider text-[#B58F6F] mb-4">{selectedArticle.date}</p>
-              <div className="h-px bg-stone-200 w-full mb-4" />
-              <p className="font-['Inter'] text-[13px] text-[#523C37] leading-relaxed mb-6">{selectedArticle.description}</p>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setSelectedArticle(null)}
-                  className="bg-[#523C37] hover:bg-[#382b24] text-white font-['Inter'] text-[12px] font-medium uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer transition active:scale-95"
-                >
-                  ĐÓNG
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Article Detail Modal Popup */}
+      <PortalModal
+        isOpen={Boolean(selectedArticle)}
+        onClose={() => setSelectedArticle(null)}
+        title={selectedArticle?.title}
+        subtitle={selectedArticle?.date}
+        width="max-w-lg"
+        footer={
+          <button
+            type="button"
+            onClick={() => setSelectedArticle(null)}
+            className="bg-[#523C37] hover:bg-[#382b24] text-white font-['Inter'] text-[12px] font-medium uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer transition active:scale-95 shadow-xs"
+          >
+            ĐÓNG
+          </button>
+        }
+      >
+        <p className="font-['Inter'] text-[13.5px] text-[#523C37] leading-relaxed whitespace-pre-line">{selectedArticle?.description}</p>
+      </PortalModal>
     </div>
   );
 }

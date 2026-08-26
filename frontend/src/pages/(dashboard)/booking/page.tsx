@@ -1,7 +1,8 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { Filter, Phone, Search, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Filter, Phone, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { apiClient } from '../../../api/client';
+import { PortalModal } from '../../../components';
 
 interface BookingItem {
     id: string;
@@ -203,53 +204,42 @@ export default function BookingPage() {
             </div>
 
             {/* Call Confirmation Modal */}
-            <AnimatePresence>
-                {isCallModalOpen && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-2xs p-4 select-none"
-                        onClick={() => setIsCallModalOpen(false)}
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                            transition={{ duration: 0.18 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-3xl p-6 sm:p-10 max-w-xs sm:max-w-sm w-full shadow-2xl relative text-center border border-[#DFD3C7]"
-                        >
-                            <button
-                                type="button"
-                                onClick={() => setIsCallModalOpen(false)}
-                                className="absolute top-4 right-4 w-6 h-6 rounded-full bg-[#E5DBD2]/60 hover:bg-[#E5DBD2] text-[#664E48] flex items-center justify-center transition cursor-pointer"
-                                title="Đóng"
-                            >
-                                <X size={13} />
-                            </button>
-
-                            <h3 className="font-['Cormorant_Garamond']! text-[22px] sm:text-[24px] font-semibold! text-[#523C37] mb-8 pt-2">
-                                Gọi chăm sóc khách hàng?
-                            </h3>
-
-                            <div className="flex items-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCallModalOpen(false)}
-                                    className="flex-1 bg-[#C8BBB0] hover:bg-[#b8a99c] text-[#523C37] font-['Inter']! text-[12px] font-medium! tracking-wider uppercase py-3 rounded-xl transition cursor-pointer active:scale-95"
-                                >
-                                    QUAY LẠI
-                                </button>
-                                <a
-                                    href="tel:19001000"
-                                    onClick={() => setIsCallModalOpen(false)}
-                                    className="flex-1 bg-[#523C37] hover:bg-[#382b24] text-[#F2E8E0] font-['Inter']! text-[12px] font-medium! tracking-wider uppercase py-3 rounded-xl transition cursor-pointer active:scale-95 text-center"
-                                >
-                                    GỌI
-                                </a>
-                            </div>
-                        </motion.div>
+            <PortalModal
+                isOpen={isCallModalOpen}
+                onClose={() => setIsCallModalOpen(false)}
+                width="max-w-xs sm:max-w-sm"
+                className="text-center"
+                showCloseButton={true}
+            >
+                <div className="text-center pt-1 pb-1">
+                    <div className="w-12 h-12 rounded-2xl bg-[#F0E4D8] border border-[#E6D7CB] text-[#8C6246] flex items-center justify-center mx-auto mb-3.5 shadow-xs">
+                        <Phone size={20} />
                     </div>
-                )}
-            </AnimatePresence>
+                    <h3 className="font-['Cormorant_Garamond']! text-[24px] sm:text-[26px] font-semibold! text-[#523C37] mb-2">
+                        Gọi chăm sóc khách hàng?
+                    </h3>
+                    <p className="font-['Inter']! text-[12.5px] text-[#664E48] mb-6 leading-relaxed">
+                        Kết nối trực tiếp với đội ngũ tư vấn viên để được hỗ trợ nhanh nhất.
+                    </p>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsCallModalOpen(false)}
+                            className="flex-1 bg-[#EADCCF] hover:bg-[#dfcfc0] text-[#523C37] font-['Inter']! text-[12px] font-medium! tracking-wider uppercase py-3 rounded-xl transition cursor-pointer active:scale-95"
+                        >
+                            QUAY LẠI
+                        </button>
+                        <a
+                            href="tel:19001000"
+                            onClick={() => setIsCallModalOpen(false)}
+                            className="flex-1 bg-[#523C37] hover:bg-[#382b24] text-[#F2E8E0] font-['Inter']! text-[12px] font-medium! tracking-wider uppercase py-3 rounded-xl transition cursor-pointer active:scale-95 text-center shadow-md"
+                        >
+                            GỌI
+                        </a>
+                    </div>
+                </div>
+            </PortalModal>
         </div>
     );
 }
