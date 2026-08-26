@@ -39,4 +39,12 @@ func RegisterRoutes(router fiber.Router, handler *Handler, jwtSecret string) {
 
 	// SEO Preview for Bots
 	cms.Get("/reports/seo-preview/:id", handler.GetArticleSEOHTML)
+
+	// Courses
+	courses := cms.Group("/courses")
+	courses.Get("/", handler.ListCourses)
+
+	// Events
+	events := cms.Group("/events")
+	events.Get("/", handler.ListEvents)
 }

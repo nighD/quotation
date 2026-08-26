@@ -153,3 +153,39 @@ func (r *Repository) DeleteCourseRegistration(id string) error {
 	}
 	return nil
 }
+
+// ─── Course operations ────────────────────────────────────────
+
+func (r *Repository) FindAllCourses(offset, limit int, status string) ([]Course, int64, error) {
+	var courses []Course
+	var total int64
+
+	query := r.db.Model(&Course{})
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	query.Count(&total)
+	if err := query.Offset(offset).Limit(limit).Order("order_index ASC, created_at DESC").Find(&courses).Error; err != nil {
+		return nil, 0, err
+	}
+	return courses, total, nil
+}
+
+// ─── Event operations ─────────────────────────────────────────
+
+func (r *Repository) FindAllEvents(offset, limit int, status string) ([]Event, int64, error) {
+	var events []Event
+	var total int64
+
+	query := r.db.Model(&Event{})
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	query.Count(&total)
+	if err := query.Offset(offset).Limit(limit).Order("order_index ASC, created_at DESC").Find(&events).Error; err != nil {
+		return nil, 0, err
+	}
+	return events, total, nil
+}

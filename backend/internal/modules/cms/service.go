@@ -321,3 +321,38 @@ func (s *Service) UpdateCourseRegistration(id string, req *UpdateCourseRegistrat
 func (s *Service) DeleteCourseRegistration(id string) error {
 	return s.repo.DeleteCourseRegistration(id)
 }
+
+// ─── Course operations ────────────────────────────────────────
+
+func (s *Service) ListCourses(page, pageSize int, status string) ([]*CourseResponse, int64, error) {
+	offset := (page - 1) * pageSize
+	courses, total, err := s.repo.FindAllCourses(offset, pageSize, status)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var result []*CourseResponse
+	for i := range courses {
+		result = append(result, toCourseResponse(&courses[i]))
+	}
+
+	return result, total, nil
+}
+
+// ─── Event operations ─────────────────────────────────────────
+
+func (s *Service) ListEvents(page, pageSize int, status string) ([]*EventResponse, int64, error) {
+	offset := (page - 1) * pageSize
+	events, total, err := s.repo.FindAllEvents(offset, pageSize, status)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var result []*EventResponse
+	for i := range events {
+		result = append(result, toEventResponse(&events[i]))
+	}
+
+	return result, total, nil
+}
+

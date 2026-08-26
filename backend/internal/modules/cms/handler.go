@@ -465,3 +465,32 @@ func (h *Handler) DeleteCourseRegistration(c *fiber.Ctx) error {
 	}
 	return response.OK(c, nil, "Course registration deleted successfully")
 }
+
+// ─── Courses ──────────────────────────────────────────────────
+
+func (h *Handler) ListCourses(c *fiber.Ctx) error {
+	pg := utils.ParsePagination(c)
+	status := c.Query("status", "") // empty means all or active depending on what the user wants. We'll pass it as is.
+
+	courses, total, err := h.service.ListCourses(pg.Page, pg.PageSize, status)
+	if err != nil {
+		return response.InternalError(c, "Failed to fetch courses")
+	}
+
+	return response.OKWithMeta(c, courses, "", response.NewMeta(pg.Page, pg.PageSize, total))
+}
+
+// ─── Events ───────────────────────────────────────────────────
+
+func (h *Handler) ListEvents(c *fiber.Ctx) error {
+	pg := utils.ParsePagination(c)
+	status := c.Query("status", "")
+
+	events, total, err := h.service.ListEvents(pg.Page, pg.PageSize, status)
+	if err != nil {
+		return response.InternalError(c, "Failed to fetch events")
+	}
+
+	return response.OKWithMeta(c, events, "", response.NewMeta(pg.Page, pg.PageSize, total))
+}
+

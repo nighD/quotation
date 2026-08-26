@@ -64,6 +64,44 @@ func (CourseRegistration) TableName() string {
 	return "course_registrations"
 }
 
+// Course is the GORM model for the courses table.
+type Course struct {
+	ID            uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Title         string         `gorm:"type:varchar(500);not null" json:"title"`
+	BookingType   string         `gorm:"type:varchar(100);unique;not null" json:"booking_type"`
+	BookingTitle  string         `gorm:"type:varchar(500);not null" json:"booking_title"`
+	Description   string         `gorm:"type:text" json:"description"`
+	Image         string         `gorm:"type:text" json:"image"`
+	FallbackImage string         `gorm:"type:text" json:"fallback_image"`
+	Instructor    string         `gorm:"type:varchar(255)" json:"instructor"`
+	Duration      string         `gorm:"type:varchar(100)" json:"duration"`
+	Schedule      string         `gorm:"type:varchar(100)" json:"schedule"`
+	TuitionFee    float64        `gorm:"type:decimal(12,2);default:0" json:"tuition_fee"`
+	Status        string         `gorm:"type:varchar(50);default:'active'" json:"status"`
+	OrderIndex    int            `gorm:"default:0" json:"order_index"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// Event is the GORM model for the events table.
+type Event struct {
+	ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Title       string         `gorm:"type:varchar(500);not null" json:"title"`
+	Subtitle    string         `gorm:"type:varchar(500)" json:"subtitle"`
+	Location    string         `gorm:"type:varchar(255)" json:"location"`
+	Date        string         `gorm:"type:varchar(100)" json:"date"`
+	Image       string         `gorm:"type:text" json:"image"`
+	Badge       string         `gorm:"type:varchar(100)" json:"badge"`
+	LumaURL     string         `gorm:"type:text" json:"luma_url"`
+	Description string         `gorm:"type:text" json:"description"`
+	Status      string         `gorm:"type:varchar(50);default:'active'" json:"status"`
+	OrderIndex  int            `gorm:"default:0" json:"order_index"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
 // ─── Request DTOs ─────────────────────────────────────────────
 
 type CreateArticleRequest struct {
@@ -254,3 +292,76 @@ func toCourseRegistrationResponse(c *CourseRegistration) *CourseRegistrationResp
 		UpdatedAt:    c.UpdatedAt,
 	}
 }
+
+type CourseResponse struct {
+	ID            string    `json:"id"`
+	Title         string    `json:"title"`
+	BookingType   string    `json:"booking_type"`
+	BookingTitle  string    `json:"booking_title"`
+	Description   string    `json:"description"`
+	Image         string    `json:"image"`
+	FallbackImage string    `json:"fallback_image"`
+	Instructor    string    `json:"instructor"`
+	Duration      string    `json:"duration"`
+	Schedule      string    `json:"schedule"`
+	TuitionFee    float64   `json:"tuition_fee"`
+	Status        string    `json:"status"`
+	OrderIndex    int       `json:"order_index"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+func toCourseResponse(c *Course) *CourseResponse {
+	return &CourseResponse{
+		ID:            c.ID.String(),
+		Title:         c.Title,
+		BookingType:   c.BookingType,
+		BookingTitle:  c.BookingTitle,
+		Description:   c.Description,
+		Image:         c.Image,
+		FallbackImage: c.FallbackImage,
+		Instructor:    c.Instructor,
+		Duration:      c.Duration,
+		Schedule:      c.Schedule,
+		TuitionFee:    c.TuitionFee,
+		Status:        c.Status,
+		OrderIndex:    c.OrderIndex,
+		CreatedAt:     c.CreatedAt,
+		UpdatedAt:     c.UpdatedAt,
+	}
+}
+
+type EventResponse struct {
+	ID          string    `json:"id"`
+	Title       string    `json:"title"`
+	Subtitle    string    `json:"subtitle"`
+	Location    string    `json:"location"`
+	Date        string    `json:"date"`
+	Image       string    `json:"image"`
+	Badge       string    `json:"badge"`
+	LumaURL     string    `json:"luma_url"`
+	Description string    `json:"description"`
+	Status      string    `json:"status"`
+	OrderIndex  int       `json:"order_index"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func toEventResponse(e *Event) *EventResponse {
+	return &EventResponse{
+		ID:          e.ID.String(),
+		Title:       e.Title,
+		Subtitle:    e.Subtitle,
+		Location:    e.Location,
+		Date:        e.Date,
+		Image:       e.Image,
+		Badge:       e.Badge,
+		LumaURL:     e.LumaURL,
+		Description: e.Description,
+		Status:      e.Status,
+		OrderIndex:  e.OrderIndex,
+		CreatedAt:   e.CreatedAt,
+		UpdatedAt:   e.UpdatedAt,
+	}
+}
+
