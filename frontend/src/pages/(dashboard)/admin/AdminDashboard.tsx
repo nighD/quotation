@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../../../api/client";
 import {
-  BookingSection,
+  CourseSection,
   type BookingCardRequest,
   EventSection,
   type EventItemData,
@@ -121,7 +121,7 @@ export function AdminDashboard() {
           <MembershipBenefitCard />
         </div>
         <div className="xl:col-span-7 2xl:col-span-7 flex">
-          <BookingSection onSubmitRequest={handleBookingRequest} submittingBookingType={submittingBookingType} requestedBookingTypes={requestedBookingTypes} />
+          <CourseSection onSubmitRequest={handleBookingRequest} submittingBookingType={submittingBookingType} requestedBookingTypes={requestedBookingTypes} />
         </div>
       </div>
 

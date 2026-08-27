@@ -37,6 +37,7 @@ export interface CourseRegistrationModalProps {
   defaultTitle?: string;
   defaultDescription?: string;
   showFullForm?: boolean;
+  isRegistered?: boolean;
   onSubmit?: (data: CourseRegistrationFormData) => Promise<void> | void;
   onSuccess?: () => void;
 }
@@ -55,6 +56,7 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
   defaultTitle = "Chương Trình Đào Tạo Chiến Lược & Đầu Tư",
   defaultDescription = "Khóa học chuyên sâu trang bị kiến thức và kỹ năng nắm bắt cơ hội đầu tư, phân tích thị trường và quản trị danh mục hiệu quả.",
   showFullForm,
+  isRegistered,
   onSubmit,
   onSuccess,
 }) => {
@@ -140,6 +142,41 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
     }
   };
 
+  const handleEventRegister = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      if (onSubmit) {
+        await onSubmit({
+          courseId: course?.id,
+          courseTitle: activeTitle,
+          fullName: user?.full_name || form.fullName || "Member",
+          phone: form.phone || "",
+          email: user?.email || form.email || "",
+          note: form.note || "",
+        });
+      } else {
+        await apiClient.post("/engagement/events/register", {
+          event_id: String(course?.id || ""),
+          event_title: activeTitle,
+          event_date: course?.date || course?.schedule || "",
+          location: course?.location || "",
+          notes: form.note || "",
+        });
+      }
+
+      setIsSuccess(true);
+      onSuccess?.();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || "Có lỗi xảy ra khi đăng ký sự kiện. Vui lòng thử lại.";
+      setErrorMessage(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const modalFooter = isSuccess ? (
     <div className="w-full flex justify-end">
       <button
@@ -151,7 +188,6 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
       </button>
     </div>
   ) : isPrivateClubOrEvent && !shouldRenderForm ? (
-    /* Footer for Private Club / Events (No form) */
     <div className="w-full flex items-center justify-between gap-3">
       {directLink ? (
         <a
@@ -176,21 +212,28 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
           ĐÓNG
         </button>
 
-        {directLink && (
-          <a
-            href={directLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-[#B08461] hover:bg-[#9e7553] text-white text-[11.5px] sm:text-[12px] font-['Inter']! font-medium px-5 sm:px-6 py-2.5 rounded-xl uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
-          >
+        <button
+          type="button"
+          onClick={handleEventRegister}
+          disabled={submitting}
+          className={`${
+            isRegistered ? "bg-[#2D7A46] hover:bg-[#236338]" : "bg-[#B08461] hover:bg-[#9e7553]"
+          } disabled:opacity-60 text-white text-[11.5px] sm:text-[12px] font-['Inter']! font-medium px-5 sm:px-6 py-2.5 rounded-xl uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2`}
+        >
+          {submitting ? (
+            <>
+              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>ĐANG XỬ LÝ...</span>
+            </>
+          ) : isRegistered ? (
+            <span>ĐÃ ĐĂNG KÝ ✓</span>
+          ) : (
             <span>THAM GIA NGAY</span>
-            <ExternalLink size={14} />
-          </a>
-        )}
+          )}
+        </button>
       </div>
     </div>
   ) : (
-    /* Footer for Courses (Has form) */
     <div className="w-full flex items-center justify-end gap-3">
       <button
         type="button"
@@ -228,7 +271,6 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
       footer={modalFooter}
     >
       <div className="space-y-4">
-        {/* Banner Image Preview inside scroll body */}
         {thumbnailImage && (
           <div className="relative w-full h-44 sm:h-52 rounded-2xl overflow-hidden border border-[#E6D7CB] shadow-md bg-stone-900 shrink-0">
             <img
@@ -241,13 +283,12 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-            {/* Location & Date Tag on Banner Bottom */}
             {(course?.location || course?.date || course?.schedule) && (
               <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between gap-2 text-white text-[11px] sm:text-[12px] font-['Inter']! flex-wrap">
                 {course?.location && (
                   <span className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
                     <MapPin size={13} className="text-[#E09A30] shrink-0" />
-                    <span className="truncate max-w-[200px] sm:max-w-none">{course.location}</span>
+                    <span className="truncate max-w-50 sm:max-w-none">{course.location}</span>
                   </span>
                 )}
                 {(course?.date || course?.schedule) && (
@@ -261,7 +302,6 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
           </div>
         )}
 
-        {/* Course Extra Highlights */}
         {(course?.instructor || course?.duration || course?.schedule) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 text-[12px] font-['Inter']! text-[#523C37]">
             {course.instructor && (
@@ -294,10 +334,8 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
           </div>
         )}
 
-        {/* Description Text */}
         <p className="text-[12.5px] sm:text-[13.5px] font-['Inter']! text-[#523C37] leading-relaxed whitespace-pre-line">{activeDescription}</p>
 
-        {/* Direct Luma Link Option (for Events / Private Club) */}
         {directLink && (
           <div className="p-3.5 rounded-2xl bg-white/70 border border-[#D9C8BA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-2.5">

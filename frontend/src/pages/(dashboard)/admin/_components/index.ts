@@ -1,11 +1,12 @@
 export { MenuSidebar } from "../../_layouts/MenuSidebar";
 export type { MenuSidebarProps } from "../../_layouts/MenuSidebar";
 export { MembershipBenefitCard } from "./MembershipBenefitCard";
-export { BookingSection } from "./BookingSection";
-export type { BookingCardRequest } from "./BookingSection";
+export { CourseSection, BookingSection } from "./CourseSection";
+export type { BookingCardRequest, CourseCardItem, CourseSectionProps } from "./CourseSection/type";
 export { ReportSection } from "./ReportSection";
-export { EventSection } from "./EventSection";
-export type { EventItemData, EventSectionProps } from "./EventSection";
-export { PrivateClubSection } from "./PrivateClubSection";
+export { EventSection } from "./NewLetterSection";
+export type { EventItemData, EventSectionProps } from "./NewLetterSection";
+export { EventsSection, PrivateClubSection } from "./EventsSection";
+export type { ClubCardItem } from "./EventsSection";
 export { UpgradeModal } from "../../../../components/UpgradeModal";
 export type { UpgradeModalProps, UpgradeRequestSummary } from "../../../../components/UpgradeModal";

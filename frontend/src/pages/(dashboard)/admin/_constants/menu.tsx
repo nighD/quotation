@@ -1,4 +1,4 @@
-import { Home, FileText } from "lucide-react";
+import { Home, FileText, CalendarDays, Calendar } from "lucide-react";
 
 export interface MenuItem {
   id: string;
@@ -24,30 +24,20 @@ export const mainMenuItems: MenuItem[] = [
     iconName: "/admin/icon/icon-report.png",
     lucideIcon: FileText,
   },
-  /*
-    {
-        id: 'booking',
-        label: 'Booking',
-        path: '/booking',
-        iconName: '/admin/icon/icon-booking.png',
-        lucideIcon: Calendar,
-    },
-    {
-        id: 'event',
-        label: 'Event',
-        path: '/events',
-        iconName: '/admin/icon/icon-event.png',
-        lucideIcon: CalendarDays,
-        hasNotification: true,
-    },
-    {
-        id: 'private-club',
-        label: 'Private club',
-        path: '/benefits',
-        iconName: '/admin/icon/icon-private.png',
-        lucideIcon: Armchair,
-    },
-    */
+  {
+    id: "event",
+    label: "Event",
+    path: "/event",
+    iconName: "/admin/icon/icon-event.png",
+    lucideIcon: CalendarDays,
+  },
+  {
+    id: "booking",
+    label: "Booking",
+    path: "/booking",
+    iconName: "/admin/icon/icon-booking.png",
+    lucideIcon: Calendar,
+  },
 ];
 
 export const secondaryMenuItems: MenuItem[] = [

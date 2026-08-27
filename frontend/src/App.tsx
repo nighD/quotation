@@ -13,6 +13,7 @@ import ReportPage from "./pages/(dashboard)/report/page";
 import ReportDetailPage from "./pages/(dashboard)/report/[slug]/page";
 import DashboardReportPdf from "./pages/(dashboard)/report/[slug]/pdf";
 import BookingPage from "./pages/(dashboard)/booking/page";
+import EventsPage from "./pages/(dashboard)/event/page";
 import { AdminLayout } from "./pages/(dashboard)/_layouts";
 
 function PlansRedirect() {
@@ -84,11 +85,14 @@ function AppContent() {
           <Route path="/admin/report/:slug/pdf" element={<DashboardReportPdf />} />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/admin/booking" element={<BookingPage />} />
+          <Route path="/event" element={<EventsPage />} />
+          <Route path="/admin/event" element={<EventsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/admin/notifications" element={<NotificationsPage />} />
           {/* Direct other unbuilt sub-routes back to / */}
           <Route path="/admin/*" element={<Navigate to="/" replace />} />
           <Route path="/booking/*" element={<Navigate to="/booking" replace />} />
+          <Route path="/event/*" element={<Navigate to="/event" replace />} />
           <Route path="/report/*" element={<Navigate to="/report" replace />} />
         </Route>
 
@@ -132,11 +136,14 @@ function AppContent() {
         <Route path="/admin/report/:slug/pdf" element={<DashboardReportPdf />} />
         <Route path="/booking" element={<BookingPage />} />
         <Route path="/admin/booking" element={<BookingPage />} />
+        <Route path="/event" element={<EventsPage />} />
+        <Route path="/admin/event" element={<EventsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admin/notifications" element={<NotificationsPage />} />
         {/* Direct other unbuilt sub-routes back to / */}
         <Route path="/admin/*" element={<Navigate to="/" replace />} />
         <Route path="/booking/*" element={<Navigate to="/booking" replace />} />
+        <Route path="/event/*" element={<Navigate to="/event" replace />} />
         <Route path="/report/*" element={<Navigate to="/report" replace />} />
       </Route>
 
