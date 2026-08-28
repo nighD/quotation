@@ -327,7 +327,13 @@ export const CourseSection: React.FC<CourseSectionProps> = ({ onSubmitRequest, s
         </div>
       )}
 
-      <CourseRegistrationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} course={selectedCourse} onSubmit={handleModalSubmit} />
+      <CourseRegistrationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        course={selectedCourse}
+        isRegistered={activeBookingType ? hasRequested(activeBookingType) : false}
+        onSubmit={handleModalSubmit}
+      />
     </div>
   );
 };

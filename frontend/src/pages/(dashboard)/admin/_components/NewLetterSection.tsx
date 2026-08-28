@@ -44,7 +44,6 @@ export interface EventSectionProps {
 export const EventSection: React.FC<EventSectionProps> = ({
   title = "New Letter",
   events: propEvents,
-  onDeleteAll,
   onJoin,
   joiningEventId: propJoiningId,
   joinedEventIds: propJoinedIds,
@@ -53,7 +52,6 @@ export const EventSection: React.FC<EventSectionProps> = ({
   const [loading, setLoading] = useState(false);
   const [internalJoiningId, setInternalJoiningId] = useState<string | null>(null);
   const [internalJoinedIds, setInternalJoinedIds] = useState<string[]>([]);
-  const [isDeleted, setIsDeleted] = useState(false);
 
   // Fetch newsletters / events from CMS
   useEffect(() => {
@@ -167,27 +165,8 @@ export const EventSection: React.FC<EventSectionProps> = ({
     }
   };
 
-  const handleDelete = () => {
-    setIsDeleted(true);
-    if (onDeleteAll) {
-      onDeleteAll();
-    }
-  };
-
-  if (isDeleted) {
-    return null;
-  }
-
   return (
     <div className="bg-white rounded-3xl sm:rounded-[28px] p-4 sm:p-6 md:p-7 shadow-sm border border-[#EBE1D5] relative">
-      <button
-        type="button"
-        onClick={handleDelete}
-        className="absolute top-5 right-5 sm:top-6 sm:right-6 font-['Inter']! text-[11px] font-medium text-[#6C5345] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 cursor-pointer"
-      >
-        XOÁ
-      </button>
-
       <h2 className="text-center font-['Cormorant_Garamond']! text-[24px] sm:text-[28px] md:text-[30px] font-semibold! text-[#1B1A16] mb-4 sm:mb-5 tracking-tight">
         {title}
       </h2>
@@ -252,4 +231,3 @@ export const EventSection: React.FC<EventSectionProps> = ({
 };
 
 export const NewLetterSection = EventSection;
-

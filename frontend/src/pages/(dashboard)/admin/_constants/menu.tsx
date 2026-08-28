@@ -1,4 +1,4 @@
-import { Home, FileText, CalendarDays, Calendar } from "lucide-react";
+import { Home, FileText, Calendar } from "lucide-react";
 
 export interface MenuItem {
   id: string;
@@ -23,13 +23,6 @@ export const mainMenuItems: MenuItem[] = [
     path: "/report",
     iconName: "/admin/icon/icon-report.png",
     lucideIcon: FileText,
-  },
-  {
-    id: "event",
-    label: "Event",
-    path: "/event",
-    iconName: "/admin/icon/icon-event.png",
-    lucideIcon: CalendarDays,
   },
   {
     id: "booking",

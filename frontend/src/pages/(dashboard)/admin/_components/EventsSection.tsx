@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../../../api/client";
 import { CourseRegistrationModal, type CourseDetailInfo } from "../../../../components/CourseRegistrationModal";
 
@@ -20,7 +19,6 @@ export interface ClubCardItem {
 }
 
 export const EventsSection: React.FC = () => {
-  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -214,15 +212,6 @@ export const EventsSection: React.FC = () => {
             Sự kiện
           </span>
         </div>
-
-        <button
-          type="button"
-          onClick={() => navigate("/event")}
-          className="relative group font-['Inter']! text-[11px] font-medium! text-[#664E48] uppercase tracking-wider hover:text-stone-900 transition-colors duration-200 pb-0.5 inline-block cursor-pointer"
-        >
-          <span>XEM TẤT CẢ</span>
-          <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-[#664E48] transition-all duration-300 ease-out group-hover:w-full" />
-        </button>
       </div>
 
       {loading ? (

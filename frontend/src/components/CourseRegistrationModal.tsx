@@ -214,11 +214,11 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
 
         <button
           type="button"
-          onClick={handleEventRegister}
-          disabled={submitting}
+          onClick={isRegistered ? undefined : handleEventRegister}
+          disabled={submitting || isRegistered}
           className={`${
-            isRegistered ? "bg-[#2D7A46] hover:bg-[#236338]" : "bg-[#B08461] hover:bg-[#9e7553]"
-          } disabled:opacity-60 text-white text-[11.5px] sm:text-[12px] font-['Inter']! font-medium px-5 sm:px-6 py-2.5 rounded-xl uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2`}
+            isRegistered ? "bg-[#2D7A46] cursor-default opacity-90" : "bg-[#B08461] hover:bg-[#9e7553] cursor-pointer active:scale-95"
+          } text-white text-[11.5px] sm:text-[12px] font-['Inter']! font-medium px-5 sm:px-6 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2`}
         >
           {submitting ? (
             <>
@@ -245,15 +245,19 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
 
       <button
         type="button"
-        onClick={() => handleSubmit()}
-        disabled={submitting}
-        className="bg-[#B08461] hover:bg-[#9e7553] disabled:opacity-60 text-white text-[11.5px] sm:text-[12px] font-['Inter']! font-medium px-5 sm:px-6 py-2.5 rounded-xl uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+        onClick={isRegistered ? undefined : () => handleSubmit()}
+        disabled={submitting || isRegistered}
+        className={`${
+          isRegistered ? "bg-[#2D7A46] cursor-default opacity-90" : "bg-[#B08461] hover:bg-[#9e7553] cursor-pointer active:scale-95"
+        } text-white text-[11.5px] sm:text-[12px] font-['Inter']! font-medium px-5 sm:px-6 py-2.5 rounded-xl uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2`}
       >
         {submitting ? (
           <>
             <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             <span>Đang xử lý...</span>
           </>
+        ) : isRegistered ? (
+          <span>ĐÃ ĐĂNG KÝ ✓</span>
         ) : (
           <span>ĐĂNG KÝ NGAY</span>
         )}
@@ -359,12 +363,10 @@ export const CourseRegistrationModal: React.FC<CourseRegistrationModalProps> = (
           </div>
         )}
 
-        {/* Error Feedback */}
         {errorMessage && (
           <div className="rounded-2xl px-4 py-3 text-[12px] font-['Inter']! bg-[#F8E4DD] text-[#9A4D3A] border border-[#F2CDC3]">{errorMessage}</div>
         )}
 
-        {/* Success State */}
         {isSuccess ? (
           <div className="py-6 sm:py-8 flex flex-col items-center justify-center text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-[#E3EDE5] text-[#2D7A46] flex items-center justify-center">
