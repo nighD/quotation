@@ -70,13 +70,16 @@ func main() {
 	}
 
 	// ── Database Auto-Migration ───────────────────────────────
-	if err := database.AutoMigrate(db, &users.User{}, &cms.Article{}, &cms.Category{}, &cms.CourseRegistration{}, &cms.Course{}, &cms.Event{}, &engagement.NewsletterSubscription{}, &engagement.EventRegistration{}, &engagement.BookingRequest{}, &engagement.UpgradeRequest{}, &engagement.UserCard{}); err != nil {
+	if err := database.AutoMigrate(db, &users.User{}, &cms.Article{}, &cms.Category{}, &cms.CourseRegistration{}, &cms.Course{}, &cms.Event{}, &cms.Newsletter{}, &engagement.NewsletterSubscription{}, &engagement.EventRegistration{}, &engagement.NewsletterRegistration{}, &engagement.BookingRequest{}, &engagement.UpgradeRequest{}, &engagement.UserCard{}); err != nil {
 		logger.Warn("Database auto-migration failed", zap.Error(err))
 	}
 
 	// ── Database Seeding ──────────────────────────────────────
 	if err := database.SeedSubscriptionPlans(db); err != nil {
 		logger.Warn("Subscription plans seeding failed", zap.Error(err))
+	}
+	if err := database.SeedNewsletters(db); err != nil {
+		logger.Warn("Newsletters seeding failed", zap.Error(err))
 	}
 
 	// ── Fiber app ─────────────────────────────────────────────

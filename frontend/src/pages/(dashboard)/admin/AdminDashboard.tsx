@@ -33,10 +33,9 @@ export function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [statsResponse, bookingResponse, eventResponse] = await Promise.all([
+        const [statsResponse, bookingResponse] = await Promise.all([
           apiClient.get("/admin/dashboard"),
           apiClient.get("/engagement/booking-requests/me"),
-          apiClient.get("/engagement/events/register"),
         ]);
 
         if (statsResponse.data.success) {
@@ -50,12 +49,19 @@ export function AdminDashboard() {
           setRequestedBookingTypes(Array.from(new Set(bookingTypes)));
         }
 
-        if (eventResponse.data.success && Array.isArray(eventResponse.data.data)) {
-          const eventIds = eventResponse.data.data
-            .map((item: { event_id?: string }) => item.event_id)
-            .filter((eventID: string | undefined): eventID is string => Boolean(eventID));
-          setJoinedEventIds(Array.from(new Set(eventIds)));
+        let regEventIds: string[] = [];
+        try {
+          const regRes = await apiClient.get("/engagement/newsletters/my-registrations");
+          const list = Array.isArray(regRes.data?.data) ? regRes.data.data : Array.isArray(regRes.data) ? regRes.data : [];
+          regEventIds = list.map((item: any) => item.newsletter_id || item.event_id || item.id).filter(Boolean);
+        } catch (_err) {
+          try {
+            const eventRes = await apiClient.get("/engagement/events/register");
+            const list = Array.isArray(eventRes.data?.data) ? eventRes.data.data : Array.isArray(eventRes.data) ? eventRes.data : [];
+            regEventIds = list.map((item: any) => item.event_id || item.id).filter(Boolean);
+          } catch (_e) {}
         }
+        setJoinedEventIds(Array.from(new Set(regEventIds)));
       } catch (_err: any) {
         setError("Failed to load dashboard metrics.");
       } finally {
@@ -69,6 +75,22 @@ export function AdminDashboard() {
     setJoiningEventId(event.id);
 
     try {
+      try {
+        const { data } = await apiClient.post("/engagement/newsletters/register", {
+          newsletter_id: event.id,
+          newsletter_title: event.title,
+          newsletter_date: event.date,
+          location: event.location,
+          note: "",
+        });
+        if (data.success) {
+          setJoinedEventIds((prev) => (prev.includes(event.id) ? prev : [...prev, event.id]));
+          return;
+        }
+      } catch (_err) {
+        // Fallback to /engagement/events/register
+      }
+
       const { data } = await apiClient.post("/engagement/events/register", {
         event_id: event.id,
         event_title: event.title,

@@ -27,6 +27,8 @@ export interface EventItemData {
   title: string;
   date: string;
   location: string;
+  description?: string;
+  image?: string;
 }
 
 export interface EventSectionProps {
@@ -43,51 +45,125 @@ export const EventSection: React.FC<EventSectionProps> = ({
   title = "New Letter",
   events: propEvents,
   onDeleteAll,
-  onRemind,
   onJoin,
-  joiningEventId,
-  joinedEventIds = [],
+  joiningEventId: propJoiningId,
+  joinedEventIds: propJoinedIds,
 }) => {
   const [internalEvents, setInternalEvents] = useState<EventItemData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [remindedIds, setRemindedIds] = useState<string[]>([]);
+  const [internalJoiningId, setInternalJoiningId] = useState<string | null>(null);
+  const [internalJoinedIds, setInternalJoinedIds] = useState<string[]>([]);
   const [isDeleted, setIsDeleted] = useState(false);
 
+  // Fetch newsletters / events from CMS
   useEffect(() => {
     if (propEvents && propEvents.length > 0) {
       setInternalEvents(propEvents);
       return;
     }
 
-    const fetchEvents = async () => {
+    const fetchNewsletterData = async () => {
       setLoading(true);
       try {
-        const { data } = await apiClient.get("/cms/events");
-        if (data.success && Array.isArray(data.data)) {
-          const mapped: EventItemData[] = data.data.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            date: item.date || "Sắp diễn ra",
-            location: item.location || "HCMC, Viet Nam",
-          }));
-          setInternalEvents(mapped);
+        let loadedItems: EventItemData[] = [];
+
+        // Fetch newsletters from /cms/newsletters
+        try {
+          const res = await apiClient.get("/cms/newsletters");
+          const dataList = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+          if (dataList.length > 0) {
+            loadedItems = dataList.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              date: item.date || "Sắp diễn ra",
+              location: item.location || "HCMC, Viet Nam",
+              description: item.description,
+              image: item.image,
+            }));
+          }
+        } catch (_err) {
+          // Fallback to /cms/events if needed
+        }
+
+        if (loadedItems.length === 0) {
+          try {
+            const { data } = await apiClient.get("/cms/events");
+            const dataList = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+            if (dataList.length > 0) {
+              loadedItems = dataList.map((item: any) => ({
+                id: item.id,
+                title: item.title,
+                date: item.date || "Sắp diễn ra",
+                location: item.location || "HCMC, Viet Nam",
+                description: item.description,
+                image: item.image,
+              }));
+            }
+          } catch (_err) {}
+        }
+
+        setInternalEvents(loadedItems);
+
+        // Fetch user's registered newsletter IDs if not provided via props
+        if (!propJoinedIds) {
+          try {
+            const regRes = await apiClient.get("/engagement/newsletters/my-registrations");
+            const regList = Array.isArray(regRes.data?.data) ? regRes.data.data : Array.isArray(regRes.data) ? regRes.data : [];
+            const ids = regList.map((r: any) => r.newsletter_id || r.event_id || r.id).filter(Boolean);
+            setInternalJoinedIds(ids);
+          } catch (_err) {
+            try {
+              const eventRegRes = await apiClient.get("/engagement/events/register");
+              const regList = Array.isArray(eventRegRes.data?.data) ? eventRegRes.data.data : Array.isArray(eventRegRes.data) ? eventRegRes.data : [];
+              const ids = regList.map((r: any) => r.event_id || r.id).filter(Boolean);
+              setInternalJoinedIds(ids);
+            } catch (_e) {}
+          }
         }
       } catch (err) {
-        console.error("Failed to load events for NewLetterSection:", err);
+        console.error("Failed to load newsletter items:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
-  }, [propEvents]);
+    fetchNewsletterData();
+  }, [propEvents, propJoinedIds]);
 
   const activeEvents = propEvents ?? internalEvents;
+  const joinedEventIds = propJoinedIds ?? internalJoinedIds;
+  const joiningEventId = propJoiningId ?? internalJoiningId;
 
-  const handleRemind = (event: EventItemData) => {
-    setRemindedIds((prev) => (prev.includes(event.id) ? prev : [...prev, event.id]));
-    if (onRemind) {
-      onRemind(event);
+  const handleJoin = async (event: EventItemData) => {
+    if (onJoin) {
+      onJoin(event);
+      return;
+    }
+
+    setInternalJoiningId(event.id);
+    try {
+      try {
+        await apiClient.post("/engagement/newsletters/register", {
+          newsletter_id: event.id,
+          newsletter_title: event.title,
+          newsletter_date: event.date,
+          location: event.location,
+          note: "",
+        });
+      } catch (_err) {
+        await apiClient.post("/engagement/events/register", {
+          event_id: event.id,
+          event_title: event.title,
+          event_date: event.date,
+          location: event.location,
+        });
+      }
+
+      setInternalJoinedIds((prev) => (prev.includes(event.id) ? prev : [...prev, event.id]));
+    } catch (err) {
+      console.error("Failed to register newsletter item:", err);
+    } finally {
+      setInternalJoiningId(null);
     }
   };
 
@@ -131,7 +207,6 @@ export const EventSection: React.FC<EventSectionProps> = ({
           {activeEvents.map((event, index) => {
             const isJoining = joiningEventId === event.id;
             const isJoined = joinedEventIds.includes(event.id);
-            const isReminded = remindedIds.includes(event.id);
 
             return (
               <motion.div
@@ -158,22 +233,13 @@ export const EventSection: React.FC<EventSectionProps> = ({
                 <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 self-start sm:self-center">
                   <button
                     type="button"
-                    onClick={() => handleRemind(event)}
-                    className={`${
-                      isReminded ? "bg-[#D9C8BA] text-[#3C2A25] font-semibold" : "bg-[#E8D9CC] text-[#6C5345]"
-                    } text-[10px] sm:text-[11px] font-['Inter']! font-medium px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-[#dfcebf] transition uppercase tracking-wider cursor-pointer active:scale-95`}
-                  >
-                    {isReminded ? "ĐÃ NHẮC ✓" : "NHẮC TÔI"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onJoin?.(event)}
+                    onClick={() => handleJoin(event)}
                     disabled={isJoining || isJoined}
                     className={`text-white text-[10px] sm:text-[11px] font-['Inter']! font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition uppercase tracking-wider cursor-pointer active:scale-95 ${
                       isJoined ? "bg-[#2D7A46] cursor-default font-semibold" : isJoining ? "bg-[#9E7C62] cursor-wait" : "bg-[#B08461] hover:bg-[#9e7553]"
                     }`}
                   >
-                    {isJoined ? "ĐÃ ĐĂNG KÝ ✓" : isJoining ? "ĐANG XỬ LÝ..." : "THAM GIA"}
+                    {isJoined ? "ĐÃ ĐĂNG KÝ ✓" : isJoining ? "ĐANG XỬ LÝ..." : "ĐĂNG KÝ"}
                   </button>
                 </div>
               </motion.div>
@@ -184,3 +250,6 @@ export const EventSection: React.FC<EventSectionProps> = ({
     </div>
   );
 };
+
+export const NewLetterSection = EventSection;
+

@@ -47,4 +47,11 @@ func RegisterRoutes(router fiber.Router, handler *Handler, jwtSecret string) {
 	// Events
 	events := cms.Group("/events")
 	events.Get("/", handler.ListEvents)
+
+	// Newsletters
+	newsletters := cms.Group("/newsletters")
+	newsletters.Get("/", handler.ListNewsletters)
+	newsletters.Post("/", authMW, editorMW, handler.CreateNewsletter)
+	newsletters.Put("/:id", authMW, editorMW, handler.UpdateNewsletter)
+	newsletters.Delete("/:id", authMW, middleware.RequireAdmin(), handler.DeleteNewsletter)
 }

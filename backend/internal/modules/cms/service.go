@@ -356,3 +356,79 @@ func (s *Service) ListEvents(page, pageSize int, status string) ([]*EventRespons
 	return result, total, nil
 }
 
+// ─── Newsletter operations ────────────────────────────────────
+
+func (s *Service) ListNewsletters(page, pageSize int, status string) ([]*NewsletterResponse, int64, error) {
+	offset := (page - 1) * pageSize
+	newsletters, total, err := s.repo.FindAllNewsletters(offset, pageSize, status)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var result []*NewsletterResponse
+	for i := range newsletters {
+		result = append(result, toNewsletterResponse(&newsletters[i]))
+	}
+
+	return result, total, nil
+}
+
+func (s *Service) CreateNewsletter(req *CreateNewsletterRequest) (*NewsletterResponse, error) {
+	status := "active"
+	if req.Status != "" {
+		status = req.Status
+	}
+
+	n := &Newsletter{
+		Title:       req.Title,
+		Description: req.Description,
+		Date:        req.Date,
+		Location:    req.Location,
+		Image:       req.Image,
+		Status:      status,
+		OrderIndex:  req.OrderIndex,
+	}
+
+	if err := s.repo.CreateNewsletter(n); err != nil {
+		return nil, err
+	}
+
+	return toNewsletterResponse(n), nil
+}
+
+func (s *Service) UpdateNewsletter(id string, req *UpdateNewsletterRequest) (*NewsletterResponse, error) {
+	updates := map[string]interface{}{}
+	if req.Title != "" {
+		updates["title"] = req.Title
+	}
+	if req.Description != "" {
+		updates["description"] = req.Description
+	}
+	if req.Date != "" {
+		updates["date"] = req.Date
+	}
+	if req.Location != "" {
+		updates["location"] = req.Location
+	}
+	if req.Image != "" {
+		updates["image"] = req.Image
+	}
+	if req.Status != "" {
+		updates["status"] = req.Status
+	}
+	if req.OrderIndex != 0 {
+		updates["order_index"] = req.OrderIndex
+	}
+
+	n, err := s.repo.UpdateNewsletter(id, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	return toNewsletterResponse(n), nil
+}
+
+func (s *Service) DeleteNewsletter(id string) error {
+	return s.repo.DeleteNewsletter(id)
+}
+

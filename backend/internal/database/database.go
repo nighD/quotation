@@ -220,3 +220,41 @@ func SeedSubscriptionPlans(db *gorm.DB) error {
 	log.Println("✅ Subscription plans successfully seeded")
 	return nil
 }
+
+// SeedNewsletters ensures that the newsletters table contains initial sample items.
+func SeedNewsletters(db *gorm.DB) error {
+	var count int64
+	if err := db.Table("newsletters").Count(&count).Error; err != nil {
+		return nil
+	}
+	if count > 0 {
+		return nil
+	}
+
+	newsletters := []map[string]interface{}{
+		{
+			"title":       "On-Chain RWA Summit 2026 — Gala Dinner & Investor Meetup",
+			"description": "Gặp gỡ các nhà đầu tư và chuyên gia hàng đầu về Real World Assets (RWA) và Web3 Infrastructure.",
+			"date":        "14 - 15 AUGUST 2026 / 18:30 - 21:30",
+			"location":    "GEM CENTER, TP. HỒ CHÍ MINH",
+			"status":      "active",
+			"order_index": 1,
+		},
+		{
+			"title":       "Recap các hoạt động nổi bật tại SURF Đà Nẵng",
+			"description": "Tổng kết các phiên thảo luận chiến lược, kết nối nguồn vốn và chuyển đổi số cho doanh nghiệp xuất khẩu.",
+			"date":        "SUN 17 MAY 15:29",
+			"location":    "DA NANG INNOVATION HUB, TP. ĐÀ NẴNG",
+			"status":      "active",
+			"order_index": 2,
+		},
+	}
+
+	for _, item := range newsletters {
+		if err := db.Table("newsletters").Create(item).Error; err != nil {
+			log.Printf("⚠️ Failed to seed newsletter: %v\n", err)
+		}
+	}
+	log.Println("✅ Newsletters successfully seeded")
+	return nil
+}

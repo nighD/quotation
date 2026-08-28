@@ -60,6 +60,61 @@ func (h *Handler) ListMyEventRegistrations(c *fiber.Ctx) error {
 	return response.OK(c, items, "")
 }
 
+// ─── Newsletters ──────────────────────────────────────────────
+
+func (h *Handler) RegisterNewsletter(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	var req RegisterNewsletterRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	item, err := h.service.RegisterNewsletter(userID, &req)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+	return response.OK(c, item, "Newsletter registration saved")
+}
+
+func (h *Handler) ListMyNewsletterRegistrations(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+	items, err := h.service.ListMyNewsletterRegistrations(userID)
+	if err != nil {
+		return response.InternalError(c, err.Error())
+	}
+	return response.OK(c, items, "")
+}
+
+func (h *Handler) ListNewsletterRegistrations(c *fiber.Ctx) error {
+	items, err := h.service.ListNewsletterRegistrations()
+	if err != nil {
+		return response.InternalError(c, err.Error())
+	}
+	return response.OK(c, items, "")
+}
+
+func (h *Handler) ReviewNewsletterRegistration(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req ReviewNewsletterRegistrationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	item, err := h.service.ReviewNewsletterRegistration(id, &req)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), nil)
+	}
+	return response.OK(c, item, "Newsletter registration updated")
+}
+
 func (h *Handler) SubmitBookingRequest(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 

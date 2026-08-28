@@ -64,14 +64,41 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchRegistrations = async () => {
       try {
-        const { data } = await apiClient.get("/engagement/events/register");
-        if (data.success && Array.isArray(data.data)) {
-          setRegistrations(data.data.map((item: EventRegistrationResponse) => mapEventRegistration(item)));
-        } else {
-          setRegistrations([]);
-        }
+        let allItems: any[] = [];
+        try {
+          const nlRes = await apiClient.get("/engagement/newsletters/my-registrations");
+          const list = Array.isArray(nlRes.data?.data) ? nlRes.data.data : Array.isArray(nlRes.data) ? nlRes.data : [];
+          allItems = [
+            ...allItems,
+            ...list.map((item: any) => ({
+              id: item.id,
+              user_id: item.user_id,
+              email: item.email,
+              full_name: item.full_name,
+              event_id: item.newsletter_id || item.id,
+              event_title: item.newsletter_title || item.title || "Bản tin",
+              event_date: item.newsletter_date || item.date || "Sắp diễn ra",
+              location: item.location || "HCMC, Viet Nam",
+              status: item.status || "pending",
+              notes: item.note || "--",
+              created_at: item.created_at,
+              updated_at: item.updated_at,
+            })),
+          ];
+        } catch (_err) {}
+
+        try {
+          const evRes = await apiClient.get("/engagement/events/register");
+          const list = Array.isArray(evRes.data?.data) ? evRes.data.data : Array.isArray(evRes.data) ? evRes.data : [];
+          allItems = [...allItems, ...list];
+        } catch (_err) {}
+
+        // Sort descending by created_at
+        allItems.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+        setRegistrations(allItems.map((item: EventRegistrationResponse) => mapEventRegistration(item)));
       } catch (fetchError: any) {
-        setError(fetchError.response?.data?.message || "Không thể tải lịch sử đăng ký sự kiện.");
+        setError(fetchError.response?.data?.message || "Không thể tải lịch sử đăng ký.");
       } finally {
         setLoading(false);
       }

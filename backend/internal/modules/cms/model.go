@@ -102,6 +102,21 @@ type Event struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// Newsletter is the GORM model for the newsletters table.
+type Newsletter struct {
+	ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Title       string         `gorm:"type:varchar(500);not null" json:"title"`
+	Description string         `gorm:"type:text" json:"description"`
+	Date        string         `gorm:"type:varchar(100);not null" json:"date"`
+	Location    string         `gorm:"type:varchar(255);not null" json:"location"`
+	Image       string         `gorm:"type:text" json:"image"`
+	Status      string         `gorm:"type:varchar(50);default:'active'" json:"status"`
+	OrderIndex  int            `gorm:"default:0" json:"order_index"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
 // ─── Request DTOs ─────────────────────────────────────────────
 
 type CreateArticleRequest struct {
@@ -362,6 +377,56 @@ func toEventResponse(e *Event) *EventResponse {
 		OrderIndex:  e.OrderIndex,
 		CreatedAt:   e.CreatedAt,
 		UpdatedAt:   e.UpdatedAt,
+	}
+}
+
+// ─── Newsletter DTOs ──────────────────────────────────────────
+
+type CreateNewsletterRequest struct {
+	Title       string `json:"title" validate:"required,min=2,max=500"`
+	Description string `json:"description"`
+	Date        string `json:"date" validate:"required,max=100"`
+	Location    string `json:"location" validate:"required,max=255"`
+	Image       string `json:"image"`
+	Status      string `json:"status" validate:"omitempty,oneof=active inactive"`
+	OrderIndex  int    `json:"order_index"`
+}
+
+type UpdateNewsletterRequest struct {
+	Title       string `json:"title" validate:"omitempty,min=2,max=500"`
+	Description string `json:"description"`
+	Date        string `json:"date" validate:"omitempty,max=100"`
+	Location    string `json:"location" validate:"omitempty,max=255"`
+	Image       string `json:"image"`
+	Status      string `json:"status" validate:"omitempty,oneof=active inactive"`
+	OrderIndex  int    `json:"order_index"`
+}
+
+type NewsletterResponse struct {
+	ID          string    `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Date        string    `json:"date"`
+	Location    string    `json:"location"`
+	Image       string    `json:"image"`
+	Status      string    `json:"status"`
+	OrderIndex  int       `json:"order_index"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func toNewsletterResponse(n *Newsletter) *NewsletterResponse {
+	return &NewsletterResponse{
+		ID:          n.ID.String(),
+		Title:       n.Title,
+		Description: n.Description,
+		Date:        n.Date,
+		Location:    n.Location,
+		Image:       n.Image,
+		Status:      n.Status,
+		OrderIndex:  n.OrderIndex,
+		CreatedAt:   n.CreatedAt,
+		UpdatedAt:   n.UpdatedAt,
 	}
 }
 

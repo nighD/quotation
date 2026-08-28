@@ -189,3 +189,55 @@ func (r *Repository) FindAllEvents(offset, limit int, status string) ([]Event, i
 	}
 	return events, total, nil
 }
+
+// ─── Newsletter operations ────────────────────────────────────
+
+func (r *Repository) FindAllNewsletters(offset, limit int, status string) ([]Newsletter, int64, error) {
+	var newsletters []Newsletter
+	var total int64
+
+	query := r.db.Model(&Newsletter{})
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	query.Count(&total)
+	if err := query.Offset(offset).Limit(limit).Order("order_index ASC, created_at DESC").Find(&newsletters).Error; err != nil {
+		return nil, 0, err
+	}
+	return newsletters, total, nil
+}
+
+func (r *Repository) FindNewsletterByID(id string) (*Newsletter, error) {
+	var n Newsletter
+	if err := r.db.First(&n, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &n, nil
+}
+
+func (r *Repository) CreateNewsletter(n *Newsletter) error {
+	return r.db.Create(n).Error
+}
+
+func (r *Repository) UpdateNewsletter(id string, updates map[string]interface{}) (*Newsletter, error) {
+	var n Newsletter
+	if err := r.db.First(&n, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	if err := r.db.Model(&n).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+	return &n, nil
+}
+
+func (r *Repository) DeleteNewsletter(id string) error {
+	result := r.db.Delete(&Newsletter{}, "id = ?", id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("newsletter not found")
+	}
+	return nil
+}

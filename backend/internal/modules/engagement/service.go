@@ -139,6 +139,96 @@ func (s *Service) ListMyEventRegistrations(userID string) ([]EventRegistration, 
 	return items, nil
 }
 
+// ─── Newsletter Registrations ─────────────────────────────────
+
+func (s *Service) RegisterNewsletter(userID string, req *RegisterNewsletterRequest) (*NewsletterRegistration, error) {
+	user, err := s.getUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	nlID, err := uuid.Parse(req.NewsletterID)
+	if err != nil {
+		// Fallback uuid generation if passed slug or non-uuid
+		nlID = uuid.New()
+	}
+
+	var existing NewsletterRegistration
+	query := s.db.Where("user_id = ? AND (newsletter_id = ? OR newsletter_title = ?)", user.ID, nlID, req.NewsletterTitle)
+	if err := query.First(&existing).Error; err == nil {
+		updates := map[string]interface{}{
+			"newsletter_title": req.NewsletterTitle,
+			"newsletter_date":  req.NewsletterDate,
+			"location":         req.Location,
+			"note":             req.Note,
+			"status":           "pending",
+			"updated_at":       time.Now(),
+		}
+		if err := s.db.Model(&existing).Updates(updates).Error; err != nil {
+			return nil, fmt.Errorf("failed to update newsletter registration: %w", err)
+		}
+		if err := s.db.First(&existing, "id = ?", existing.ID).Error; err != nil {
+			return nil, fmt.Errorf("failed to reload newsletter registration: %w", err)
+		}
+		return &existing, nil
+	} else if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, fmt.Errorf("failed to query newsletter registration: %w", err)
+	}
+
+	item := &NewsletterRegistration{
+		NewsletterID:    nlID,
+		UserID:          &user.ID,
+		Email:           user.Email,
+		FullName:        user.FullName,
+		NewsletterTitle: req.NewsletterTitle,
+		NewsletterDate:  req.NewsletterDate,
+		Location:        req.Location,
+		Status:          "pending",
+		Note:            req.Note,
+	}
+	if err := s.db.Create(item).Error; err != nil {
+		return nil, fmt.Errorf("failed to create newsletter registration: %w", err)
+	}
+	return item, nil
+}
+
+func (s *Service) ListNewsletterRegistrations() ([]NewsletterRegistration, error) {
+	var items []NewsletterRegistration
+	if err := s.db.Order("created_at DESC").Find(&items).Error; err != nil {
+		return nil, fmt.Errorf("failed to list newsletter registrations: %w", err)
+	}
+	return items, nil
+}
+
+func (s *Service) ListMyNewsletterRegistrations(userID string) ([]NewsletterRegistration, error) {
+	var items []NewsletterRegistration
+	if err := s.db.Where("user_id = ?", userID).Order("created_at DESC").Find(&items).Error; err != nil {
+		return nil, fmt.Errorf("failed to list user newsletter registrations: %w", err)
+	}
+	return items, nil
+}
+
+func (s *Service) ReviewNewsletterRegistration(id string, req *ReviewNewsletterRegistrationRequest) (*NewsletterRegistration, error) {
+	var reg NewsletterRegistration
+	if err := s.db.First(&reg, "id = ?", id).Error; err != nil {
+		return nil, fmt.Errorf("newsletter registration not found: %w", err)
+	}
+
+	updates := map[string]interface{}{
+		"status":     req.Status,
+		"updated_at": time.Now(),
+	}
+	if req.Note != "" {
+		updates["note"] = req.Note
+	}
+
+	if err := s.db.Model(&reg).Updates(updates).Error; err != nil {
+		return nil, fmt.Errorf("failed to review newsletter registration: %w", err)
+	}
+
+	return &reg, nil
+}
+
 func (s *Service) SubmitBookingRequest(userID string, req *SubmitBookingRequestRequest) (*BookingRequest, error) {
 	user, err := s.getUser(userID)
 	if err != nil {

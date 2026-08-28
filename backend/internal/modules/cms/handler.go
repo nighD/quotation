@@ -494,3 +494,60 @@ func (h *Handler) ListEvents(c *fiber.Ctx) error {
 	return response.OKWithMeta(c, events, "", response.NewMeta(pg.Page, pg.PageSize, total))
 }
 
+// ─── Newsletters ──────────────────────────────────────────────
+
+func (h *Handler) ListNewsletters(c *fiber.Ctx) error {
+	pg := utils.ParsePagination(c)
+	status := c.Query("status", "")
+
+	newsletters, total, err := h.service.ListNewsletters(pg.Page, pg.PageSize, status)
+	if err != nil {
+		return response.InternalError(c, "Failed to fetch newsletters")
+	}
+
+	return response.OKWithMeta(c, newsletters, "", response.NewMeta(pg.Page, pg.PageSize, total))
+}
+
+func (h *Handler) CreateNewsletter(c *fiber.Ctx) error {
+	var req CreateNewsletterRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	n, err := h.service.CreateNewsletter(&req)
+	if err != nil {
+		return response.InternalError(c, err.Error())
+	}
+
+	return response.Created(c, n, "Newsletter created successfully")
+}
+
+func (h *Handler) UpdateNewsletter(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var req UpdateNewsletterRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", nil)
+	}
+	if errs := validator.Validate(&req); validator.HasErrors(errs) {
+		return response.BadRequest(c, "Validation failed", errs)
+	}
+
+	n, err := h.service.UpdateNewsletter(id, &req)
+	if err != nil {
+		return response.InternalError(c, err.Error())
+	}
+
+	return response.OK(c, n, "Newsletter updated successfully")
+}
+
+func (h *Handler) DeleteNewsletter(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := h.service.DeleteNewsletter(id); err != nil {
+		return response.InternalError(c, err.Error())
+	}
+	return response.OK(c, nil, "Newsletter deleted successfully")
+}
+
